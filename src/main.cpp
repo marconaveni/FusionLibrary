@@ -217,6 +217,13 @@ int main()
         glClearColor(0.1f, 0.4f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(100, HEIGHT - (100 + 200), 200, 200); // área de recorte
+        // ... desenhar aqui
+        glClearColor(0.6f, 0.4f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDisable(GL_SCISSOR_TEST);   // volta ao normal
+
 
         // create transformations         
         glm::mat4 model = glm::mat4(1.0f);
@@ -235,7 +242,6 @@ int main()
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-        int x = 
 
         u1 = -20.0f / width;
         v1 = 0.0f / height;
