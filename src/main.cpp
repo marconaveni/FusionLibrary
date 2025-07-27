@@ -14,6 +14,16 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+constexpr int WIDTH = 800; 
+constexpr int HEIGHT = 600; 
+
+
+struct Rectangle {
+    float x;
+    float y;
+    float width;
+    float height;
+};
 
 void processInput(GLFWwindow *window)
 {
@@ -31,6 +41,20 @@ void processInput(GLFWwindow *window)
     }
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, height - HEIGHT, WIDTH, HEIGHT);
+}
+
+
+void getOpenGLVersionInfo()
+{
+    std::cout << "Vendor " << glGetString(GL_VENDOR) << "\n";
+    std::cout << "Renderer " << glGetString(GL_RENDERER) << "\n";
+    std::cout << "Version " << glGetString(GL_VERSION) << "\n";
+    std::cout << "Shading Language " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n";
+}
+
 int main()
 {
     glfwInit();
@@ -38,7 +62,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "Engine", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Engine", NULL, NULL);
     if (!window)
     {
         std::cerr << "Erro ao criar janela\n";
@@ -52,6 +76,9 @@ int main()
         std::cerr << "Erro ao inicializar GLAD\n";
         return -1;
     }
+
+    getOpenGLVersionInfo();
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // ====== Shader program ======
     Shader ourShader("../shaders/shader.vs","../shaders/shader.fs");
@@ -116,7 +143,7 @@ int main()
     int width, height, nrChannels;
     //stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
 
-    unsigned char *data = stbi_load("../wall.jpg", &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load("../test.png", &width, &height, &nrChannels, 0);
     if (data)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -129,6 +156,36 @@ int main()
     stbi_image_free(data);
 
 
+    // load and create a texture 
+    // -------------------------
+    unsigned int texture2;
+    // texture 2
+    // ---------
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2); 
+     // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // load image, create texture and generate mipmaps
+    int width2, height2, nrChannels2;
+    //stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
+
+    unsigned char *data2 = stbi_load("../wall.jpg", &width2, &height2, &nrChannels2, 0);
+    if (data2)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width2, height2, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
+        //glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data2);
+
+
 
 
     // Desvincular VBO (mas não EBO!)
@@ -136,9 +193,21 @@ int main()
     glBindVertexArray(0);
 
 
-    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 600.0f, 0.0f); // tela 800x600
+    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT), 0.0f); // tela 800x600
     glm::mat4 view = glm::mat4(1.0f); // câmera fixa
 
+
+    unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+    unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+    unsigned int projLoc = glGetUniformLocation(ourShader.ID, "projection");
+    unsigned int uvLoc  = glGetUniformLocation(ourShader.ID, "uvRegion");
+
+    Rectangle position1{0.0f, 0.0f, 100.0f, 100.0f}, position2{400.0f, 300.0f, 100.0f, 100.0f};
+
+    float u1 = 0.0f;
+    float v1 = 0.0f;
+    float u2 = 0.0f;
+    float v2 = 0.0f;
 
     // Loop principal
     while (!glfwWindowShouldClose(window))
@@ -149,36 +218,47 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
 
-        glBindTexture(GL_TEXTURE_2D, texture);
-
-
-        // create transformations
+        // create transformations         
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(100.0f, 100.0f, 0.0f)); // centro da tela
-        model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));     // escala pra caber
-
-
-       //transform = glm::translate(transform, glm::vec3(0.5f, 0.0f, 0.0f)); // mover 0.5 pra direita
-
-       // float timeValue = glfwGetTime();
-        //float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-        //int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-        //glUseProgram(shaderProgram);
-        //glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
+        model = glm::translate(model, glm::vec3(position1.x + position1.width / 2, position1.y + position1.height / 2, 0.0f)); 
+        model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));     
+        
+        
+        
+        glm::mat4 model2 = glm::mat4(1.0f);
+        model2 = glm::translate(model2, glm::vec3(position2.x + position2.width / 2, position2.y + position2.height / 2, 0.0f));  
+        model2 = glm::scale(model2, glm::vec3(100.0f, 100.0f, 1.0f));     
+        
         ourShader.use();
-
-        unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-        unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
-        unsigned int projLoc = glGetUniformLocation(ourShader.ID, "projection");
-
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        
+          
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
+        int x = 
+
+        u1 = -20.0f / width;
+        v1 = 0.0f / height;
+        u2 = (100.0f + -20.0f) / width;
+        v2 = 100.0f / height;
+        glBindTexture(GL_TEXTURE_2D, texture);
         glBindVertexArray(VAO);
-        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniform4f(uvLoc, u1, v1, u2, v2);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // <-- aqui usamos o EBO
+        
+
+        u1 = 0.0f / width2;
+        v1 = 0.0f / height2;
+        u2 = 100.0f / width2;
+        v2 = 100.0f / height2;
+        
+        glBindTexture(GL_TEXTURE_2D, texture2);
+        glBindVertexArray(VAO);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
+        glUniform4f(uvLoc, u1, v1, u2, v2);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // <-- aqui usamos o EBO
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
