@@ -14,6 +14,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+
 constexpr int WIDTH = 800; 
 constexpr int HEIGHT = 600; 
 
@@ -55,6 +58,57 @@ void getOpenGLVersionInfo()
     std::cout << "Shading Language " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n";
 }
 
+void DrawTexturePro()
+{
+
+}
+
+void RenderText(stbtt_bakedchar* cdata, Shader& shader, const std::string& text, float x, float y, GLuint fontTex, float scale, glm::mat4& projection, GLuint textVAO, GLuint textVBO)
+{
+    shader.use();
+    glBindTexture(GL_TEXTURE_2D, fontTex);
+
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+    glBindVertexArray(textVAO);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float xpos = x;
+    float ypos = y;
+
+    for (char c : text)
+    {
+        if (c < 32 || c >= 128) continue;
+
+        stbtt_aligned_quad q;
+        stbtt_GetBakedQuad(cdata, 512, 512, c - 32, &xpos, &ypos, &q, 1);
+
+        float vertices[6][4] = {
+            { q.x0, q.y0, q.s0, q.t0 },
+            { q.x1, q.y0, q.s1, q.t0 },
+            { q.x1, q.y1, q.s1, q.t1 },
+
+            { q.x0, q.y0, q.s0, q.t0 },
+            { q.x1, q.y1, q.s1, q.t1 },
+            { q.x0, q.y1, q.s0, q.t1 }
+        };
+
+        glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_BLEND);
+    glUseProgram(0);
+}
+
+
+
 int main()
 {
     glfwInit();
@@ -80,8 +134,39 @@ int main()
     getOpenGLVersionInfo();
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+
+
+
+    //======================font load====================================
+
+    unsigned int fontTexture;
+    unsigned char ttf_buffer[1 << 20]; // 1MB de buffer pra fonte
+    unsigned char bitmap[512 * 512];   // espaço pra gerar os caracteres
+    stbtt_bakedchar cdata[96];         // de ' ' até '~'
+
+    // Lê o arquivo da fonte
+    FILE *fontFile = fopen("../roboto.ttf", "rb");
+    fread(ttf_buffer, 1, 1 << 20, fontFile);
+    fclose(fontFile);
+
+    // Gera o bitmap com os caracteres (ASCII de 32 a 128)
+    stbtt_BakeFontBitmap(ttf_buffer, 0, 32.0f, bitmap, 512, 512, 32, 96, cdata);
+
+    // Cria a textura OpenGL
+    glGenTextures(1, &fontTexture);
+    glBindTexture(GL_TEXTURE_2D, fontTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+    //==============================================================
+
+
+
     // ====== Shader program ======
     Shader ourShader("../shaders/shader.vs","../shaders/shader.fs");
+    Shader textShader("../shaders/text.vs","../shaders/text.fs");
 
     // ====== Dados do triângulo + índices ======
     float vertices[] = {
@@ -123,6 +208,32 @@ int main()
     // texture coord attribute
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
+
+
+
+
+
+
+    unsigned int textVAO, textVBO;
+    glGenVertexArrays(1, &textVAO);
+    glGenBuffers(1, &textVBO);
+    
+    glBindVertexArray(textVAO);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW); // 6 vértices, 4 atributos (x, y, u, v)
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+
+
+
+
+
 
 
 
@@ -217,14 +328,16 @@ int main()
         glClearColor(0.1f, 0.4f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        
+        
         glEnable(GL_SCISSOR_TEST);
         glScissor(100, HEIGHT - (100 + 200), 200, 200); // área de recorte
         // ... desenhar aqui
         glClearColor(0.6f, 0.4f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         glDisable(GL_SCISSOR_TEST);   // volta ao normal
-
-
+        
+        
         // create transformations         
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(position1.x + position1.width / 2, position1.y + position1.height / 2, 0.0f)); 
@@ -236,13 +349,15 @@ int main()
         model2 = glm::translate(model2, glm::vec3(position2.x + position2.width / 2, position2.y + position2.height / 2, 0.0f));  
         model2 = glm::scale(model2, glm::vec3(100.0f, 100.0f, 1.0f));     
         
-        ourShader.use();
         
-          
+        
+        ourShader.use();
+
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-
+        
+        //glBindVertexArray(VAO);
+        
         u1 = -20.0f / width;
         v1 = 0.0f / height;
         u2 = (100.0f + -20.0f) / width;
@@ -252,8 +367,9 @@ int main()
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glUniform4f(uvLoc, u1, v1, u2, v2);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // <-- aqui usamos o EBO
+        glBindVertexArray(0);
         
-
+        
         u1 = 0.0f / width2;
         v1 = 0.0f / height2;
         u2 = 100.0f / width2;
@@ -264,18 +380,19 @@ int main()
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
         glUniform4f(uvLoc, u1, v1, u2, v2);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // <-- aqui usamos o EBO
-
-
+        glBindVertexArray(0);
+        
+        RenderText(cdata, textShader, "Hello World! 3", 50.0f, 50.0f, fontTexture, 1.0f, projection, textVAO, textVBO);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
+    
     // Cleanup
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     //glDeleteProgram(shaderProgram);
-
+    
     glfwTerminate();
     return 0;
 }
