@@ -40,12 +40,15 @@ struct Vector2
     float y;
 };
 
+#include <map>
+#include "utf8.h"
+#include <algorithm> // Para std::min e std::max
+
 struct Font
 {
     unsigned int fontTexture;
-    unsigned char ttf_buffer[1 << 20]; // 1MB de buffer pra fonte
-    unsigned char bitmap[512 * 512];   // espaço pra gerar os caracteres
-    stbtt_bakedchar cdata[96];         // de ' ' até '~'
+    stbtt_fontinfo fontInfo;
+    std::map<int, stbtt_packedchar> charData; // Mapeia codepoint para dados do glifo
 };
 
 
@@ -137,27 +140,93 @@ void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Shader& 
 
 }
 
-void RenderText(stbtt_bakedchar* cdata, Shader& shader, const std::string& text, float x, float y, GLuint fontTex, float scale, glm::mat4& projection, GLuint textVAO, GLuint textVBO)
+Font LoadFont(const char* fontPath)
+{
+    Font font = {};
+    unsigned char ttf_buffer[1 << 20]; // 1MB buffer para o arquivo .ttf
+    unsigned char bitmap[512 * 512];   // 512x512 bitmap para o atlas
+
+    FILE* fontFile = fopen(fontPath, "rb");
+    if (!fontFile) {
+        std::cerr << "Erro ao abrir arquivo de fonte: " << fontPath << std::endl;
+        return font;
+    }
+    fread(ttf_buffer, 1, 1 << 20, fontFile);
+    fclose(fontFile);
+
+    stbtt_pack_context pack_context;
+    if (!stbtt_PackBegin(&pack_context, bitmap, 512, 512, 0, 1, nullptr)) {
+        std::cerr << "Erro ao inicializar o stb_truetype pack context." << std::endl;
+        return font;
+    }
+
+    stbtt_PackSetOversampling(&pack_context, 2, 2); // Melhora a qualidade da rasterização
+
+    // 1. Carrega a faixa ASCII básica (caracteres imprimíveis)
+    stbtt_packedchar ascii_chars[254]; //95
+    stbtt_PackFontRange(&pack_context, ttf_buffer, 0, 32.0f, 32, 254, ascii_chars);
+ 
+    
+    // Mapeia os dados dos caracteres para fácil acesso
+    for(int i = 0; i < 254; ++i) 
+    {
+        font.charData[32 + i] = ascii_chars[i];
+    }
+
+
+    glGenTextures(1, &font.fontTexture);
+    glBindTexture(GL_TEXTURE_2D, font.fontTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    return font;
+}
+
+
+void RenderText(Font& font, Shader& shader, const std::string& text, float x, float y, float scale, glm::mat4& projection, GLuint textVAO, GLuint textVBO)
 {
     shader.use();
-    glBindTexture(GL_TEXTURE_2D, fontTex);
-
+    glBindTexture(GL_TEXTURE_2D, font.fontTexture);
     glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
     glBindVertexArray(textVAO);
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     float xpos = x;
     float ypos = y;
 
-    for (char c : text)
-    {
-        if (c < 32 || c >= 128) continue;
+    const char* p = text.c_str();
 
+    while (*p) 
+    {
+        // 1. Variável para RECEBER o codepoint
+        int32_t codepoint = 0; 
+        
+        // 2. CORREÇÃO: A função retorna o ponteiro para o PRÓXIMO caractere.
+        //    O codepoint é escrito em '&codepoint'.
+        const char* next_p = utf8codepoint(p, &codepoint);
+
+        if (codepoint == 0) {
+            break;
+        }
+
+        auto itGlyph = font.charData.find(codepoint);
+        if (itGlyph == font.charData.end()) {
+            codepoint = '?'; 
+            itGlyph = font.charData.find(codepoint);
+            if (itGlyph == font.charData.end()) {
+                p = next_p; // Avança o ponteiro mesmo se o glifo não for encontrado
+                continue;
+            }
+        }
+        
+        stbtt_packedchar pc = itGlyph->second;
         stbtt_aligned_quad q;
-        stbtt_GetBakedQuad(cdata, 512, 512, c - 32, &xpos, &ypos, &q, 1);
+        stbtt_GetPackedQuad(&pc, 512, 512, 0, &xpos, &ypos, &q, 0);
 
         float vertices[6][4] = {
             { q.x0 * scale, q.y0 * scale, q.s0, q.t0 },
@@ -171,8 +240,10 @@ void RenderText(stbtt_bakedchar* cdata, Shader& shader, const std::string& text,
 
         glBindBuffer(GL_ARRAY_BUFFER, textVBO);
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // 3. CORREÇÃO: Avançamos o ponteiro para a posição retornada pela função.
+        p = next_p;
     }
 
     glBindVertexArray(0);
@@ -181,7 +252,60 @@ void RenderText(stbtt_bakedchar* cdata, Shader& shader, const std::string& text,
     glUseProgram(0);
 }
 
+Vector2 MeasureText(Font& font, const std::string& text, float scale)
+{
+    Vector2 size = {0.0f, 0.0f};
+    if (text.empty()) {
+        return size;
+    }
 
+    float xpos = 0.0f;
+    float ypos = 0.0f;
+
+    // Variáveis para rastrear a caixa delimitadora vertical do texto
+    float minY = 0.0f, maxY = 0.0f;
+
+    const char* p = text.c_str();
+
+    while (*p) 
+    {
+        int32_t codepoint = 0; 
+        const char* next_p = utf8codepoint(p, &codepoint);
+
+        if (codepoint == 0) {
+            break;
+        }
+
+        auto itGlyph = font.charData.find(codepoint);
+        if (itGlyph == font.charData.end()) {
+            codepoint = '?'; 
+            itGlyph = font.charData.find(codepoint);
+            if (itGlyph == font.charData.end()) {
+                p = next_p;
+                continue;
+            }
+        }
+        
+        stbtt_packedchar pc = itGlyph->second;
+        stbtt_aligned_quad q;
+
+        // A MÁGICA ACONTECE AQUI:
+        // Esta função calcula a posição do caractere (q) e atualiza o xpos com o avanço.
+        // É a mesma função usada para renderizar, mas aqui só nos importam as métricas.
+        stbtt_GetPackedQuad(&pc, 512, 512, 0, &xpos, &ypos, &q, 0);
+
+        // Atualiza a altura máxima baseada no caractere mais alto e mais baixo
+        minY = std::min(minY, q.y0 * scale);
+        maxY = std::max(maxY, q.y1 * scale);
+
+        p = next_p;
+    }
+
+    size.x = xpos * scale; // A largura final é a posição final de x
+    size.y = (maxY - minY); // A altura é a diferença entre o ponto mais alto e o mais baixo
+
+    return size;
+}
 
 int main()
 {
@@ -210,30 +334,8 @@ int main()
 
 
     //======================font load====================================
-
-    unsigned int fontTexture;
-    unsigned char ttf_buffer[1 << 20]; // 1MB de buffer pra fonte
-    unsigned char bitmap[512 * 512];   // espaço pra gerar os caracteres
-    stbtt_bakedchar cdata[96];         // de ' ' até '~'
-
-    // Lê o arquivo da fonte
-    FILE *fontFile = fopen("../roboto.ttf", "rb");
-    fread(ttf_buffer, 1, 1 << 20, fontFile);
-    fclose(fontFile);
-
-    // Gera o bitmap com os caracteres (ASCII de 32 a 128)
-    stbtt_BakeFontBitmap(ttf_buffer, 0, 68.0f, bitmap, 512, 512, 32, 96, cdata);
-    //stbtt_BakeFontBitmap(ttf_buffer, 0, 32.0f, bitmap, 512, 512, 32, 96, cdata);
-
-    // Cria a textura OpenGL
-    glGenTextures(1, &fontTexture);
-    glBindTexture(GL_TEXTURE_2D, fontTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-
+ 
+    Font myFont = LoadFont("../roboto.ttf");  
     //==============================================================
 
     // ====== Shader program ======
@@ -326,21 +428,27 @@ int main()
         // create transformations     
         Rectangle sourceRec = {0.0f, 0.0f, 100, 100};
         Rectangle destRec = {0, 0, 100, 100};
-        RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO);
+        RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO); // renderiza algo dentro da area de recorte
 
         glDisable(GL_SCISSOR_TEST);   // volta ao normal
         
         
-        
         sourceRec = {0.0f, 0.0f, 100, 100};
-        destRec = { 400 - 100 / 2, 300 - 100 / 2, 100, 100};
+        destRec = { 400 - 100 / 2, 300 - 100 / 2, 100, 100}; // testando renderizar por textura
         RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO);
 
         sourceRec = {0.0f, 0.0f, 100, 100};
         destRec = {300, 50, 100, 100};
         RenderTexture(texture2, sourceRec, destRec, ourShader, projection,  view,  VAO);
         
-        RenderText(cdata, textShader, "Hello World! 3 Ç", 50.0f, 50.0f, fontTexture, 1.0f, projection, textVAO, textVBO);
+        RenderText(myFont, textShader, "Olá Mundo com ç!", 50.0f, 50.0f, 1.0f, projection, textVAO, textVBO);
+        
+        const char* texto = "Um texto centralizado ficou legal !!!";  // mensurar texto 
+        Vector2 tamanhoDoTexto = MeasureText(myFont, texto, 1.0f);
+        float x = (WIDTH / 2.0f) - (tamanhoDoTexto.x / 2.0f);
+        float y = (HEIGHT /2.0f) - (tamanhoDoTexto.y / 2.0f);
+        RenderText(myFont, textShader, texto, x, y, 1.0f, projection, textVAO, textVBO);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
