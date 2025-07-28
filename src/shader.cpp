@@ -81,6 +81,18 @@ void Shader::setFloat(const std::string &name, float value) const
     glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
 
+
+int Shader::getUniformLocation(const std::string& name)
+{
+    if (uniformCache.find(name) != uniformCache.end())
+        return uniformCache[name];
+
+    int location = glGetUniformLocation(ID, name.c_str());
+    uniformCache[name] = location;
+    return location;
+}
+
+
 void Shader::checkCompileErrors(unsigned int shader, std::string type)
 {
     int success;

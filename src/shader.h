@@ -3,6 +3,7 @@
 
 
 #include <string>
+#include <unordered_map>
 
 
 class Shader
@@ -10,12 +11,15 @@ class Shader
 public:
     
     unsigned int ID; // the program ID
+    std::unordered_map<std::string, int> uniformCache;
   
     // constructor reads and builds the shader
     Shader(const std::string& vertexPath, const std::string& fragmentPath);
 
     // use/activate the shader
     void use();
+
+    int getUniformLocation(const std::string& name);
 
     // utility uniform functions
     void setBool(const std::string &name, bool value) const;  

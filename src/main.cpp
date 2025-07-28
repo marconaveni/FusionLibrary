@@ -9,8 +9,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -27,6 +25,36 @@ struct Rectangle {
     float width;
     float height;
 };
+
+struct Texture2D
+{
+    unsigned int id;
+    int width; 
+    int height; 
+    int nrChannels;
+};
+
+struct Vector2
+{
+    float x;
+    float y;
+};
+
+struct Font
+{
+    unsigned int fontTexture;
+    unsigned char ttf_buffer[1 << 20]; // 1MB de buffer pra fonte
+    unsigned char bitmap[512 * 512];   // espaço pra gerar os caracteres
+    stbtt_bakedchar cdata[96];         // de ' ' até '~'
+};
+
+
+Vector2 GetWindowSize(GLFWwindow* window)
+{
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    return Vector2{float(width), float(height)};
+}
 
 void processInput(GLFWwindow *window)
 {
@@ -58,8 +86,54 @@ void getOpenGLVersionInfo()
     std::cout << "Shading Language " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n";
 }
 
-void DrawTexturePro()
+Texture2D LoadTexture(const char *fileName)
 {
+    Texture2D texture;
+
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id); 
+     // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    unsigned char *data = stbi_load(fileName, &texture.width, &texture.height, &texture.nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        //glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+    return texture;
+}
+
+void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Shader& shader, glm::mat4 projection, glm::mat4 view, GLuint VAO)
+{
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(dest.x + dest.width / 2, dest.y + dest.height / 2, 0.0f)); 
+    model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));   
+
+    shader.use();
+   
+    glUniformMatrix4fv(shader.getUniformLocation("view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    
+    const float u1 = source.x / texture.width;
+    const float v1 = source.y / texture.height;
+    const float u2 = (source.width + source.x) / texture.width;
+    const float v2 = source.height / texture.height;
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glBindVertexArray(VAO);
+    glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE, glm::value_ptr(model));
+    glUniform4f(shader.getUniformLocation("uvRegion"), u1, v1, u2, v2);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
+    glBindVertexArray(0);
 
 }
 
@@ -68,7 +142,7 @@ void RenderText(stbtt_bakedchar* cdata, Shader& shader, const std::string& text,
     shader.use();
     glBindTexture(GL_TEXTURE_2D, fontTex);
 
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
     glBindVertexArray(textVAO);
 
@@ -86,13 +160,13 @@ void RenderText(stbtt_bakedchar* cdata, Shader& shader, const std::string& text,
         stbtt_GetBakedQuad(cdata, 512, 512, c - 32, &xpos, &ypos, &q, 1);
 
         float vertices[6][4] = {
-            { q.x0, q.y0, q.s0, q.t0 },
-            { q.x1, q.y0, q.s1, q.t0 },
-            { q.x1, q.y1, q.s1, q.t1 },
+            { q.x0 * scale, q.y0 * scale, q.s0, q.t0 },
+            { q.x1 * scale, q.y0 * scale, q.s1, q.t0 },
+            { q.x1 * scale, q.y1 * scale, q.s1, q.t1 },
 
-            { q.x0, q.y0, q.s0, q.t0 },
-            { q.x1, q.y1, q.s1, q.t1 },
-            { q.x0, q.y1, q.s0, q.t1 }
+            { q.x0 * scale, q.y0 * scale, q.s0, q.t0 },
+            { q.x1 * scale, q.y1 * scale, q.s1, q.t1 },
+            { q.x0 * scale, q.y1 * scale, q.s0, q.t1 }
         };
 
         glBindBuffer(GL_ARRAY_BUFFER, textVBO);
@@ -135,8 +209,6 @@ int main()
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
-
-
     //======================font load====================================
 
     unsigned int fontTexture;
@@ -150,19 +222,19 @@ int main()
     fclose(fontFile);
 
     // Gera o bitmap com os caracteres (ASCII de 32 a 128)
-    stbtt_BakeFontBitmap(ttf_buffer, 0, 32.0f, bitmap, 512, 512, 32, 96, cdata);
+    stbtt_BakeFontBitmap(ttf_buffer, 0, 68.0f, bitmap, 512, 512, 32, 96, cdata);
+    //stbtt_BakeFontBitmap(ttf_buffer, 0, 32.0f, bitmap, 512, 512, 32, 96, cdata);
 
     // Cria a textura OpenGL
     glGenTextures(1, &fontTexture);
     glBindTexture(GL_TEXTURE_2D, fontTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 
     //==============================================================
-
-
 
     // ====== Shader program ======
     Shader ourShader("../shaders/shader.vs","../shaders/shader.fs");
@@ -210,10 +282,6 @@ int main()
     glEnableVertexAttribArray(2);
 
 
-
-
-
-
     unsigned int textVAO, textVBO;
     glGenVertexArrays(1, &textVAO);
     glGenBuffers(1, &textVBO);
@@ -228,97 +296,18 @@ int main()
 
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
-
-
-
-
-
-
-
-
-
-    // load and create a texture 
-    // -------------------------
-    unsigned int texture;
-    // texture 1
-    // ---------
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture); 
-     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    //stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-
-    unsigned char *data = stbi_load("../test.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        //glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-
-
-    // load and create a texture 
-    // -------------------------
-    unsigned int texture2;
-    // texture 2
-    // ---------
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2); 
-     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    // load image, create texture and generate mipmaps
-    int width2, height2, nrChannels2;
-    //stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-
-    unsigned char *data2 = stbi_load("../wall.jpg", &width2, &height2, &nrChannels2, 0);
-    if (data2)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width2, height2, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
-        //glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data2);
-
-
-
-
+    
+    
     // Desvincular VBO (mas não EBO!)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
+    
+    Texture2D texture = LoadTexture("../test.png");
+    Texture2D texture2 = LoadTexture("../wall.jpg");
 
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT), 0.0f); // tela 800x600
     glm::mat4 view = glm::mat4(1.0f); // câmera fixa
 
-
-    unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-    unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
-    unsigned int projLoc = glGetUniformLocation(ourShader.ID, "projection");
-    unsigned int uvLoc  = glGetUniformLocation(ourShader.ID, "uvRegion");
-
-    Rectangle position1{0.0f, 0.0f, 100.0f, 100.0f}, position2{400.0f, 300.0f, 100.0f, 100.0f};
-
-    float u1 = 0.0f;
-    float v1 = 0.0f;
-    float u2 = 0.0f;
-    float v2 = 0.0f;
 
     // Loop principal
     while (!glfwWindowShouldClose(window))
@@ -328,61 +317,30 @@ int main()
         glClearColor(0.1f, 0.4f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        
-        
+            
         glEnable(GL_SCISSOR_TEST);
-        glScissor(100, HEIGHT - (100 + 200), 200, 200); // área de recorte
-        // ... desenhar aqui
+        glScissor(10, (GetWindowSize(window).y - 100) - 10, 100, 100); // área de recorte
         glClearColor(0.6f, 0.4f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        // ... desenhar aqui
+        // create transformations     
+        Rectangle sourceRec = {0.0f, 0.0f, 100, 100};
+        Rectangle destRec = {0, 0, 100, 100};
+        RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO);
+
         glDisable(GL_SCISSOR_TEST);   // volta ao normal
         
         
-        // create transformations         
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(position1.x + position1.width / 2, position1.y + position1.height / 2, 0.0f)); 
-        model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));     
         
-        
-        
-        glm::mat4 model2 = glm::mat4(1.0f);
-        model2 = glm::translate(model2, glm::vec3(position2.x + position2.width / 2, position2.y + position2.height / 2, 0.0f));  
-        model2 = glm::scale(model2, glm::vec3(100.0f, 100.0f, 1.0f));     
-        
-        
-        
-        ourShader.use();
+        sourceRec = {0.0f, 0.0f, 100, 100};
+        destRec = { 400 - 100 / 2, 300 - 100 / 2, 100, 100};
+        RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO);
 
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        sourceRec = {0.0f, 0.0f, 100, 100};
+        destRec = {300, 50, 100, 100};
+        RenderTexture(texture2, sourceRec, destRec, ourShader, projection,  view,  VAO);
         
-        //glBindVertexArray(VAO);
-        
-        u1 = -20.0f / width;
-        v1 = 0.0f / height;
-        u2 = (100.0f + -20.0f) / width;
-        v2 = 100.0f / height;
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glBindVertexArray(VAO);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniform4f(uvLoc, u1, v1, u2, v2);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // <-- aqui usamos o EBO
-        glBindVertexArray(0);
-        
-        
-        u1 = 0.0f / width2;
-        v1 = 0.0f / height2;
-        u2 = 100.0f / width2;
-        v2 = 100.0f / height2;
-        
-        glBindTexture(GL_TEXTURE_2D, texture2);
-        glBindVertexArray(VAO);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model2));
-        glUniform4f(uvLoc, u1, v1, u2, v2);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); // <-- aqui usamos o EBO
-        glBindVertexArray(0);
-        
-        RenderText(cdata, textShader, "Hello World! 3", 50.0f, 50.0f, fontTexture, 1.0f, projection, textVAO, textVBO);
+        RenderText(cdata, textShader, "Hello World! 3 Ç", 50.0f, 50.0f, fontTexture, 1.0f, projection, textVAO, textVBO);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
