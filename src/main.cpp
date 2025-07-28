@@ -40,6 +40,15 @@ struct Vector2
     float y;
 };
 
+struct Color
+{
+    float r;
+    float g;
+    float b;
+    float a;
+};
+
+
 #include <map>
 #include "utf8.h"
 #include <algorithm> // Para std::min e std::max
@@ -105,7 +114,8 @@ Texture2D LoadTexture(const char *fileName)
     unsigned char *data = stbi_load(fileName, &texture.width, &texture.height, &texture.nrChannels, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        GLenum format = (texture.nrChannels == 4) ? GL_RGBA : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, texture.width, texture.height, 0, format, GL_UNSIGNED_BYTE, data);
         //glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -116,27 +126,35 @@ Texture2D LoadTexture(const char *fileName)
     return texture;
 }
 
-void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Shader& shader, glm::mat4 projection, glm::mat4 view, GLuint VAO)
+void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Shader& shader, glm::mat4 projection, glm::mat4 view, GLuint VAO, Color color)
 {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(dest.x + dest.width / 2, dest.y + dest.height / 2, 0.0f)); 
-    model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));   
+    model = glm::scale(model, glm::vec3(dest.width, dest.height, 1.0f));   
 
     shader.use();
    
     glUniformMatrix4fv(shader.getUniformLocation("view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE, glm::value_ptr(model));
     
     const float u1 = source.x / texture.width;
     const float v1 = source.y / texture.height;
     const float u2 = (source.width + source.x) / texture.width;
     const float v2 = source.height / texture.height;
+
+    glUniform4f(shader.getUniformLocation("uvRegion"), u1, v1, u2, v2);
+    glUniform4f(shader.getUniformLocation("tintColor"), color.r, color.g, color.b, color.a);
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glBindTexture(GL_TEXTURE_2D, texture.id);
     glBindVertexArray(VAO);
-    glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE, glm::value_ptr(model));
-    glUniform4f(shader.getUniformLocation("uvRegion"), u1, v1, u2, v2);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
     glBindVertexArray(0);
+
+    glDisable(GL_BLEND);
 
 }
 
@@ -186,13 +204,16 @@ Font LoadFont(const char* fontPath)
 }
 
 
-void RenderText(Font& font, Shader& shader, const std::string& text, float x, float y, float scale, glm::mat4& projection, GLuint textVAO, GLuint textVBO)
+void RenderText(Font& font, Shader& shader, const std::string& text, float x, float y, float scale, glm::mat4& projection, GLuint textVAO, GLuint textVBO, Color color)
 {
     shader.use();
     glBindTexture(GL_TEXTURE_2D, font.fontTexture);
+
     glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    glUniform4f(shader.getUniformLocation("textColor"), color.r, color.g, color.b, color.a);
 
     glBindVertexArray(textVAO);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -406,6 +427,7 @@ int main()
     
     Texture2D texture = LoadTexture("../test.png");
     Texture2D texture2 = LoadTexture("../wall.jpg");
+    Texture2D texture3 = LoadTexture("../test2.png");
 
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT), 0.0f); // tela 800x600
     glm::mat4 view = glm::mat4(1.0f); // câmera fixa
@@ -428,26 +450,32 @@ int main()
         // create transformations     
         Rectangle sourceRec = {0.0f, 0.0f, 100, 100};
         Rectangle destRec = {0, 0, 100, 100};
-        RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO); // renderiza algo dentro da area de recorte
+        Color color = {1.0f, 1.0f, 1.0f, 1.0f};
+        RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO, color); // renderiza algo dentro da area de recorte
 
         glDisable(GL_SCISSOR_TEST);   // volta ao normal
         
         
         sourceRec = {0.0f, 0.0f, 100, 100};
         destRec = { 400 - 100 / 2, 300 - 100 / 2, 100, 100}; // testando renderizar por textura
-        RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO);
+        color = {1.0f, 1.0f, 1.0f, 0.5f};
+        RenderTexture(texture3, sourceRec, destRec, ourShader, projection,  view,  VAO, color);
 
         sourceRec = {0.0f, 0.0f, 100, 100};
         destRec = {300, 50, 100, 100};
-        RenderTexture(texture2, sourceRec, destRec, ourShader, projection,  view,  VAO);
+        color = {1.0f, 1.0f, 1.0f, 1.0f};
+        RenderTexture(texture2, sourceRec, destRec, ourShader, projection,  view,  VAO, color);
+
+        Color white = {1.0f, 1.0f, 1.0f, 1.0f};
+        Color red = {1.0f, 0.0f, 0.0f, 1.0f};
         
-        RenderText(myFont, textShader, "Olá Mundo com ç!", 50.0f, 50.0f, 1.0f, projection, textVAO, textVBO);
+        RenderText(myFont, textShader, "Olá Mundo com ç!", 50.0f, 50.0f, 1.0f, projection, textVAO, textVBO, white);
         
         const char* texto = "Um texto centralizado ficou legal !!!";  // mensurar texto 
         Vector2 tamanhoDoTexto = MeasureText(myFont, texto, 1.0f);
         float x = (WIDTH / 2.0f) - (tamanhoDoTexto.x / 2.0f);
         float y = (HEIGHT /2.0f) - (tamanhoDoTexto.y / 2.0f);
-        RenderText(myFont, textShader, texto, x, y, 1.0f, projection, textVAO, textVBO);
+        RenderText(myFont, textShader, texto, x, y, 1.0f, projection, textVAO, textVBO, red);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
