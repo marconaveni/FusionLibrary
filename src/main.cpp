@@ -397,7 +397,7 @@ Font LoadFont(const char* fontPath)
 }
 
 
-void RenderText(Shader& shader, Font& font, const std::string& text, float x, float y, float scale, Color color)
+void RenderText(Shader& shader, Font& font, const std::string& text, float x, float y, float scale, Vector2 origin, float rotation, Color color)
 {
     // Se o buffer estiver cheio, ou se a textura da fonte for diferente da textura atual, dá flush.
     // Isso vai acontecer naturalmente ao alternar entre desenhar sprites e texto.
@@ -415,6 +415,13 @@ void RenderText(Shader& shader, Font& font, const std::string& text, float x, fl
     glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
     glUniform4f(shader.getUniformLocation("textColor"), color.r, color.g, color.b, color.a);
 
+    glm::vec3 pivot = glm::vec3(x + origin.x, y + origin.y, 0.0f);
+
+    // 2. Cria a matriz de rotação que gira em torno do pivô
+    glm::mat4 transform = glm::mat4(1.0f);
+    transform = glm::translate(transform, pivot);
+    transform = glm::rotate(transform, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+    transform = glm::translate(transform, -pivot);
 
     // Converte a cor da engine para glm::vec4
     glm::vec4 glmColor = { color.r, color.g, color.b, color.a };
@@ -447,21 +454,27 @@ void RenderText(Shader& shader, Font& font, const std::string& text, float x, fl
         if (vertexCount >= MAX_VERTICES) Flush();
 
         // Calcula os 4 vértices para o caractere atual e adiciona ao lote
-        glm::vec3 p1 = { q.x0 * scale, q.y0 * scale, 0.0f }; // Top-left
-        glm::vec3 p2 = { q.x1 * scale, q.y0 * scale, 0.0f }; // Top-right
-        glm::vec3 p3 = { q.x1 * scale, q.y1 * scale, 0.0f }; // Bottom-right
-        glm::vec3 p4 = { q.x0 * scale, q.y1 * scale, 0.0f }; // Bottom-left
+        glm::vec4 p1 = { q.x0 * scale, q.y0 * scale, 0.0f, 1.0f }; // Top-left
+        glm::vec4 p2 = { q.x1 * scale, q.y0 * scale, 0.0f, 1.0f }; // Top-right
+        glm::vec4 p3 = { q.x1 * scale, q.y1 * scale, 0.0f, 1.0f }; // Bottom-right
+        glm::vec4 p4 = { q.x0 * scale, q.y1 * scale, 0.0f, 1.0f }; // Bottom-left
+
+        p1 = transform * p1;
+        p2 = transform * p2;
+        p3 = transform * p3;
+        p4 = transform * p4;
 
         glm::vec2 uv1 = { q.s0, q.t0 }; // UV Top-left
         glm::vec2 uv2 = { q.s1, q.t0 }; // UV Top-right
         glm::vec2 uv3 = { q.s1, q.t1 }; // UV Bottom-right
         glm::vec2 uv4 = { q.s0, q.t1 }; // UV Bottom-left
 
-        vertices[vertexCount++] = { p4, glmColor, uv4 }; // Vértice 0: Bottom-left
-        vertices[vertexCount++] = { p3, glmColor, uv3 }; // Vértice 1: Bottom-right
-        vertices[vertexCount++] = { p2, glmColor, uv2 }; // Vértice 2: Top-right
-        vertices[vertexCount++] = { p1, glmColor, uv1 }; // Vértice 3: Top-left
-        
+        vertices[vertexCount++] = { glm::vec3(p4), glmColor, uv4 }; // Vértice 0: Bottom-left
+        vertices[vertexCount++] = { glm::vec3(p3), glmColor, uv3 }; // Vértice 1: Bottom-right
+        vertices[vertexCount++] = { glm::vec3(p2), glmColor, uv2 }; // Vértice 2: Top-right
+        vertices[vertexCount++] = { glm::vec3(p1), glmColor, uv1 }; // Vértice 3: Top-left
+
+
         p = next_p;
     }
 }
@@ -634,7 +647,7 @@ int main()
             
             // Rotaciona continuamente com base no tempo
             float rotation = (float)glfwGetTime() * 45.0f; // 45 graus por segundo
-            RenderTexture(texture3, sourceRec, destRec,Vector2{25,25}, rotation, color);
+            RenderTexture(texture3, sourceRec, destRec,Vector2{25, 25}, rotation, color);
 
             
             const char* texto = "Um texto centralizado ficou legal !!!";  // mensurar texto 
@@ -643,7 +656,7 @@ int main()
             float y = (HEIGHT /2.0f) - (tamanhoDoTexto.y / 2.0f);
             color = {1.0f, 1.0f, 1.0f, 1.0f};
             
-            RenderText(textShader, myFont, texto, x, y, 1.0f, color);
+            RenderText(textShader, myFont, texto, x, y, 1.0f, Vector2{0, 0}, rotation, color);
 
         EndDrawing(); // Desenha tudo que foi acumulado!
 
