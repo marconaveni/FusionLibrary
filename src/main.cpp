@@ -37,6 +37,10 @@ GLuint batchEBO = 0;
 Vertex vertices[MAX_VERTICES];
 uint32_t vertexCount = 0;
 GLuint currentTextureID = 0;
+Shader* currentShader = nullptr; 
+
+
+glm::mat4 projection;
 // --------------------------
 
 
@@ -213,6 +217,7 @@ void Flush()
 {
     if (vertexCount == 0) return;
 
+    if (currentShader) currentShader->use();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -237,19 +242,19 @@ void Flush()
 }
 
 
-void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Color color)
+void RenderTexture(Shader& shader, Texture2D texture, Rectangle source, Rectangle dest, Color color)
 {
+
     // Se o buffer estiver cheio, ou se a textura mudar, desenha o lote atual.
-    if (vertexCount >= MAX_VERTICES || (texture.id != currentTextureID && currentTextureID != 0))
+    if (vertexCount >= MAX_VERTICES || (texture.id != currentTextureID && currentTextureID != 0) ||
+       (currentShader != nullptr && shader.ID != currentShader->ID) )
     {
         Flush();
     }
 
-    // Se este for o primeiro item em um novo lote, define a textura atual.
-    if (vertexCount == 0)
-    {
-        currentTextureID = texture.id;
-    }
+    // Define o shader e a textura para o novo lote
+    currentShader = &shader;
+    currentTextureID = texture.id;
 
     // Coordenadas de textura normalizadas
     const float u1 = source.x / texture.width;
@@ -333,43 +338,44 @@ Font LoadFont(const char* fontPath)
 }
 
 
-void RenderText(Font& font, Shader& shader, const std::string& text, float x, float y, float scale, glm::mat4& projection, GLuint textVAO, GLuint textVBO, Color color)
+void RenderText(Shader& shader, Font& font, const std::string& text, float x, float y, float scale, Color color)
 {
+    // Se o buffer estiver cheio, ou se a textura da fonte for diferente da textura atual, dá flush.
+    // Isso vai acontecer naturalmente ao alternar entre desenhar sprites e texto.
+    if (vertexCount >= MAX_VERTICES || (font.fontTexture != currentTextureID && currentTextureID != 0))
+    {
+        Flush();
+    }
+
+    currentShader = &shader;
+    currentTextureID = font.fontTexture;
+
+    // Define os uniformes específicos do shader de texto
     shader.use();
-    glBindTexture(GL_TEXTURE_2D, font.fontTexture);
 
     glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
     glUniform4f(shader.getUniformLocation("textColor"), color.r, color.g, color.b, color.a);
 
-    glBindVertexArray(textVAO);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // Converte a cor da engine para glm::vec4
+    glm::vec4 glmColor = { color.r, color.g, color.b, color.a };
 
     float xpos = x;
     float ypos = y;
-
     const char* p = text.c_str();
 
     while (*p) 
     {
-        // 1. Variável para RECEBER o codepoint
-        int32_t codepoint = 0; 
-        
-        // 2. CORREÇÃO: A função retorna o ponteiro para o PRÓXIMO caractere.
-        //    O codepoint é escrito em '&codepoint'.
+        int32_t codepoint = 0;
         const char* next_p = utf8codepoint(p, &codepoint);
-
-        if (codepoint == 0) {
-            break;
-        }
+        if (codepoint == 0) break;
 
         auto itGlyph = font.charData.find(codepoint);
         if (itGlyph == font.charData.end()) {
             codepoint = '?'; 
             itGlyph = font.charData.find(codepoint);
             if (itGlyph == font.charData.end()) {
-                p = next_p; // Avança o ponteiro mesmo se o glifo não for encontrado
+                p = next_p;
                 continue;
             }
         }
@@ -378,28 +384,27 @@ void RenderText(Font& font, Shader& shader, const std::string& text, float x, fl
         stbtt_aligned_quad q;
         stbtt_GetPackedQuad(&pc, 512, 512, 0, &xpos, &ypos, &q, 0);
 
-        float vertices[6][4] = {
-            { q.x0 * scale, q.y0 * scale, q.s0, q.t0 },
-            { q.x1 * scale, q.y0 * scale, q.s1, q.t0 },
-            { q.x1 * scale, q.y1 * scale, q.s1, q.t1 },
+        // Checa se ainda há espaço no buffer para mais um quad
+        if (vertexCount >= MAX_VERTICES) Flush();
 
-            { q.x0 * scale, q.y0 * scale, q.s0, q.t0 },
-            { q.x1 * scale, q.y1 * scale, q.s1, q.t1 },
-            { q.x0 * scale, q.y1 * scale, q.s0, q.t1 }
-        };
+        // Calcula os 4 vértices para o caractere atual e adiciona ao lote
+        glm::vec3 p1 = { q.x0 * scale, q.y0 * scale, 0.0f }; // Top-left
+        glm::vec3 p2 = { q.x1 * scale, q.y0 * scale, 0.0f }; // Top-right
+        glm::vec3 p3 = { q.x1 * scale, q.y1 * scale, 0.0f }; // Bottom-right
+        glm::vec3 p4 = { q.x0 * scale, q.y1 * scale, 0.0f }; // Bottom-left
 
-        glBindBuffer(GL_ARRAY_BUFFER, textVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glm::vec2 uv1 = { q.s0, q.t0 }; // UV Top-left
+        glm::vec2 uv2 = { q.s1, q.t0 }; // UV Top-right
+        glm::vec2 uv3 = { q.s1, q.t1 }; // UV Bottom-right
+        glm::vec2 uv4 = { q.s0, q.t1 }; // UV Bottom-left
 
-        // 3. CORREÇÃO: Avançamos o ponteiro para a posição retornada pela função.
+        vertices[vertexCount++] = { p4, glmColor, uv4 }; // Vértice 0: Bottom-left
+        vertices[vertexCount++] = { p3, glmColor, uv3 }; // Vértice 1: Bottom-right
+        vertices[vertexCount++] = { p2, glmColor, uv2 }; // Vértice 2: Top-right
+        vertices[vertexCount++] = { p1, glmColor, uv1 }; // Vértice 3: Top-left
+        
         p = next_p;
     }
-
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_BLEND);
-    glUseProgram(0);
 }
 
 Vector2 MeasureText(Font& font, const std::string& text, float scale)
@@ -495,6 +500,9 @@ int main()
     Shader ourShader("../shaders/shader.vs","../shaders/shader.fs");
     Shader textShader("../shaders/text.vs","../shaders/text.fs");
 
+    
+    /*
+    
     // ====== Dados do triângulo + índices ======
     float vertices[] = {
         // pos               // cor              // tex coords
@@ -556,12 +564,14 @@ int main()
     // Desvincular VBO (mas não EBO!)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    */
     
     Texture2D texture = LoadTexture("../test.png");
     Texture2D texture2 = LoadTexture("../wall.jpg");
     Texture2D texture3 = LoadTexture("../test2.png");
 
-    glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT), 0.0f); // tela 800x600
+    projection = glm::ortho(0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT), 0.0f); // tela 800x600
     //glm::mat4 view = glm::mat4(1.0f); // câmera fixa
 
 
@@ -576,9 +586,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         
 
-        ourShader.use();
-        glUniformMatrix4fv(ourShader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
+ 
         BeginDrawing(); // Prepara para um novo frame
 
             // TODAS AS SUAS CHAMADAS DE DESENHO VÃO AQUI
@@ -587,7 +595,11 @@ int main()
             
             Rectangle destRec = {300, 0, 100, 100};
             Color color = {1.0f, 1.0f, 1.0f, 1.0f};
-            RenderTexture(texture2, sourceRec, destRec, color);
+
+            ourShader.use();
+            glUniformMatrix4fv(ourShader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+            RenderTexture(ourShader, texture2, sourceRec, destRec, color);
 
             glEnable(GL_SCISSOR_TEST);
             glScissor(10, (GetWindowSize(window).y - 100) - 10, 100, 100); // área de recorte
@@ -596,7 +608,7 @@ int main()
             // ... desenhar aqui
             destRec = {0, 0, 100, 100};
             color = {1.0f, 1.0f, 1.0f, 0.3f};
-            RenderTexture(texture3, sourceRec, destRec, color); // renderiza algo dentro da area de recorte
+            RenderTexture(ourShader, texture3, sourceRec, destRec, color); // renderiza algo dentro da area de recorte
 
             EndDrawing();
             BeginDrawing();
@@ -605,29 +617,35 @@ int main()
 
             destRec = { 400, 200, 150, 150};
             color = {1.0f, 0.5f, 0.5f, 1.0f};
-            RenderTexture(texture3, sourceRec, destRec, color);
+            RenderTexture(ourShader, texture3, sourceRec, destRec, color);
             
             // Tenta desenhar com a mesma textura, será adicionado ao mesmo lote
             destRec = {100, 300, 50, 50};
             color = {1.0f, 1.0f, 1.0f, 0.3f};
-            RenderTexture(texture3, sourceRec, destRec, color);
+            RenderTexture(ourShader, texture3, sourceRec, destRec, color);
+
+            
+            const char* texto = "Um texto centralizado ficou legal !!!";  // mensurar texto 
+            Vector2 tamanhoDoTexto = MeasureText(myFont, texto, 1.0f);
+            float x = (WIDTH / 2.0f) - (tamanhoDoTexto.x / 2.0f);
+            float y = (HEIGHT /2.0f) - (tamanhoDoTexto.y / 2.0f);
+            color = {1.0f, 1.0f, 1.0f, 1.0f};
+            
+
+            
+            
+            RenderText(textShader, myFont, texto, x, y, 1.0f, color);
 
         EndDrawing(); // Desenha tudo que foi acumulado!
-        
-        const char* texto = "Um texto centralizado ficou legal !!!";  // mensurar texto 
-        Vector2 tamanhoDoTexto = MeasureText(myFont, texto, 1.0f);
-        float x = (WIDTH / 2.0f) - (tamanhoDoTexto.x / 2.0f);
-        float y = (HEIGHT /2.0f) - (tamanhoDoTexto.y / 2.0f);
-        //RenderText(myFont, textShader, texto, x, y, 1.0f, projection, textVAO, textVBO, red);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
     
     // Cleanup
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    //glDeleteVertexArrays(1, &VAO);
+    //glDeleteBuffers(1, &VBO);
+    //glDeleteBuffers(1, &EBO);
     //glDeleteProgram(shaderProgram);
     
     glfwTerminate();
