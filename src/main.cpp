@@ -219,8 +219,6 @@ void Flush()
 
     if (currentShader) currentShader->use();
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glBindVertexArray(batchVAO);
     glBindTexture(GL_TEXTURE_2D, currentTextureID);
@@ -234,14 +232,12 @@ void Flush()
     glDrawElements(GL_TRIANGLES, (vertexCount / 4) * 6, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
-
-    glDisable(GL_BLEND);
     
     // Reseta o contador para o próximo lote
     vertexCount = 0;
 }
 
-
+/*
 void RenderTexture(Shader& shader, Texture2D texture, Rectangle source, Rectangle dest, Color color)
 {
 
@@ -284,12 +280,75 @@ void RenderTexture(Shader& shader, Texture2D texture, Rectangle source, Rectangl
     // Vértice 3: Canto superior esquerdo
     vertices[vertexCount++] = { p1, glmColor, {u1, v1} };
 
-    /* ATENÇÃO: A ordem dos vértices e UVs precisa casar com a ordem dos índices (0,1,2, 2,3,0).
-       Minha ordem de vértices aqui é BL, BR, TR, TL.
-       Minha ordem de UVs é {u1,v2}, {u2,v2}, {u2,v1}, {u1,v1}.
-       Isso pode precisar de ajuste dependendo de como sua projeção está configurada.
-       O código acima é um ponto de partida comum.
-    */
+    // ATENÇÃO: A ordem dos vértices e UVs precisa casar com a ordem dos índices (0,1,2, 2,3,0).
+    //   Minha ordem de vértices aqui é BL, BR, TR, TL.
+    //   Minha ordem de UVs é {u1,v2}, {u2,v2}, {u2,v1}, {u1,v1}.
+    //   Isso pode precisar de ajuste dependendo de como sua projeção está configurada.
+    //   O código acima é um ponto de partida comum.
+    
+}
+
+*/
+
+
+void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color color)
+{
+    // A lógica de flush por mudança de textura ou shader permanece a mesma
+    if (vertexCount >= MAX_VERTICES || (texture.id != currentTextureID && currentTextureID != 0))
+    {
+        Flush();
+    }
+    
+    
+    // Define a textura para o novo lote (se necessário)
+    if (vertexCount == 0)
+    {
+        currentTextureID = texture.id;
+    }
+
+    // --- MÁGICA DA TRANSFORMAÇÃO ---
+
+    // 1. Construir a matriz 'model'
+    glm::mat4 model = glm::mat4(1.0f);
+    // A ordem importa: primeiro movemos para a posição final, depois rotacionamos em torno da origem
+    model = glm::translate(model, glm::vec3(dest.x, dest.y, 0.0f));
+    model = glm::translate(model, glm::vec3(origin.x, origin.y, 0.0f)); // Move o pivô de rotação para a origem do objeto
+    model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotaciona
+    model = glm::translate(model, glm::vec3(-origin.x, -origin.y, 0.0f)); // Move o pivô de volta
+    model = glm::scale(model, glm::vec3(dest.width, dest.height, 1.0f)); // Aplica a escala (tamanho)
+
+    // 2. Definir os cantos de um quad local (de 0,0 a 1,1)
+    glm::vec4 positions[4] = {
+        { 0.0f, 0.0f, 0.0f, 1.0f }, // Top-left
+        { 1.0f, 0.0f, 0.0f, 1.0f }, // Top-right
+        { 1.0f, 1.0f, 0.0f, 1.0f }, // Bottom-right
+        { 0.0f, 1.0f, 0.0f, 1.0f }  // Bottom-left
+    };
+
+    // 3. Transformar cada canto pela matriz 'model'
+    for (int i = 0; i < 4; i++)
+    {
+        positions[i] = model * positions[i];
+    }
+    
+    // Coordenadas de textura (UVs) - não mudam
+    const float u1 = source.x / texture.width;
+    const float v1 = source.y / texture.height;
+    const float u2 = (source.x + source.width) / texture.width;
+    const float v2 = (source.y + source.height) / texture.height;
+    glm::vec2 uv1 = { u1, v1 }; // UV Top-left
+    glm::vec2 uv2 = { u2, v1 }; // UV Top-right
+    glm::vec2 uv3 = { u2, v2 }; // UV Bottom-right
+    glm::vec2 uv4 = { u1, v2 }; // UV Bottom-left
+
+    // Cor
+    glm::vec4 glmColor = { color.r, color.g, color.b, color.a };
+
+    // 4. Adicionar os vértices JÁ TRANSFORMADOS ao lote
+    vertices[vertexCount++] = { glm::vec3(positions[3]), glmColor, uv4 }; // Vértice 0: Bottom-left
+    vertices[vertexCount++] = { glm::vec3(positions[2]), glmColor, uv3 }; // Vértice 1: Bottom-right
+    vertices[vertexCount++] = { glm::vec3(positions[1]), glmColor, uv2 }; // Vértice 2: Top-right
+    vertices[vertexCount++] = { glm::vec3(positions[0]), glmColor, uv1 }; // Vértice 3: Top-left
 }
 
 Font LoadFont(const char* fontPath)
@@ -487,6 +546,11 @@ int main()
 
     InitBatchRenderer();
 
+    // --- ESTADO DE RENDERIZAÇÃO PADRÕES ---
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // --------------------------------------------------
+
     getOpenGLVersionInfo();
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -495,82 +559,19 @@ int main()
  
     Font myFont = LoadFont("../roboto.ttf");  
     //==============================================================
-
+    
     // ====== Shader program ======
     Shader ourShader("../shaders/shader.vs","../shaders/shader.fs");
     Shader textShader("../shaders/text.vs","../shaders/text.fs");
-
-    
-    /*
-    
-    // ====== Dados do triângulo + índices ======
-    float vertices[] = {
-        // pos               // cor              // tex coords
-        0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-        0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left
-    };
-
-    unsigned int indices[] = {
-        // note that we start from 0!
-        0, 1, 3, // first Triangle
-        1, 2, 3  // second Triangle
-    };
-
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    // ===== Enviar dados pra GPU =====
-    glBindVertexArray(VAO);
-
-    // Enviar dados pra GPU Vértices
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Enviar dados pra GPU Índices
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // Configura atributo de posição
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-
-    unsigned int textVAO, textVBO;
-    glGenVertexArrays(1, &textVAO);
-    glGenBuffers(1, &textVBO);
-    
-    glBindVertexArray(textVAO);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, textVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW); // 6 vértices, 4 atributos (x, y, u, v)
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    //==============================================================
     
     
-    // Desvincular VBO (mas não EBO!)
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    */
-    
+    //======= load textures =======================
     Texture2D texture = LoadTexture("../test.png");
     Texture2D texture2 = LoadTexture("../wall.jpg");
     Texture2D texture3 = LoadTexture("../test2.png");
-
+    //==============================================================
+    
     projection = glm::ortho(0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT), 0.0f); // tela 800x600
     //glm::mat4 view = glm::mat4(1.0f); // câmera fixa
 
@@ -599,8 +600,17 @@ int main()
             ourShader.use();
             glUniformMatrix4fv(ourShader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-            RenderTexture(ourShader, texture2, sourceRec, destRec, color);
+            if (currentShader == nullptr || ourShader.ID != currentShader->ID)
+            {
+                currentShader = &ourShader;
+            }
 
+            destRec = {300, 0, 100, 100};
+            color = {1.0f, 1.0f, 1.0f, 1.0f};
+            RenderTexture(texture2, sourceRec, destRec,Vector2{0,0}, 0, color);
+
+
+            Flush();
             glEnable(GL_SCISSOR_TEST);
             glScissor(10, (GetWindowSize(window).y - 100) - 10, 100, 100); // área de recorte
             glClearColor(0.6f, 0.4f, 0.3f, 1.0f);
@@ -608,21 +618,23 @@ int main()
             // ... desenhar aqui
             destRec = {0, 0, 100, 100};
             color = {1.0f, 1.0f, 1.0f, 0.3f};
-            RenderTexture(ourShader, texture3, sourceRec, destRec, color); // renderiza algo dentro da area de recorte
-
-            EndDrawing();
-            BeginDrawing();
+            RenderTexture(texture3, sourceRec, destRec,Vector2{0,0}, 0, color); // renderiza algo dentro da area de recorte
+            
+            Flush();
             glDisable(GL_SCISSOR_TEST);   // volta ao normal
-
+            
 
             destRec = { 400, 200, 150, 150};
             color = {1.0f, 0.5f, 0.5f, 1.0f};
-            RenderTexture(ourShader, texture3, sourceRec, destRec, color);
+            RenderTexture(texture3, sourceRec, destRec,Vector2{0,0}, 0, color);
             
             // Tenta desenhar com a mesma textura, será adicionado ao mesmo lote
             destRec = {100, 300, 50, 50};
             color = {1.0f, 1.0f, 1.0f, 0.3f};
-            RenderTexture(ourShader, texture3, sourceRec, destRec, color);
+            
+            // Rotaciona continuamente com base no tempo
+            float rotation = (float)glfwGetTime() * 45.0f; // 45 graus por segundo
+            RenderTexture(texture3, sourceRec, destRec,Vector2{25,25}, rotation, color);
 
             
             const char* texto = "Um texto centralizado ficou legal !!!";  // mensurar texto 
@@ -630,9 +642,6 @@ int main()
             float x = (WIDTH / 2.0f) - (tamanhoDoTexto.x / 2.0f);
             float y = (HEIGHT /2.0f) - (tamanhoDoTexto.y / 2.0f);
             color = {1.0f, 1.0f, 1.0f, 1.0f};
-            
-
-            
             
             RenderText(textShader, myFont, texto, x, y, 1.0f, color);
 
@@ -647,6 +656,7 @@ int main()
     //glDeleteBuffers(1, &VBO);
     //glDeleteBuffers(1, &EBO);
     //glDeleteProgram(shaderProgram);
+    //glDisable(GL_BLEND);
     
     glfwTerminate();
     return 0;
