@@ -18,6 +18,27 @@
 constexpr int WIDTH = 800; 
 constexpr int HEIGHT = 600; 
 
+struct Vertex
+{
+    glm::vec3 position;
+    glm::vec4 color;
+    glm::vec2 texCoords;
+};
+
+// --- Batch Renderer State ---
+constexpr size_t MAX_QUADS = 1000;
+constexpr size_t MAX_VERTICES = MAX_QUADS * 4;
+constexpr size_t MAX_INDICES = MAX_QUADS * 6;
+
+GLuint batchVAO = 0;
+GLuint batchVBO = 0;
+GLuint batchEBO = 0;
+
+Vertex vertices[MAX_VERTICES];
+uint32_t vertexCount = 0;
+GLuint currentTextureID = 0;
+// --------------------------
+
 
 struct Rectangle {
     float x;
@@ -126,36 +147,144 @@ Texture2D LoadTexture(const char *fileName)
     return texture;
 }
 
-void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Shader& shader, glm::mat4 projection, glm::mat4 view, GLuint VAO, Color color)
+
+void InitBatchRenderer()
 {
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(dest.x + dest.width / 2, dest.y + dest.height / 2, 0.0f)); 
-    model = glm::scale(model, glm::vec3(dest.width, dest.height, 1.0f));   
+    glGenVertexArrays(1, &batchVAO);
+    glBindVertexArray(batchVAO);
 
-    shader.use();
-   
-    glUniformMatrix4fv(shader.getUniformLocation("view"), 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(shader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
-    glUniformMatrix4fv(shader.getUniformLocation("model"), 1, GL_FALSE, glm::value_ptr(model));
-    
-    const float u1 = source.x / texture.width;
-    const float v1 = source.y / texture.height;
-    const float u2 = (source.width + source.x) / texture.width;
-    const float v2 = source.height / texture.height;
+    // VBO (Vertex Buffer Object) - Para os dados dos vértices
+    glGenBuffers(1, &batchVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, batchVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), nullptr, GL_DYNAMIC_DRAW); // Usamos DYNAMIC_DRAW
 
-    glUniform4f(shader.getUniformLocation("uvRegion"), u1, v1, u2, v2);
-    glUniform4f(shader.getUniformLocation("tintColor"), color.r, color.g, color.b, color.a);
-    
+    // EBO (Element Buffer Object) - Para os índices
+    glGenBuffers(1, &batchEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batchEBO);
+
+    // Gerar os índices para todos os quads possíveis. O padrão é 0,1,2, 2,3,0 -> 4,5,6, 6,7,4, etc.
+    GLuint indices[MAX_INDICES];
+    uint32_t offset = 0;
+    for (size_t i = 0; i < MAX_INDICES; i += 6)
+    {
+        indices[i + 0] = 0 + offset;
+        indices[i + 1] = 1 + offset;
+        indices[i + 2] = 2 + offset;
+        indices[i + 3] = 2 + offset;
+        indices[i + 4] = 3 + offset;
+        indices[i + 5] = 0 + offset;
+        offset += 4;
+    }
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+    // Configura os atributos do vértice
+    // Posição
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    // cores
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color)); 
+    // Coordenadas de Textura
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+
+    glBindVertexArray(0);
+}
+
+
+void Flush(); // Declaração antecipada
+
+void BeginDrawing()
+{
+    vertexCount = 0;
+    currentTextureID = 0;
+}
+
+void EndDrawing()
+{
+    if (vertexCount > 0)
+    {
+        Flush();
+    }
+}
+
+void Flush()
+{
+    if (vertexCount == 0) return;
+
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glBindTexture(GL_TEXTURE_2D, texture.id);
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); 
+    glBindVertexArray(batchVAO);
+    glBindTexture(GL_TEXTURE_2D, currentTextureID);
+
+    // Envia os dados acumulados para o VBO na GPU
+    glBindBuffer(GL_ARRAY_BUFFER, batchVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexCount * sizeof(Vertex), vertices);
+
+    // Desenha tudo de uma vez!
+    // O número de índices é (vertexCount / 4) * 6
+    glDrawElements(GL_TRIANGLES, (vertexCount / 4) * 6, GL_UNSIGNED_INT, 0);
+
     glBindVertexArray(0);
 
     glDisable(GL_BLEND);
+    
+    // Reseta o contador para o próximo lote
+    vertexCount = 0;
+}
 
+
+void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Color color)
+{
+    // Se o buffer estiver cheio, ou se a textura mudar, desenha o lote atual.
+    if (vertexCount >= MAX_VERTICES || (texture.id != currentTextureID && currentTextureID != 0))
+    {
+        Flush();
+    }
+
+    // Se este for o primeiro item em um novo lote, define a textura atual.
+    if (vertexCount == 0)
+    {
+        currentTextureID = texture.id;
+    }
+
+    // Coordenadas de textura normalizadas
+    const float u1 = source.x / texture.width;
+    const float v1 = source.y / texture.height;
+    const float u2 = (source.x + source.width) / texture.width;
+    const float v2 = (source.y + source.height) / texture.height;
+    
+    // Posições dos 4 cantos do quad
+    glm::vec3 p1 = { dest.x             , dest.y              , 0.0f };
+    glm::vec3 p2 = { dest.x + dest.width, dest.y              , 0.0f };
+    glm::vec3 p3 = { dest.x + dest.width, dest.y + dest.height, 0.0f };
+    glm::vec3 p4 = { dest.x             , dest.y + dest.height, 0.0f };
+
+    // Cor como glm::vec4
+    glm::vec4 glmColor = { color.r, color.g, color.b, color.a };
+
+
+        // Vértice 0: Canto inferior esquerdo
+    vertices[vertexCount++] = { p4, glmColor, {u1, v2} }; 
+    
+    // Vértice 1: Canto inferior direito
+    vertices[vertexCount++] = { p3, glmColor, {u2, v2} };
+    
+    // Vértice 2: Canto superior direito
+    vertices[vertexCount++] = { p2, glmColor, {u2, v1} }; 
+    
+    // Vértice 3: Canto superior esquerdo
+    vertices[vertexCount++] = { p1, glmColor, {u1, v1} };
+
+    /* ATENÇÃO: A ordem dos vértices e UVs precisa casar com a ordem dos índices (0,1,2, 2,3,0).
+       Minha ordem de vértices aqui é BL, BR, TR, TL.
+       Minha ordem de UVs é {u1,v2}, {u2,v2}, {u2,v1}, {u1,v1}.
+       Isso pode precisar de ajuste dependendo de como sua projeção está configurada.
+       O código acima é um ponto de partida comum.
+    */
 }
 
 Font LoadFont(const char* fontPath)
@@ -350,6 +479,9 @@ int main()
         return -1;
     }
 
+
+    InitBatchRenderer();
+
     getOpenGLVersionInfo();
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -430,8 +562,10 @@ int main()
     Texture2D texture3 = LoadTexture("../test2.png");
 
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT), 0.0f); // tela 800x600
-    glm::mat4 view = glm::mat4(1.0f); // câmera fixa
+    //glm::mat4 view = glm::mat4(1.0f); // câmera fixa
 
+
+    
 
     // Loop principal
     while (!glfwWindowShouldClose(window))
@@ -440,42 +574,51 @@ int main()
 
         glClearColor(0.1f, 0.4f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        
 
+        ourShader.use();
+        glUniformMatrix4fv(ourShader.getUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
+        BeginDrawing(); // Prepara para um novo frame
+
+            // TODAS AS SUAS CHAMADAS DE DESENHO VÃO AQUI
+            // Elas não desenham nada ainda, só acumulam vértices.
+            Rectangle sourceRec = {0.0f, 0.0f, 100 , 100};
             
-        glEnable(GL_SCISSOR_TEST);
-        glScissor(10, (GetWindowSize(window).y - 100) - 10, 100, 100); // área de recorte
-        glClearColor(0.6f, 0.4f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        // ... desenhar aqui
-        // create transformations     
-        Rectangle sourceRec = {0.0f, 0.0f, 100, 100};
-        Rectangle destRec = {0, 0, 100, 100};
-        Color color = {1.0f, 1.0f, 1.0f, 1.0f};
-        RenderTexture(texture, sourceRec, destRec, ourShader, projection,  view,  VAO, color); // renderiza algo dentro da area de recorte
+            Rectangle destRec = {300, 0, 100, 100};
+            Color color = {1.0f, 1.0f, 1.0f, 1.0f};
+            RenderTexture(texture2, sourceRec, destRec, color);
 
-        glDisable(GL_SCISSOR_TEST);   // volta ao normal
-        
-        
-        sourceRec = {0.0f, 0.0f, 100, 100};
-        destRec = { 400 - 100 / 2, 300 - 100 / 2, 100, 100}; // testando renderizar por textura
-        color = {1.0f, 1.0f, 1.0f, 0.5f};
-        RenderTexture(texture3, sourceRec, destRec, ourShader, projection,  view,  VAO, color);
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(10, (GetWindowSize(window).y - 100) - 10, 100, 100); // área de recorte
+            glClearColor(0.6f, 0.4f, 0.3f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            // ... desenhar aqui
+            destRec = {0, 0, 100, 100};
+            color = {1.0f, 1.0f, 1.0f, 0.3f};
+            RenderTexture(texture3, sourceRec, destRec, color); // renderiza algo dentro da area de recorte
 
-        sourceRec = {0.0f, 0.0f, 100, 100};
-        destRec = {300, 50, 100, 100};
-        color = {1.0f, 1.0f, 1.0f, 1.0f};
-        RenderTexture(texture2, sourceRec, destRec, ourShader, projection,  view,  VAO, color);
+            EndDrawing();
+            BeginDrawing();
+            glDisable(GL_SCISSOR_TEST);   // volta ao normal
 
-        Color white = {1.0f, 1.0f, 1.0f, 1.0f};
-        Color red = {1.0f, 0.0f, 0.0f, 1.0f};
-        
-        RenderText(myFont, textShader, "Olá Mundo com ç!", 50.0f, 50.0f, 1.0f, projection, textVAO, textVBO, white);
+
+            destRec = { 400, 200, 150, 150};
+            color = {1.0f, 0.5f, 0.5f, 1.0f};
+            RenderTexture(texture3, sourceRec, destRec, color);
+            
+            // Tenta desenhar com a mesma textura, será adicionado ao mesmo lote
+            destRec = {100, 300, 50, 50};
+            color = {1.0f, 1.0f, 1.0f, 0.3f};
+            RenderTexture(texture3, sourceRec, destRec, color);
+
+        EndDrawing(); // Desenha tudo que foi acumulado!
         
         const char* texto = "Um texto centralizado ficou legal !!!";  // mensurar texto 
         Vector2 tamanhoDoTexto = MeasureText(myFont, texto, 1.0f);
         float x = (WIDTH / 2.0f) - (tamanhoDoTexto.x / 2.0f);
         float y = (HEIGHT /2.0f) - (tamanhoDoTexto.y / 2.0f);
-        RenderText(myFont, textShader, texto, x, y, 1.0f, projection, textVAO, textVBO, red);
+        //RenderText(myFont, textShader, texto, x, y, 1.0f, projection, textVAO, textVBO, red);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
