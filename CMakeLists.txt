@@ -1,15 +1,31 @@
-cmake_minimum_required(VERSION 3.10)
-project(EngineOpengl)
+cmake_minimum_required(VERSION 3.25)
+project(FusionLibrary LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(libs/glfw) # se você tiver clonado GLFW
-include_directories(include libs/glfw/include)
+
+include_directories(include 
+    ${CMAKE_SOURCE_DIR}/libs/glfw/include
+    ${CMAKE_SOURCE_DIR}/src/core
+    ${CMAKE_SOURCE_DIR}/src/external
+    ${CMAKE_SOURCE_DIR}/src/graphics
+    ${CMAKE_SOURCE_DIR}/src/platform
+)
 
 add_executable(game
-    src/main.cpp
-    src/glad.c
-    src/shader.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/window.cpp
+    ${CMAKE_SOURCE_DIR}/src/external/glad.c
+    ${CMAKE_SOURCE_DIR}/src/graphics/font.cpp
+    ${CMAKE_SOURCE_DIR}/src/graphics/renderer.cpp
+    ${CMAKE_SOURCE_DIR}/src/graphics/shader.cpp
+    ${CMAKE_SOURCE_DIR}/src/graphics/sprite.cpp
+    ${CMAKE_SOURCE_DIR}/src/graphics/text.cpp
+    ${CMAKE_SOURCE_DIR}/src/graphics/texture.cpp
+    ${CMAKE_SOURCE_DIR}/src/graphics/transformable.cpp
+    ${CMAKE_SOURCE_DIR}/src/platform/platform_desktop_glfw.cpp
+    ${CMAKE_SOURCE_DIR}/src/main.cpp
 )
+
 
 target_link_libraries(game glfw ${CMAKE_DL_LIBS})

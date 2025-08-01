@@ -1,8 +1,55 @@
 
+#define TEST
+#ifdef TEST
+
+
+#include "window.h"
+#include "sprite.h"
+#include "text.h"
+
+int main(int argc, char const *argv[])
+{
+    Fusion::Window window;
+    
+    
+    window.InitWindow("teste", 800, 600);
+    
+    Fusion::Texture texture("../test2.png");
+    Fusion::Sprite sprite(texture);
+   
+
+    Fusion::Font font("../NataSans-Regular.ttf", 32, 224);
+    Fusion::Text text(font);
+    text.SetPosition(0.0f,-10.0f);
+
+    text.SetText("Oi este texto está na posição certa!!! OK");
+
+    while (!window.WindowShouldClose())
+    {
+        window.BeginDrawing();
+        window.Clear(Fusion::Color {0.1f, 0.4f, 0.3f, 1.0f});
+        sprite.SetPosition(0.0f, 0.0f);
+        sprite.SetSize(800.0f, 600.0f);
+        window.Draw(sprite);
+        sprite.SetPosition(150.0f, 150.0f);
+        sprite.SetSize(100.0f, 100.0f);
+        window.Draw(sprite);
+        window.Draw(text);
+        window.EndDrawing();
+    }
+    
+    return 0;
+}
+
+#else
+
+
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <math.h>
+#include <vector>
 #include "shader.h"
 
 #include "glm/glm.hpp"
@@ -78,7 +125,7 @@ struct Color
 #include "utf8.h"
 #include <algorithm> // Para std::min e std::max
 
-struct Font
+struct FontData
 {
     unsigned int fontTexture;
     stbtt_fontinfo fontInfo;
@@ -111,7 +158,9 @@ void processInput(GLFWwindow *window)
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    glViewport(0, height - HEIGHT, WIDTH, HEIGHT);
+    //glViewport(0, height - HEIGHT, WIDTH, HEIGHT);
+    glViewport(0, 0, width, height);
+    projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f); 
 }
 
 
@@ -121,6 +170,11 @@ void getOpenGLVersionInfo()
     std::cout << "Renderer " << glGetString(GL_RENDERER) << "\n";
     std::cout << "Version " << glGetString(GL_VERSION) << "\n";
     std::cout << "Shading Language " << glGetString(GL_SHADING_LANGUAGE_VERSION) << "\n";
+
+    int value;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &value);   //Returns 1 value
+    std::cout << "Max Texture Size " << value << "\n";
+
 }
 
 Texture2D LoadTexture(const char *fileName)
@@ -237,59 +291,6 @@ void Flush()
     vertexCount = 0;
 }
 
-/*
-void RenderTexture(Shader& shader, Texture2D texture, Rectangle source, Rectangle dest, Color color)
-{
-
-    // Se o buffer estiver cheio, ou se a textura mudar, desenha o lote atual.
-    if (vertexCount >= MAX_VERTICES || (texture.id != currentTextureID && currentTextureID != 0) ||
-       (currentShader != nullptr && shader.ID != currentShader->ID) )
-    {
-        Flush();
-    }
-
-    // Define o shader e a textura para o novo lote
-    currentShader = &shader;
-    currentTextureID = texture.id;
-
-    // Coordenadas de textura normalizadas
-    const float u1 = source.x / texture.width;
-    const float v1 = source.y / texture.height;
-    const float u2 = (source.x + source.width) / texture.width;
-    const float v2 = (source.y + source.height) / texture.height;
-    
-    // Posições dos 4 cantos do quad
-    glm::vec3 p1 = { dest.x             , dest.y              , 0.0f };
-    glm::vec3 p2 = { dest.x + dest.width, dest.y              , 0.0f };
-    glm::vec3 p3 = { dest.x + dest.width, dest.y + dest.height, 0.0f };
-    glm::vec3 p4 = { dest.x             , dest.y + dest.height, 0.0f };
-
-    // Cor como glm::vec4
-    glm::vec4 glmColor = { color.r, color.g, color.b, color.a };
-
-
-        // Vértice 0: Canto inferior esquerdo
-    vertices[vertexCount++] = { p4, glmColor, {u1, v2} }; 
-    
-    // Vértice 1: Canto inferior direito
-    vertices[vertexCount++] = { p3, glmColor, {u2, v2} };
-    
-    // Vértice 2: Canto superior direito
-    vertices[vertexCount++] = { p2, glmColor, {u2, v1} }; 
-    
-    // Vértice 3: Canto superior esquerdo
-    vertices[vertexCount++] = { p1, glmColor, {u1, v1} };
-
-    // ATENÇÃO: A ordem dos vértices e UVs precisa casar com a ordem dos índices (0,1,2, 2,3,0).
-    //   Minha ordem de vértices aqui é BL, BR, TR, TL.
-    //   Minha ordem de UVs é {u1,v2}, {u2,v2}, {u2,v1}, {u1,v1}.
-    //   Isso pode precisar de ajuste dependendo de como sua projeção está configurada.
-    //   O código acima é um ponto de partida comum.
-    
-}
-
-*/
-
 
 void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color color)
 {
@@ -351,22 +352,33 @@ void RenderTexture(Texture2D texture, Rectangle source, Rectangle dest, Vector2 
     vertices[vertexCount++] = { glm::vec3(positions[0]), glmColor, uv1 }; // Vértice 3: Top-left
 }
 
-Font LoadFont(const char* fontPath)
+FontData LoadFont(const char* fontPath)
 {
-    Font font = {};
-    unsigned char ttf_buffer[1 << 20]; // 1MB buffer para o arquivo .ttf
-    unsigned char bitmap[512 * 512];   // 512x512 bitmap para o atlas
+    FontData font ;
 
+    
+    std::vector<unsigned char> bitmap(512 * 512);
+    std::vector<unsigned char> ttf_buffer; // Será redimensionado após ler o arquivo
+    
     FILE* fontFile = fopen(fontPath, "rb");
     if (!fontFile) {
         std::cerr << "Erro ao abrir arquivo de fonte: " << fontPath << std::endl;
         return font;
     }
-    fread(ttf_buffer, 1, 1 << 20, fontFile);
+
+    // Uma forma mais segura de ler o arquivo
+    fseek(fontFile, 0, SEEK_END);
+    long fileSize = ftell(fontFile);
+    fseek(fontFile, 0, SEEK_SET);
+
+    ttf_buffer.resize(fileSize);
+
+
+    fread(ttf_buffer.data(), 1, fileSize, fontFile);
     fclose(fontFile);
 
     stbtt_pack_context pack_context;
-    if (!stbtt_PackBegin(&pack_context, bitmap, 512, 512, 0, 1, nullptr)) {
+    if (!stbtt_PackBegin(&pack_context, bitmap.data(), 512, 512, 0, 1, nullptr)) {
         std::cerr << "Erro ao inicializar o stb_truetype pack context." << std::endl;
         return font;
     }
@@ -375,7 +387,7 @@ Font LoadFont(const char* fontPath)
 
     // 1. Carrega a faixa ASCII básica (caracteres imprimíveis)
     stbtt_packedchar ascii_chars[254]; //95
-    stbtt_PackFontRange(&pack_context, ttf_buffer, 0, 32.0f, 32, 254, ascii_chars);
+    stbtt_PackFontRange(&pack_context, ttf_buffer.data(), 0, 32.0f, 32, 254, ascii_chars);
  
     
     // Mapeia os dados dos caracteres para fácil acesso
@@ -387,7 +399,7 @@ Font LoadFont(const char* fontPath)
 
     glGenTextures(1, &font.fontTexture);
     glBindTexture(GL_TEXTURE_2D, font.fontTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 512, 512, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -397,7 +409,7 @@ Font LoadFont(const char* fontPath)
 }
 
 
-void RenderText(Shader& shader, Font& font, const std::string& text, float x, float y, float scale, Vector2 origin, float rotation, Color color)
+void RenderText(Shader& shader, FontData& font, const std::string& text, float x, float y, float scale, Vector2 origin, float rotation, Color color)
 {
     // Se o buffer estiver cheio, ou se a textura da fonte for diferente da textura atual, dá flush.
     // Isso vai acontecer naturalmente ao alternar entre desenhar sprites e texto.
@@ -428,12 +440,12 @@ void RenderText(Shader& shader, Font& font, const std::string& text, float x, fl
 
     float xpos = x;
     float ypos = y;
-    const char* p = text.c_str();
+    const utf8_int8_t* p = reinterpret_cast<const utf8_int8_t*>(text.c_str());
 
     while (*p) 
     {
         int32_t codepoint = 0;
-        const char* next_p = utf8codepoint(p, &codepoint);
+        const utf8_int8_t* next_p = utf8codepoint(p, &codepoint);
         if (codepoint == 0) break;
 
         auto itGlyph = font.charData.find(codepoint);
@@ -479,7 +491,7 @@ void RenderText(Shader& shader, Font& font, const std::string& text, float x, fl
     }
 }
 
-Vector2 MeasureText(Font& font, const std::string& text, float scale)
+Vector2 MeasureText(FontData& font, const std::string& text, float scale)
 {
     Vector2 size = {0.0f, 0.0f};
     if (text.empty()) {
@@ -492,12 +504,12 @@ Vector2 MeasureText(Font& font, const std::string& text, float scale)
     // Variáveis para rastrear a caixa delimitadora vertical do texto
     float minY = 0.0f, maxY = 0.0f;
 
-    const char* p = text.c_str();
+    const utf8_int8_t* p = reinterpret_cast<const utf8_int8_t*>(text.c_str());
 
     while (*p) 
     {
         int32_t codepoint = 0; 
-        const char* next_p = utf8codepoint(p, &codepoint);
+        const utf8_int8_t* next_p = utf8codepoint(p, &codepoint);
 
         if (codepoint == 0) {
             break;
@@ -556,6 +568,8 @@ int main()
         return -1;
     }
 
+    getOpenGLVersionInfo();
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     InitBatchRenderer();
 
@@ -564,18 +578,19 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // --------------------------------------------------
 
-    getOpenGLVersionInfo();
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
 
     //======================font load====================================
  
-    Font myFont = LoadFont("../roboto.ttf");  
+    FontData myFont = LoadFont("../roboto.ttf");  
     //==============================================================
     
     // ====== Shader program ======
-    Shader ourShader("../shaders/shader.vs","../shaders/shader.fs");
-    Shader textShader("../shaders/text.vs","../shaders/text.fs");
+    //Shader ourShader("../shaders/shader.vs","../shaders/shader.fs");
+    //Shader textShader("../shaders/text.vs","../shaders/text.fs");
+    Shader ourShader;
+    Shader textShader;
+    ourShader.LoadShader(DEFAULT_SHADER);
+    textShader.LoadShader(TEXT_DEFAULT_SHADER);
     //==============================================================
     
     
@@ -596,12 +611,13 @@ int main()
     {
         processInput(window);
 
-        glClearColor(0.1f, 0.4f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
         
-
- 
+        
+        
         BeginDrawing(); // Prepara para um novo frame
+        
+            glClearColor(0.1f, 0.4f, 0.3f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
 
             // TODAS AS SUAS CHAMADAS DE DESENHO VÃO AQUI
             // Elas não desenham nada ainda, só acumulam vértices.
@@ -674,3 +690,5 @@ int main()
     glfwTerminate();
     return 0;
 }
+
+#endif
