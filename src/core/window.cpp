@@ -3,6 +3,7 @@
 #include "renderer.h"
 #include "sprite.h"
 #include "text.h"
+#include <cmath>
 
 namespace Fusion
 {
@@ -61,14 +62,26 @@ namespace Fusion
 
     void Window::Draw(Text &text)
     {  
-        m_Render->DrawText(*text.m_Font, text.m_Text, 
+        m_Render->DrawText(
+            *text.m_Font, 
+            text.m_Text, 
             Vector2f {text.m_Position.x, text.m_Position.y}, 
-            text.m_Origin, text.m_Rotation, 1 , text.m_Color);
+            text.m_Origin, 
+            text.m_Rotation, 
+            std::max(text.GetSize().width, text.GetSize().height),  
+            text.m_Spacing, 
+            text.m_Color
+        );
     }
 
     void Window::EndDrawing()
     {
         m_Render->EndRender();
         m_Platform->SwapBuffersPollEvents();
+    }
+
+    Vector2f Window::MeasureText(const Text &text, float spacing) const
+    {
+        return m_Render->MeasureText(*text.m_Font, text.GetText(), std::max(text.GetSize().width, text.GetSize().height), spacing);
     }
 }

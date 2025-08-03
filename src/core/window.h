@@ -29,6 +29,7 @@ namespace Fusion
         void Draw(const Sprite& sprite);
         void Draw(Text& text);
         void EndDrawing();
+        Vector2f MeasureText(const Text& text, float spacing) const;
 
     private:
         std::unique_ptr<Renderer> m_Render;

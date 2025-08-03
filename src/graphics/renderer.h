@@ -5,15 +5,19 @@
 #include <vector>
 #include "shader.h"
 #include "fusion_math.h"
-#include "texture.h"
-#include "font.h"
+
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+
+
 namespace Fusion
 {
+
+    class Font;
+    class Texture;
 
     struct Vertex
     {
@@ -32,8 +36,9 @@ namespace Fusion
         void EndRender();
 
         void DrawTexture(const Texture& texture, const Rectangle& source, const Rectangle& dest, const Vector2f& origin, float rotation, const Color& color);
-        void DrawText(const Font &font, const std::string &text, Vector2f position, Vector2f origin, float rotation, float scale, Color color);
-  
+        void DrawText(const Font &font, const std::string &text, Vector2f position, Vector2f origin, float rotation, float scale, float spacing, Color color);
+        Vector2f MeasureText(const Font &font,const std::string &text, float scale, float spacing) const;
+
         void Init();
 
     private:

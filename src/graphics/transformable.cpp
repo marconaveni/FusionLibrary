@@ -3,7 +3,7 @@
 namespace Fusion
 {
     Transformable::Transformable()
-        : m_Source(Rectangle{0, 0, 10, 10}), m_Position(Rectangle{0, 0, 10, 10}), m_Origin(Vector2f{0}), m_Rotation(0)
+        : m_Source(Rectangle{0, 0, 0, 0}), m_Position(Rectangle{0, 0, 1, 1}), m_Origin(Vector2f{0}), m_Rotation(0)
     {
     }
 
@@ -42,6 +42,16 @@ namespace Fusion
     void Transformable::SetRotation(float rotation)
     {
         m_Rotation = rotation;
+    }
+
+    Vector2f Transformable::GetPosition() const
+    {
+        return Vector2f(m_Position.x, m_Position.y);
+    }
+
+    Sizef Transformable::GetSize() const
+    {
+        return Sizef(m_Position.width, m_Position.height);
     }
 
 } // namespace Fusion

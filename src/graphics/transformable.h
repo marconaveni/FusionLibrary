@@ -19,13 +19,17 @@ namespace Fusion
         void SetOrigin(Vector2f origin);
         void SetRotation(float rotation);
 
-    protected:
+        Rectangle GetSource() const { return m_Source; }
+        Vector2f GetOrigin() const { return m_Origin; }
+        float GetRotation() const { return m_Rotation; }
+        Vector2f GetPosition() const;
+        Sizef GetSize() const;
 
+    protected:
         Rectangle m_Source;
         Rectangle m_Position;
         Vector2f m_Origin;
         float m_Rotation;
-        
     };
 
 } // namespace Fusion

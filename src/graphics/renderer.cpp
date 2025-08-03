@@ -1,7 +1,84 @@
 #include "renderer.h"
 #include "stb_truetype.h"
+#include "texture.h"
 #include "font.h"
-#include "utf8.h"
+//#include "utf8.h"
+
+
+#if defined(_MSC_VER) && (_MSC_VER < 1920)
+typedef __int32 utf8_int32_t;
+#else
+#include <stdint.h>
+typedef int32_t utf8_int32_t;
+#endif
+
+#if defined(_MSC_VER)
+#define utf8_nonnull
+#define utf8_pure
+#define utf8_restrict __restrict
+#define utf8_weak __inline
+#elif defined(__clang__) || defined(__GNUC__)
+#define utf8_nonnull UTF8_ATTRIBUTE(nonnull)
+#define utf8_pure UTF8_ATTRIBUTE(pure)
+#define utf8_restrict __restrict__
+#define utf8_weak UTF8_ATTRIBUTE(weak)
+#elif defined(__TINYC__)
+#define utf8_nonnull UTF8_ATTRIBUTE(nonnull)
+#define utf8_pure UTF8_ATTRIBUTE(pure)
+#define utf8_restrict
+#define utf8_weak UTF8_ATTRIBUTE(weak)
+#elif defined(__IAR_SYSTEMS_ICC__)
+#define utf8_nonnull
+#define utf8_pure UTF8_ATTRIBUTE(pure)
+#define utf8_restrict __restrict
+#define utf8_weak UTF8_ATTRIBUTE(weak)
+#else
+#error Non clang, non gcc, non MSVC, non tcc, non iar compiler found!
+#endif
+
+#if defined(utf8_cplusplus) && utf8_cplusplus >= 201402L && (!defined(_MSC_VER) || (defined(_MSC_VER) && _MSC_VER >= 1910))
+#define utf8_constexpr14 constexpr
+#define utf8_constexpr14_impl constexpr
+#else
+/* constexpr and weak are incompatible. so only enable one of them */
+#define utf8_constexpr14 utf8_weak
+#define utf8_constexpr14_impl
+#endif
+
+#if defined(utf8_cplusplus) && utf8_cplusplus >= 202002L && defined(__cpp_char8_t)
+using utf8_int8_t = char8_t; /* Introduced in C++20 */
+#else
+typedef char utf8_int8_t;
+#endif
+
+utf8_constexpr14_impl utf8_int8_t *
+utf8codepoint(const utf8_int8_t *utf8_restrict str,
+              utf8_int32_t *utf8_restrict out_codepoint) {
+  if (0xf0 == (0xf8 & str[0])) {
+    /* 4 byte utf8 codepoint */
+    *out_codepoint = ((0x07 & str[0]) << 18) | ((0x3f & str[1]) << 12) |
+                     ((0x3f & str[2]) << 6) | (0x3f & str[3]);
+    str += 4;
+  } else if (0xe0 == (0xf0 & str[0])) {
+    /* 3 byte utf8 codepoint */
+    *out_codepoint =
+        ((0x0f & str[0]) << 12) | ((0x3f & str[1]) << 6) | (0x3f & str[2]);
+    str += 3;
+  } else if (0xc0 == (0xe0 & str[0])) {
+    /* 2 byte utf8 codepoint */
+    *out_codepoint = ((0x1f & str[0]) << 6) | (0x3f & str[1]);
+    str += 2;
+  } else {
+    /* 1 byte utf8 codepoint otherwise */
+    *out_codepoint = str[0];
+    str += 1;
+  }
+
+  return (utf8_int8_t *)str;
+}
+
+
+
 
 namespace Fusion
 {
@@ -106,7 +183,7 @@ namespace Fusion
         m_Vertices[m_VertexCount++] = {glm::vec3(positions[0]), glmColor, uv1}; // Vértice 3: Top-left
     }
 
-    void Renderer::DrawText(const Font &font, const std::string &text, Vector2f position, Vector2f origin, float rotation, float scale, Color color)
+    void Renderer::DrawText(const Font &font, const std::string &text, Vector2f position, Vector2f origin, float rotation, float scale, float spacing, Color color)
     {
         // 1. Verifica se o shader de textura precisa ser ativado
         if (m_CurrentShader == nullptr || m_TextShader.ID != m_CurrentShader->ID)
@@ -171,7 +248,9 @@ namespace Fusion
             stbtt_packedchar pc = itGlyph->second; // Atribuição direta!
 
             stbtt_aligned_quad q;
-            stbtt_GetPackedQuad(&pc, 512, 512, 0, &xpos, &ypos, &q, 0);
+            stbtt_GetPackedQuad(&pc, font.GetAtlasSize().width, font.GetAtlasSize().height, 0, &xpos, &ypos, &q, 0);
+
+            xpos += spacing; // gera espaçamento adicionar parametro depois
 
             // Checa se ainda há espaço no buffer para mais um quad
             if ((m_VertexCount + 4) > m_MaxVertices)
@@ -179,11 +258,16 @@ namespace Fusion
                 Flush();
             }
 
-            // Calcula os 4 vértices para o caractere atual e adiciona ao lote
-            glm::vec4 p1 = {q.x0 * scale, q.y0 * scale, 0.0f, 1.0f}; // Top-left
-            glm::vec4 p2 = {q.x1 * scale, q.y0 * scale, 0.0f, 1.0f}; // Top-right
-            glm::vec4 p3 = {q.x1 * scale, q.y1 * scale, 0.0f, 1.0f}; // Bottom-right
-            glm::vec4 p4 = {q.x0 * scale, q.y1 * scale, 0.0f, 1.0f}; // Bottom-left
+            glm::vec4 p1 = {q.x0, q.y0, 0.0f, 1.0f}; // Top-left
+            glm::vec4 p2 = {q.x1, q.y0, 0.0f, 1.0f}; // Top-right
+            glm::vec4 p3 = {q.x1, q.y1, 0.0f, 1.0f}; // Bottom-right
+            glm::vec4 p4 = {q.x0, q.y1, 0.0f, 1.0f}; // Bottom-left
+
+            glm::vec3 scale_pivot = glm::vec3(position.x, position.y, 0.0f);
+            p1 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) * glm::translate(glm::mat4(1.0f), -scale_pivot) * p1;
+            p2 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) * glm::translate(glm::mat4(1.0f), -scale_pivot) * p2;
+            p3 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) * glm::translate(glm::mat4(1.0f), -scale_pivot) * p3;
+            p4 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) * glm::translate(glm::mat4(1.0f), -scale_pivot) * p4;
 
             p1 = transform * p1;
             p2 = transform * p2;
@@ -203,6 +287,71 @@ namespace Fusion
             p = next_p;
         }
     }
+
+    Vector2f Renderer::MeasureText(const Font &font, const std::string &text, float scale, float spacing) const
+    {
+        Vector2f size = {0.0f, 0.0f};
+        if (text.empty())
+        {
+            return size;
+        }
+
+        float xpos = 0.0f;
+        float ypos = 0.0f;
+
+        // Variáveis para rastrear a caixa delimitadora vertical do texto
+        float minY = 0.0f, maxY = 0.0f;
+
+        const utf8_int8_t *p = reinterpret_cast<const utf8_int8_t *>(text.c_str());
+
+        while (*p)
+        {
+            int32_t codepoint = 0;
+            const utf8_int8_t *next_p = utf8codepoint(p, &codepoint);
+
+            if (codepoint == 0)
+            {
+                break;
+            }
+
+            auto itGlyph = font.GetCharData().find(codepoint);
+            if (itGlyph == font.GetCharData().end())
+            {
+                codepoint = '?';
+                itGlyph = font.GetCharData().find(codepoint);
+                if (itGlyph == font.GetCharData().end())
+                {
+                    p = next_p;
+                    continue;
+                }
+            }
+
+            stbtt_packedchar pc = itGlyph->second;
+            stbtt_aligned_quad q;
+
+            // A MÁGICA ACONTECE AQUI:
+            // Esta função calcula a posição do caractere (q) e atualiza o xpos com o avanço.
+            // É a mesma função usada para renderizar, mas aqui só nos importam as métricas.
+            stbtt_GetPackedQuad(&pc, font.GetAtlasSize().width, font.GetAtlasSize().height, 0, &xpos, &ypos, &q, 0);
+
+
+            xpos += spacing;
+
+            // Atualiza a altura máxima baseada no caractere mais alto e mais baixo
+            minY = std::min(minY, q.y0 * scale);
+            maxY = std::max(maxY, q.y1 * scale);
+
+            p = next_p;
+        }
+
+        xpos -= spacing;
+
+        size.x = xpos * scale;  // A largura final é a posição final de x
+        size.y = (maxY - minY); // A altura é a diferença entre o ponto mais alto e o mais baixo
+
+        return size;
+    }
+
 
     void Renderer::Init()
     {

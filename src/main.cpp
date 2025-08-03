@@ -14,24 +14,30 @@ int main(int argc, char const *argv[])
     
     window.InitWindow("teste", 800, 600);
     
-    Fusion::Texture texture("../test2.png");
+    Fusion::Texture texture("../assets/test2.png");
     Fusion::Sprite sprite(texture);
    
 
-    Fusion::Font font("../NataSans-Regular.ttf", 32, 224);
+    Fusion::Font font("../assets/NataSans-Regular.ttf", 16, 224);
     Fusion::Text text(font);
-    text.SetPosition(0.0f,-10.0f);
+    text.SetScale(2.0f);
+    text.SetSpacing(4.5f);
+    //text.SetRotation(45.0f);
+
+
 
     text.SetText("Oi este texto está na posição certa!!! OK");
 
     while (!window.WindowShouldClose())
     {
+        const float x = text.MeasureText(window).x;
+        text.SetPosition(400.0f - x / 2 , 300.0f);
         window.BeginDrawing();
         window.Clear(Fusion::Color {0.1f, 0.4f, 0.3f, 1.0f});
         sprite.SetPosition(0.0f, 0.0f);
-        sprite.SetSize(800.0f, 600.0f);
+        sprite.SetSize(100.0f, 100.0f);
         window.Draw(sprite);
-        sprite.SetPosition(150.0f, 150.0f);
+        sprite.SetPosition(250.0f, 50.0f);
         sprite.SetSize(100.0f, 100.0f);
         window.Draw(sprite);
         window.Draw(text);
