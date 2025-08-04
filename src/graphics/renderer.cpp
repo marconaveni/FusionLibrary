@@ -2,83 +2,80 @@
 #include "stb_truetype.h"
 #include "texture.h"
 #include "font.h"
-//#include "utf8.h"
 
+#include "fusion_utf8.h"
 
-#if defined(_MSC_VER) && (_MSC_VER < 1920)
-typedef __int32 utf8_int32_t;
-#else
-#include <stdint.h>
-typedef int32_t utf8_int32_t;
-#endif
+// #if defined(_MSC_VER) && (_MSC_VER < 1920)
+// typedef __int32 utf8_int32_t;
+// #else
+// #include <stdint.h>
+// typedef int32_t utf8_int32_t;
+// #endif
 
-#if defined(_MSC_VER)
-#define utf8_nonnull
-#define utf8_pure
-#define utf8_restrict __restrict
-#define utf8_weak __inline
-#elif defined(__clang__) || defined(__GNUC__)
-#define utf8_nonnull UTF8_ATTRIBUTE(nonnull)
-#define utf8_pure UTF8_ATTRIBUTE(pure)
-#define utf8_restrict __restrict__
-#define utf8_weak UTF8_ATTRIBUTE(weak)
-#elif defined(__TINYC__)
-#define utf8_nonnull UTF8_ATTRIBUTE(nonnull)
-#define utf8_pure UTF8_ATTRIBUTE(pure)
-#define utf8_restrict
-#define utf8_weak UTF8_ATTRIBUTE(weak)
-#elif defined(__IAR_SYSTEMS_ICC__)
-#define utf8_nonnull
-#define utf8_pure UTF8_ATTRIBUTE(pure)
-#define utf8_restrict __restrict
-#define utf8_weak UTF8_ATTRIBUTE(weak)
-#else
-#error Non clang, non gcc, non MSVC, non tcc, non iar compiler found!
-#endif
+// #if defined(_MSC_VER)
+// #define utf8_nonnull
+// #define utf8_pure
+// #define utf8_restrict __restrict
+// #define utf8_weak __inline
+// #elif defined(__clang__) || defined(__GNUC__)
+// #define utf8_nonnull UTF8_ATTRIBUTE(nonnull)
+// #define utf8_pure UTF8_ATTRIBUTE(pure)
+// #define utf8_restrict __restrict__
+// #define utf8_weak UTF8_ATTRIBUTE(weak)
+// #elif defined(__TINYC__)
+// #define utf8_nonnull UTF8_ATTRIBUTE(nonnull)
+// #define utf8_pure UTF8_ATTRIBUTE(pure)
+// #define utf8_restrict
+// #define utf8_weak UTF8_ATTRIBUTE(weak)
+// #elif defined(__IAR_SYSTEMS_ICC__)
+// #define utf8_nonnull
+// #define utf8_pure UTF8_ATTRIBUTE(pure)
+// #define utf8_restrict __restrict
+// #define utf8_weak UTF8_ATTRIBUTE(weak)
+// #else
+// #error Non clang, non gcc, non MSVC, non tcc, non iar compiler found!
+// #endif
 
-#if defined(utf8_cplusplus) && utf8_cplusplus >= 201402L && (!defined(_MSC_VER) || (defined(_MSC_VER) && _MSC_VER >= 1910))
-#define utf8_constexpr14 constexpr
-#define utf8_constexpr14_impl constexpr
-#else
-/* constexpr and weak are incompatible. so only enable one of them */
-#define utf8_constexpr14 utf8_weak
-#define utf8_constexpr14_impl
-#endif
+// #if defined(utf8_cplusplus) && utf8_cplusplus >= 201402L && (!defined(_MSC_VER) || (defined(_MSC_VER) && _MSC_VER >= 1910))
+// #define utf8_constexpr14 constexpr
+// #define utf8_constexpr14_impl constexpr
+// #else
+// /* constexpr and weak are incompatible. so only enable one of them */
+// #define utf8_constexpr14 utf8_weak
+// #define utf8_constexpr14_impl
+// #endif
 
-#if defined(utf8_cplusplus) && utf8_cplusplus >= 202002L && defined(__cpp_char8_t)
-using utf8_int8_t = char8_t; /* Introduced in C++20 */
-#else
-typedef char utf8_int8_t;
-#endif
+// #if defined(utf8_cplusplus) && utf8_cplusplus >= 202002L && defined(__cpp_char8_t)
+// using utf8_int8_t = char8_t; /* Introduced in C++20 */
+// #else
+// typedef char utf8_int8_t;
+// #endif
 
-utf8_constexpr14_impl utf8_int8_t *
-utf8codepoint(const utf8_int8_t *utf8_restrict str,
-              utf8_int32_t *utf8_restrict out_codepoint) {
-  if (0xf0 == (0xf8 & str[0])) {
-    /* 4 byte utf8 codepoint */
-    *out_codepoint = ((0x07 & str[0]) << 18) | ((0x3f & str[1]) << 12) |
-                     ((0x3f & str[2]) << 6) | (0x3f & str[3]);
-    str += 4;
-  } else if (0xe0 == (0xf0 & str[0])) {
-    /* 3 byte utf8 codepoint */
-    *out_codepoint =
-        ((0x0f & str[0]) << 12) | ((0x3f & str[1]) << 6) | (0x3f & str[2]);
-    str += 3;
-  } else if (0xc0 == (0xe0 & str[0])) {
-    /* 2 byte utf8 codepoint */
-    *out_codepoint = ((0x1f & str[0]) << 6) | (0x3f & str[1]);
-    str += 2;
-  } else {
-    /* 1 byte utf8 codepoint otherwise */
-    *out_codepoint = str[0];
-    str += 1;
-  }
+// utf8_constexpr14_impl utf8_int8_t *
+// utf8codepoint(const utf8_int8_t *utf8_restrict str,
+//               utf8_int32_t *utf8_restrict out_codepoint) {
+//   if (0xf0 == (0xf8 & str[0])) {
+//     /* 4 byte utf8 codepoint */
+//     *out_codepoint = ((0x07 & str[0]) << 18) | ((0x3f & str[1]) << 12) |
+//                      ((0x3f & str[2]) << 6) | (0x3f & str[3]);
+//     str += 4;
+//   } else if (0xe0 == (0xf0 & str[0])) {
+//     /* 3 byte utf8 codepoint */
+//     *out_codepoint =
+//         ((0x0f & str[0]) << 12) | ((0x3f & str[1]) << 6) | (0x3f & str[2]);
+//     str += 3;
+//   } else if (0xc0 == (0xe0 & str[0])) {
+//     /* 2 byte utf8 codepoint */
+//     *out_codepoint = ((0x1f & str[0]) << 6) | (0x3f & str[1]);
+//     str += 2;
+//   } else {
+//     /* 1 byte utf8 codepoint otherwise */
+//     *out_codepoint = str[0];
+//     str += 1;
+//   }
 
-  return (utf8_int8_t *)str;
-}
-
-
-
+//   return (utf8_int8_t *)str;
+// }
 
 namespace Fusion
 {
@@ -224,14 +221,16 @@ namespace Fusion
         float ypos = position.y + font.GetTopToBaseline();
 
         float x = font.GetTopToBaseline();
-        const utf8_int8_t *p = reinterpret_cast<const utf8_int8_t *>(text.c_str());
-
-        while (*p)
+        
+        size_t i = 0;
+        while (i < text.length())
         {
-            int32_t codepoint = 0;
-            const utf8_int8_t *next_p = utf8codepoint(p, &codepoint);
+
+            int32_t codepoint = Fusion::Utf8::DecodeNext(text, i);
             if (codepoint == 0)
+            {
                 break;
+            }
 
             auto itGlyph = font.GetCharData().find(codepoint);
             if (itGlyph == font.GetCharData().end())
@@ -240,7 +239,6 @@ namespace Fusion
                 itGlyph = font.GetCharData().find(codepoint);
                 if (itGlyph == font.GetCharData().end())
                 {
-                    p = next_p;
                     continue;
                 }
             }
@@ -283,8 +281,6 @@ namespace Fusion
             m_Vertices[m_VertexCount++] = {glm::vec3(p3), glmColor, uv3}; // Vértice 1: Bottom-right
             m_Vertices[m_VertexCount++] = {glm::vec3(p2), glmColor, uv2}; // Vértice 2: Top-right
             m_Vertices[m_VertexCount++] = {glm::vec3(p1), glmColor, uv1}; // Vértice 3: Top-left
-
-            p = next_p;
         }
     }
 
@@ -302,13 +298,11 @@ namespace Fusion
         // Variáveis para rastrear a caixa delimitadora vertical do texto
         float minY = 0.0f, maxY = 0.0f;
 
-        const utf8_int8_t *p = reinterpret_cast<const utf8_int8_t *>(text.c_str());
-
-        while (*p)
+        size_t i = 0;
+        while (i < text.length())
         {
-            int32_t codepoint = 0;
-            const utf8_int8_t *next_p = utf8codepoint(p, &codepoint);
-
+            int32_t codepoint = Fusion::Utf8::DecodeNext(text, i);
+            
             if (codepoint == 0)
             {
                 break;
@@ -321,7 +315,6 @@ namespace Fusion
                 itGlyph = font.GetCharData().find(codepoint);
                 if (itGlyph == font.GetCharData().end())
                 {
-                    p = next_p;
                     continue;
                 }
             }
@@ -334,14 +327,13 @@ namespace Fusion
             // É a mesma função usada para renderizar, mas aqui só nos importam as métricas.
             stbtt_GetPackedQuad(&pc, font.GetAtlasSize().width, font.GetAtlasSize().height, 0, &xpos, &ypos, &q, 0);
 
-
             xpos += spacing;
 
             // Atualiza a altura máxima baseada no caractere mais alto e mais baixo
             minY = std::min(minY, q.y0 * scale);
             maxY = std::max(maxY, q.y1 * scale);
 
-            p = next_p;
+            
         }
 
         xpos -= spacing;
@@ -351,7 +343,6 @@ namespace Fusion
 
         return size;
     }
-
 
     void Renderer::Init()
     {

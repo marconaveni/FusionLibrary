@@ -1,6 +1,6 @@
 #include "text.h"
 #include "window.h"
-
+#include "fusion_utf8.h"
 
 namespace Fusion
 {

@@ -11,6 +11,7 @@ include_directories(include
     ${CMAKE_SOURCE_DIR}/src/external
     ${CMAKE_SOURCE_DIR}/src/graphics
     ${CMAKE_SOURCE_DIR}/src/platform
+    ${CMAKE_SOURCE_DIR}/src/system
 )
 
 add_executable(game
@@ -24,6 +25,7 @@ add_executable(game
     ${CMAKE_SOURCE_DIR}/src/graphics/texture.cpp
     ${CMAKE_SOURCE_DIR}/src/graphics/transformable.cpp
     ${CMAKE_SOURCE_DIR}/src/platform/platform_desktop_glfw.cpp
+    ${CMAKE_SOURCE_DIR}/src/system/fusion_utf8.cpp
     ${CMAKE_SOURCE_DIR}/src/main.cpp
 )
 
