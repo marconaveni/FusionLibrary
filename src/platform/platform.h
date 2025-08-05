@@ -16,6 +16,7 @@ namespace Fusion
         virtual void Shutdown() = 0;
         virtual void Clear(Color color) = 0;
         virtual Sizei GetWindowSize() const = 0;
+        virtual bool IsWindowResized() = 0;
     };
 }
 

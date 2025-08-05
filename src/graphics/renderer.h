@@ -34,7 +34,8 @@ namespace Fusion
         void BeginScissorMode(int x, int y, int width, int height);
         void EndScissorMode();
 
-        void Init();
+        void Init(int width, int height);
+        void SetProjection(const glm::mat4& projection);
 
     private:
         void InitBatch();

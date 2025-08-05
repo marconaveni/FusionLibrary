@@ -19,11 +19,13 @@ namespace Fusion
         virtual void Shutdown() override;
         virtual void Clear(Color color) override;
         virtual Sizei GetWindowSize() const override;
+        virtual bool IsWindowResized() override;
 
     private:
         GLFWwindow *m_Window = nullptr;
         int m_ViewPortWidth = 0;
         int m_ViewPortHeight = 0;
+        bool m_isResized = false;
         static void FramebufferSizeCallback(GLFWwindow *window, int width, int height);
         void OnFramebufferResize(int width, int height);
     };

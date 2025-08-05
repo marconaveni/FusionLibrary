@@ -39,12 +39,8 @@ namespace Fusion
         }
     }
 
-    // src/graphics/renderer.cpp
-
     void Renderer::DrawTexture(const Sprite &sprite)
     {
-        // --- INÍCIO DA CORREÇÃO ---
-        // Adicione este bloco para garantir que o estado do shader de sprite esteja correto.
 
         // 1. Verifica se o shader de textura precisa ser ativado
         if (m_CurrentShader == nullptr || m_TextureShader.ID != m_CurrentShader->ID)
@@ -52,14 +48,9 @@ namespace Fusion
             Flush(); // Desenha qualquer lote antigo (como texto) com o shader antigo
 
             m_CurrentShader = &m_TextureShader;
-            m_CurrentShader->use();
-
-            // 2. Envia os uniformes necessários para este shader
-            m_CurrentShader->getUniformMatrix4("projection", m_Projection);
+            SetProjection(m_Projection);
         }
-        // --- FIM DA CORREÇÃO ---
 
-        // O resto da sua lógica existente permanece igual
         if ((m_VertexCount + 4) > m_MaxVertices || (sprite.GetTexture()->GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
         {
             Flush();
@@ -78,7 +69,9 @@ namespace Fusion
         for (const auto &vertex : textureVertices)
         {
             if ((m_VertexCount + 1) > m_MaxVertices)
+            {
                 Flush();
+            }
             m_Vertices[m_VertexCount++] = vertex;
         }
     }
@@ -96,10 +89,7 @@ namespace Fusion
             Flush(); // Desenha qualquer lote antigo com o shader antigo
 
             m_CurrentShader = &m_TextShader;
-            m_CurrentShader->use();
-
-            // 2. Envia os uniformes necessários para este shader (SÓ UMA VEZ POR TROCA)
-            m_CurrentShader->getUniformMatrix4("projection", m_Projection);
+            SetProjection(m_Projection);
             glUniform4f(m_CurrentShader->getUniformLocation("textColor"), color.r, color.g, color.b, color.a);
         }
 
@@ -141,12 +131,12 @@ namespace Fusion
     }
 
     void Renderer::EndScissorMode()
-    { 
+    {
         // 2. Desativa o teste para voltar ao normal.
         glDisable(GL_SCISSOR_TEST);
     }
 
-    void Renderer::Init()
+    void Renderer::Init(int width, int height)
     {
         InitBatch();
 
@@ -160,7 +150,19 @@ namespace Fusion
         m_TextShader.LoadShader(TEXT_DEFAULT_SHADER);
         // ==================================================
 
-        m_Projection = glm::ortho(0.0f, static_cast<float>(800), static_cast<float>(600), 0.0f); // tela 800x600
+        m_Projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f); // tela 800x600
+    }
+
+    void Renderer::SetProjection(const glm::mat4 &projection)
+    {
+        m_Projection = projection;
+
+        // Se um shader estiver ativo, atualiza seu uniforme de projeção imediatamente
+        if (m_CurrentShader)
+        {
+            m_CurrentShader->use();
+            m_CurrentShader->getUniformMatrix4("projection", m_Projection);
+        }
     }
 
     void Renderer::InitBatch()
@@ -210,10 +212,14 @@ namespace Fusion
     void Renderer::Flush()
     {
         if (m_VertexCount == 0)
+        {
             return;
+        }
 
         if (m_CurrentShader)
+        {
             m_CurrentShader->use();
+        }
 
         glBindVertexArray(m_BatchVAO);
         glBindTexture(GL_TEXTURE_2D, m_CurrentTextureID);

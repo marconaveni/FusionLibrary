@@ -1,4 +1,5 @@
 #include "sprite.h"
+#include <algorithm>
 
 namespace Fusion
 {
@@ -45,23 +46,35 @@ namespace Fusion
             positions[i] = model * positions[i];
         }
 
-        // Coordenadas de textura (UVs) - não mudam
-        const float u1 = m_Source.x / m_Texture->GetSize().width;
-        const float v1 = m_Source.y / m_Texture->GetSize().height;
-        const float u2 = (m_Source.x + m_Source.width) / m_Texture->GetSize().width;
-        const float v2 = (m_Source.y + m_Source.height) / m_Texture->GetSize().height;
-        glm::vec2 uv1 = {u1, v1}; // UV Top-left
-        glm::vec2 uv2 = {u2, v1}; // UV Top-right
-        glm::vec2 uv3 = {u2, v2}; // UV Bottom-right
-        glm::vec2 uv4 = {u1, v2}; // UV Bottom-left
+        float invertV = (m_Texture->IsFboTexture()) ? 1 : 1;
+
+        // 1. Calcula as coordenadas U (horizontal)
+        const float leftU = m_Source.x / m_Texture->GetSize().width;
+        const float rightU = (m_Source.x + m_Source.width) / m_Texture->GetSize().width;
+
+        // 2. Calcula as coordenadas V (vertical)
+        float topV = m_Source.y / m_Texture->GetSize().height;
+        float bottomV = (m_Source.y + m_Source.height * invertV) / m_Texture->GetSize().height;
+
+        if (m_Texture->IsFboTexture())
+        {
+            std::swap(topV, bottomV);  // não exibe adicionando esse bloco 
+        }
+
+        // 4. Monta os vetores de UV finais
+        glm::vec2 uvTopLeft = {leftU, topV};
+        glm::vec2 uvTopRight = {rightU, topV};
+        glm::vec2 uvBottomRight = {rightU, bottomV};
+        glm::vec2 uvBottomLeft = {leftU, bottomV};
 
         // Cor
         glm::vec4 glmColor = {m_Color.r, m_Color.g, m_Color.b, m_Color.a};
 
-        // 4. Adicionar os vértices JÁ TRANSFORMADOS ao lote
-        m_Vertices.push_back({glm::vec3(positions[3]), glmColor, uv4}); // Vértice 0: Bottom-left
-        m_Vertices.push_back({glm::vec3(positions[2]), glmColor, uv3}); // Vértice 1: Bottom-right
-        m_Vertices.push_back({glm::vec3(positions[1]), glmColor, uv2}); // Vértice 2: Top-right
-        m_Vertices.push_back({glm::vec3(positions[0]), glmColor, uv1}); // Vértice 3: Top-left
+        // Adicionar os vértices JÁ TRANSFORMADOS ao lote
+        // (A ordem dos vértices não muda)
+        m_Vertices.push_back({glm::vec3(positions[3]), glmColor, uvBottomLeft});  // Vértice 0: Bottom-left
+        m_Vertices.push_back({glm::vec3(positions[2]), glmColor, uvBottomRight}); // Vértice 1: Bottom-right
+        m_Vertices.push_back({glm::vec3(positions[1]), glmColor, uvTopRight});    // Vértice 2: Top-right
+        m_Vertices.push_back({glm::vec3(positions[0]), glmColor, uvTopLeft});
     }
 }

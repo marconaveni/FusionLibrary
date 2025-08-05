@@ -52,6 +52,8 @@ namespace Fusion
 
     void PlatformDesktopGLFW::Shutdown()
     {
+        glfwDestroyWindow(m_Window);
+        glfwTerminate();
     }
 
     void PlatformDesktopGLFW::Clear(Color color)
@@ -65,9 +67,19 @@ namespace Fusion
         return Sizei(m_ViewPortWidth, m_ViewPortHeight);
     }
 
+    bool PlatformDesktopGLFW::IsWindowResized()
+    {
+        if (m_isResized)
+        {
+            m_isResized = false; // Reseta a flag após ser lida
+            return true;
+        }
+        return false;
+    }
+
     void PlatformDesktopGLFW::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
     {
-        PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
+        PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
 
         if (platform)
         {
@@ -76,7 +88,10 @@ namespace Fusion
     }
     void PlatformDesktopGLFW::OnFramebufferResize(int width, int height)
     {
-        glViewport(0, height - m_ViewPortHeight, m_ViewPortWidth, m_ViewPortHeight);
+        glViewport(0, 0, width, height);
+        m_ViewPortWidth = width;
+        m_ViewPortHeight = height;
+        m_isResized = true;
     }
 }
 

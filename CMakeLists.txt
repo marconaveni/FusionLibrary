@@ -18,6 +18,7 @@ add_executable(game
     ${CMAKE_SOURCE_DIR}/src/core/window.cpp
     ${CMAKE_SOURCE_DIR}/src/external/glad.c
     ${CMAKE_SOURCE_DIR}/src/graphics/font.cpp
+    ${CMAKE_SOURCE_DIR}/src/graphics/render_texture.cpp
     ${CMAKE_SOURCE_DIR}/src/graphics/renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/graphics/shader.cpp
     ${CMAKE_SOURCE_DIR}/src/graphics/sprite.cpp

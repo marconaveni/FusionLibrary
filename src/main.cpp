@@ -2,6 +2,138 @@
 #define TEST
 #ifdef TEST
 
+// Includes necessários para a sua biblioteca
+#include "window.h"
+#include "font.h"
+#include "text.h"
+#include <iostream> // Usado para imprimir no console e ver o ciclo de vida
+
+/**
+ * @brief Função que representa uma sessão de jogo completa com a FusionLibrary.
+ * * @param windowTitle O título da janela para esta sessão.
+ */
+void RunGameSession(const char* windowTitle)
+{
+    // 1. Inicialização: Um objeto Window é criado na pilha (stack).
+    Fusion::Window window;
+    
+    // Para este exemplo, a resolução virtual é a mesma da janela.
+    window.InitWindow(windowTitle, 800, 600);
+    
+    // Na FusionLibrary, para desenhar texto, precisamos carregar uma fonte e criar um objeto Text.
+    // (Assumindo que a fonte está na pasta assets relativa ao executável)
+    Fusion::Font gameFont("../assets/NataSans-Regular.ttf", 20); 
+    Fusion::Text infoText(gameFont);
+
+    infoText.SetText("Pressione ESC para fechar esta janela.");
+    infoText.SetColor({0.5f, 0.5f, 0.5f, 1.0f}); // Cor similar a DARKGRAY
+    infoText.SetPosition(140, 200);
+
+    // Nota: Sua biblioteca ainda não tem um limitador de FPS, então SetTargetFPS() foi omitido.
+
+    std::cout << "Iniciando sessao da janela: '" << windowTitle << "'\n";
+
+    // 2. Loop Principal do Jogo
+    while (!window.WindowShouldClose())
+    {
+        window.BeginDrawing();
+        
+        // Limpa o fundo com uma cor. Usamos floats de 0.0 a 1.0.
+        // Cor similar a RAYWHITE (245, 245, 245, 255)
+        window.Clear({0.96f, 0.96f, 0.96f, 1.0f}); 
+        
+        window.Draw(infoText);
+        
+        window.EndDrawing();
+    }
+
+    // 3. Limpeza Final: Acontece automaticamente!
+    // Quando a função 'RunGameSession' termina, a variável 'window' sai de escopo.
+    // O destrutor de Fusion::Window (~Window) é chamado, que deve chamar CloseWindow()/Shutdown().
+    std::cout << "Finalizando sessao da janela: '" << windowTitle << "'\n";
+}
+
+int main()
+{
+    // Executa a primeira sessão do jogo
+    RunGameSession("Primeira Janela (Fusion)");
+
+    // Neste ponto, tudo foi finalizado. É seguro começar de novo.
+    std::cout << "\n-----------------------------------\n";
+    std::cout << "PRONTA PARA RECOMEÇAR A INICIALIZAÇÃO\n";
+    std::cout << "-----------------------------------\n\n";
+
+    // Executa uma segunda sessão, criando uma nova janela
+    RunGameSession("Segunda Janela Recriada (Fusion)");
+
+    return 0;
+}
+
+
+/*
+#include "window.h"
+#include "sprite.h"
+#include "text.h"
+#include "render_texture.h" // Inclua o novo header
+
+int main()
+{
+    Fusion::Window window;
+    window.InitWindow("Texture Mode Test", 800, 600);
+    
+    Fusion::Texture playerTexture("../assets/test2.png");
+    Fusion::Sprite player(playerTexture);
+    player.SetPosition(50, 50);
+
+    // 1. Crie o alvo da renderização (com metade do tamanho da tela)
+    Fusion::RenderTexture target(400, 300);
+
+    // 2. Crie um sprite para mostrar o resultado da textura
+    Fusion::Sprite screenSprite(*target.GetTexture());
+
+    Fusion::Font font("../assets/NataSans-Regular.ttf", 20, 224);
+    Fusion::Text text(font);
+
+    while (!window.WindowShouldClose())
+    {
+        // --- DESENHAR NA TEXTURA ---
+        window.BeginTextureMode(target);
+            // Limpa a textura com uma cor de fundo
+            window.Clear(Fusion::Color{0.2f, 0.2f, 0.8f, 1.0f});
+            // Desenha o jogador dentro da textura
+            window.Draw(player);
+            window.Draw(text);
+            text.SetText("Texto renderizado no texture render");
+        window.EndTextureMode();
+        // --- FIM DO DESENHO NA TEXTURA ---
+
+
+        // --- DESENHAR NA TELA ---
+        window.BeginDrawing();
+            window.Clear(Fusion::Color{0.1f, 0.4f, 0.3f, 1.0f});
+            
+            // Desenha a textura que acabamos de renderizar na tela.
+            // NOTA: Texturas de FBO ficam de cabeça para baixo.
+            // Para corrigir, invertemos a coordenada Y da fonte do sprite. obs: isso não é mais necessário
+           // screenSprite.SetSource({0, (float)target.GetTexture()->GetSize().height, 
+           //                         (float)target.GetTexture()->GetSize().width, -(float)target.GetTexture()->GetSize().height});  
+
+            screenSprite.SetPosition(200, 150);
+            screenSprite.SetSize(400, 300);
+
+            window.Draw(screenSprite);
+            window.Draw(player);
+
+        window.EndDrawing();
+    }
+
+    window.CloseWindow();
+    
+    return 0;
+}
+
+*/
+/*
 
 #include "window.h"
 #include "sprite.h"
@@ -87,7 +219,7 @@ while (!window.WindowShouldClose())
     // }
     
     return 0;
-}
+}  */
 
 #else
 

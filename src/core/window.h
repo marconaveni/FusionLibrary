@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "fusion_math.h"
+#include "glm/gtc/matrix_transform.hpp"
 
 namespace Fusion
 {
@@ -11,6 +12,7 @@ namespace Fusion
     class Platform;
     class Sprite;
     class Text;
+    class RenderTexture;
 
     class Window
     {
@@ -20,7 +22,6 @@ namespace Fusion
 
         void InitWindow(const char *title, int width, int height);
         bool WindowShouldClose();
-        void CloseWindow();
         bool IsWindowResize();
         Sizei GetWindowSize() const;
         void Clear(Color color);
@@ -30,10 +31,13 @@ namespace Fusion
         void EndDrawing();
         void BeginScissorMode(int x, int y, int width, int height);
         void EndScissorMode();
+        void BeginTextureMode(const RenderTexture &target);
+        void EndTextureMode();
 
     private:
         std::unique_ptr<Renderer> m_Render;
         std::unique_ptr<Platform> m_Platform;
+        glm::mat4 m_DefaultProjection; // Salvar a projeção da janela
     };
 
 }

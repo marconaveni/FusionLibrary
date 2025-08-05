@@ -12,6 +12,27 @@ namespace Fusion
         LoadFromFile(path);
     }
 
+    Texture::Texture(int width, int height)
+        : m_Width(width), m_Height(height), m_NrChannels(4)
+    {
+        
+        m_IsFboTexture = true;
+        
+        glGenTextures(1, &m_Id);
+        glBindTexture(GL_TEXTURE_2D, m_Id);
+
+        // Aloca memória na GPU para a textura, mas não envia dados (passa NULL)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        // Desvincula para segurança
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
     Texture::~Texture()
     {
         glDeleteTextures(1, &m_Id);
@@ -19,6 +40,11 @@ namespace Fusion
 
     bool Texture::LoadFromFile(const char *path)
     {
+        if (m_IsFboTexture)
+        {
+            std::cout << "Failed to load texture this is FBO Texture\n";
+            return false;
+        }
         glDeleteTextures(1, &m_Id);
         glGenTextures(1, &m_Id);
         glBindTexture(GL_TEXTURE_2D, m_Id);
@@ -38,7 +64,7 @@ namespace Fusion
         }
         else
         {
-            std::cout << "Failed to load texture" << std::endl;
+            std::cout << "Failed to load texture\n";
             return false;
         }
         stbi_image_free(data);
@@ -53,6 +79,11 @@ namespace Fusion
     unsigned int Texture::GetId() const
     {
         return m_Id;
+    }
+
+    bool Texture::IsFboTexture() const
+    {
+        return m_IsFboTexture;
     }
 
 } // namespace Fusion
