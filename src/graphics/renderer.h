@@ -5,6 +5,7 @@
 #include <vector>
 #include "shader.h"
 #include "fusion_math.h"
+#include "vertex.h"
 
 
 #include "glm/glm.hpp"
@@ -17,14 +18,10 @@ namespace Fusion
 {
 
     class Font;
+    class Text;
     class Texture;
+    class Sprite;
 
-    struct Vertex
-    {
-        glm::vec3 position;
-        glm::vec4 color;
-        glm::vec2 texCoords;
-    };
 
     class Renderer
     {
@@ -35,9 +32,8 @@ namespace Fusion
         void BeginRender();
         void EndRender();
 
-        void DrawTexture(const Texture& texture, const Rectangle& source, const Rectangle& dest, const Vector2f& origin, float rotation, const Color& color);
-        void DrawText(const Font &font, const std::string &text, Vector2f position, Vector2f origin, float rotation, float scale, float spacing, Color color);
-        Vector2f MeasureText(const Font &font,const std::string &text, float scale, float spacing) const;
+        void DrawTexture(const Sprite& sprite);
+        void DrawText(const Text& text);
 
         void Init();
 

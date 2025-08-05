@@ -18,27 +18,33 @@ int main(int argc, char const *argv[])
     Fusion::Sprite sprite(texture);
    
 
-    Fusion::Font font("../assets/NataSans-Regular.ttf", 16, 224);
+    Fusion::Font font("../assets/NataSans-Regular.ttf", 32, 224);
     Fusion::Text text(font);
-    text.SetScale(2.0f);
-    text.SetSpacing(4.5f);
-    //text.SetRotation(45.0f);
+    text.SetScale(1.0f);
+    text.SetSpacing(1.5f);
+    
 
 
 
     text.SetText("Oi este texto está na posição certa!!! OK");
+    float xx = 0;
 
     while (!window.WindowShouldClose())
     {
-        const float x = text.MeasureText(window).x;
-        text.SetPosition(400.0f - x / 2 , 300.0f);
+        xx += 0.5f ;
+        const float x = text.MeasureText().x;
+        const float y = text.MeasureText().y;
+        sprite.SetRotation( 0);
+        text.SetPosition(400.0f - x / 2 , (300.0f - y /2));
+        text.SetRotation( text.GetRotation() +  1.0f);
         window.BeginDrawing();
         window.Clear(Fusion::Color {0.1f, 0.4f, 0.3f, 1.0f});
-        sprite.SetPosition(0.0f, 0.0f);
+        sprite.SetPosition(xx, 0.0f);
         sprite.SetSize(100.0f, 100.0f);
-        window.Draw(sprite);
-        sprite.SetPosition(250.0f, 50.0f);
-        sprite.SetSize(100.0f, 100.0f);
+        // sprite.SetPosition(250.0f, 50.0f);
+        
+        // sprite.SetSize(100.0f, 100.0f);
+        // window.Draw(sprite);
         window.Draw(sprite);
         window.Draw(text);
         window.EndDrawing();
@@ -601,9 +607,9 @@ int main()
     
     
     //======= load textures =======================
-    Texture2D texture = LoadTexture("../test.png");
-    Texture2D texture2 = LoadTexture("../wall.jpg");
-    Texture2D texture3 = LoadTexture("../test2.png");
+    Texture2D texture = LoadTexture("../assets/test.png");
+    Texture2D texture2 = LoadTexture("../assets/wall.jpg");
+    Texture2D texture3 = LoadTexture("../assets/test2.png");
     //==============================================================
     
     projection = glm::ortho(0.0f, static_cast<float>(WIDTH), static_cast<float>(HEIGHT), 0.0f); // tela 800x600
@@ -611,14 +617,14 @@ int main()
 
 
     
-
+    float x = 0;
     // Loop principal
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
 
         
-        
+        x += 0.5f;
         
         BeginDrawing(); // Prepara para um novo frame
         

@@ -2,6 +2,8 @@
 #define TRANSFORMABLE_H
 
 #include "fusion_math.h"
+#include "vertex.h"
+#include <vector>
 
 namespace Fusion
 {
@@ -24,12 +26,17 @@ namespace Fusion
         float GetRotation() const { return m_Rotation; }
         Vector2f GetPosition() const;
         Sizef GetSize() const;
+        virtual const std::vector<Vertex> &GetVertices() const;
 
     protected:
         Rectangle m_Source;
         Rectangle m_Position;
         Vector2f m_Origin;
         float m_Rotation;
+        
+        virtual void UpdateGeometry() const = 0;
+        mutable bool m_IsNeedTransform = true; // A flag de cache!
+        mutable std::vector<Vertex> m_Vertices;
     };
 
 } // namespace Fusion

@@ -4,13 +4,14 @@
 
 #include "transformable.h"
 #include "texture.h"
+#include "vertex.h"
 
 namespace Fusion
 {
     class Sprite : public Transformable
     {
     public:
-        friend class Window;
+        friend class Renderer;
 
         explicit Sprite(const Texture &texture);
 
@@ -20,7 +21,10 @@ namespace Fusion
 
         void SetTexture(const Texture &&texture) = delete;
 
+        const Texture *GetTexture() const { return m_Texture; }
+
     private:
+        virtual void UpdateGeometry() const override; 
         const Texture *m_Texture;
         Color m_Color;
     };

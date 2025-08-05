@@ -5,19 +5,17 @@
 #include <string>
 #include "transformable.h"
 #include "font.h"
-
-//#include "utf8.h"
+#include "vertex.h"
 
 namespace Fusion
 {
-    class Window;
 
     class Text : public Transformable
     {
 
     public:
         friend class Window;
-      
+
         explicit Text(const Font &font);
 
         void SetFont(const Font &font);
@@ -25,21 +23,25 @@ namespace Fusion
         void SetText(std::string text);
 
         void SetScale(float scale);
-        
+
         void SetSpacing(float spacing);
 
-        Vector2f MeasureText(Window& window);
-        
+        Vector2f MeasureText();
+
         Color GetColor() const { return m_Color; }
-        
+
         std::string GetText() const { return m_Text; }
 
         void SetColor(Color color) { m_Color = color; }
 
         float GetSpacing() const { return m_Spacing; }
 
+        float GetScale() const;
+
+        const Font *GetFont() const { return m_Font; }
 
     private:
+        virtual void UpdateGeometry() const override;
         const Font *m_Font;
         std::string m_Text;
         float m_Spacing;
@@ -47,8 +49,6 @@ namespace Fusion
         bool m_IsNeedMensured;
         Vector2f m_MeasuredText;
     };
-
-
 
 }
 
