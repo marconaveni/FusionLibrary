@@ -4,7 +4,6 @@
 #include <memory>
 #include "fusion_math.h"
 
-
 namespace Fusion
 {
 
@@ -23,12 +22,14 @@ namespace Fusion
         bool WindowShouldClose();
         void CloseWindow();
         bool IsWindowResize();
-        Vector2f GetWindowSize();
+        Sizei GetWindowSize() const;
         void Clear(Color color);
         void BeginDrawing();
-        void Draw(const Sprite& sprite);
-        void Draw(Text& text);
+        void Draw(const Sprite &sprite);
+        void Draw(Text &text);
         void EndDrawing();
+        void BeginScissorMode(int x, int y, int width, int height);
+        void EndScissorMode();
 
     private:
         std::unique_ptr<Renderer> m_Render;

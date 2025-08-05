@@ -59,6 +59,12 @@ namespace Fusion
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT);
     }
+
+    Sizei PlatformDesktopGLFW::GetWindowSize() const
+    {
+        return Sizei(m_ViewPortWidth, m_ViewPortHeight);
+    }
+
     void PlatformDesktopGLFW::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
     {
         PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));

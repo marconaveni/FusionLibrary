@@ -10,7 +10,6 @@ namespace Fusion
 
     Window::Window()
     {
-
     }
 
     Window::~Window()
@@ -39,9 +38,9 @@ namespace Fusion
         return false;
     }
 
-    Vector2f Window::GetWindowSize()
+    Sizei Window::GetWindowSize() const
     {
-        return Vector2f();
+        return m_Platform->GetWindowSize();
     }
 
     void Window::Clear(Color color)
@@ -60,7 +59,7 @@ namespace Fusion
     }
 
     void Window::Draw(Text &text)
-    {  
+    {
         m_Render->DrawText(text);
     }
 
@@ -70,4 +69,21 @@ namespace Fusion
         m_Platform->SwapBuffersPollEvents();
     }
 
+    void Window::BeginScissorMode(int x, int y, int width, int height)
+    {
+        // 1. Desenha tudo que estava no lote atual ANTES de ativar o Scissor.
+        m_Render->EndRender();
+
+        // 2. Converte a coordenada Y do sistema "top-left" para "bottom-left" do OpenGL.
+        const int openglY = GetWindowSize().height - (y + height);
+
+        // 3. Ativa o teste Scissor com as coordenadas corretas.
+        m_Render->BeginScissorMode(x, openglY, width, height);
+    }
+    void Window::EndScissorMode()
+    {
+        // 1. Desenha tudo que estava no lote DENTRO do modo Scissor.
+        m_Render->EndRender();
+        m_Render->EndScissorMode();
+    }
 }

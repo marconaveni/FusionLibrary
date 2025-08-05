@@ -7,12 +7,9 @@
 #include "fusion_math.h"
 #include "vertex.h"
 
-
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
-
-
 
 namespace Fusion
 {
@@ -21,7 +18,6 @@ namespace Fusion
     class Text;
     class Texture;
     class Sprite;
-
 
     class Renderer
     {
@@ -32,8 +28,11 @@ namespace Fusion
         void BeginRender();
         void EndRender();
 
-        void DrawTexture(const Sprite& sprite);
-        void DrawText(const Text& text);
+        void DrawTexture(const Sprite &sprite);
+        void DrawText(const Text &text);
+
+        void BeginScissorMode(int x, int y, int width, int height);
+        void EndScissorMode();
 
         void Init();
 

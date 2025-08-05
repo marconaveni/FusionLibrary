@@ -134,6 +134,18 @@ namespace Fusion
         }
     }
 
+    void Renderer::BeginScissorMode(int x, int y, int width, int height)
+    {
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(x, y, width, height);
+    }
+
+    void Renderer::EndScissorMode()
+    { 
+        // 2. Desativa o teste para voltar ao normal.
+        glDisable(GL_SCISSOR_TEST);
+    }
+
     void Renderer::Init()
     {
         InitBatch();

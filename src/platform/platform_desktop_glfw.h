@@ -18,6 +18,7 @@ namespace Fusion
         virtual void SwapBuffersPollEvents() override;
         virtual void Shutdown() override;
         virtual void Clear(Color color) override;
+        virtual Sizei GetWindowSize() const override;
 
     private:
         GLFWwindow *m_Window = nullptr;

@@ -23,32 +23,68 @@ int main(int argc, char const *argv[])
     text.SetScale(1.0f);
     text.SetSpacing(1.5f);
     
-
+    sprite.SetPosition(50.0f, 50.0f);
 
 
     text.SetText("Oi este texto está na posição certa!!! OK");
-    float xx = 0;
+    float x = 0;
 
-    while (!window.WindowShouldClose())
-    {
-        xx += 0.5f ;
-        const float x = text.MeasureText().x;
-        const float y = text.MeasureText().y;
-        sprite.SetRotation( 0);
-        text.SetPosition(400.0f - x / 2 , (300.0f - y /2));
-        text.SetRotation( text.GetRotation() +  1.0f);
-        window.BeginDrawing();
-        window.Clear(Fusion::Color {0.1f, 0.4f, 0.3f, 1.0f});
-        sprite.SetPosition(xx, 0.0f);
-        sprite.SetSize(100.0f, 100.0f);
-        // sprite.SetPosition(250.0f, 50.0f);
-        
-        // sprite.SetSize(100.0f, 100.0f);
-        // window.Draw(sprite);
+while (!window.WindowShouldClose())
+{
+    window.BeginDrawing();
+    window.Clear(Fusion::Color {0.1f, 0.4f, 0.3f, 1.0f});
+
+    // Desenha um sprite normal
+    sprite.SetPosition(150.0f, 250.0f);
+    sprite.SetRotation(45.0f);
+    window.Draw(sprite);
+
+    x += 0.3f;
+    
+    // --- NOVO MODO SCISSOR ---
+    // Ativa uma área de recorte de 200x200 no canto superior esquerdo
+    window.BeginScissorMode(10, 10, 200, 200);
+
+        // Você pode até limpar a área do Scissor com uma cor diferente
+        window.Clear(Fusion::Color {0.6f, 0.4f, 0.3f, 1.0f});
+
+        // Este sprite só será visível (e será cortado) dentro do retângulo de 200x200
+        sprite.SetPosition(x, 50.0f);
+        sprite.SetRotation(0);
+        sprite.SetSize(150.0f, 150.0f);
         window.Draw(sprite);
-        window.Draw(text);
-        window.EndDrawing();
-    }
+
+    window.EndScissorMode();
+    // -------------------------
+
+    // Desenha outro texto/sprite fora do modo Scissor
+    text.SetPosition(300.0f, 300.0f);
+    window.Draw(text);
+    
+    window.EndDrawing();
+}
+
+
+    // while (!window.WindowShouldClose())
+    // {
+    //     xx += 0.5f ;
+    //     const float x = text.MeasureText().x;
+    //     const float y = text.MeasureText().y;
+    //     sprite.SetRotation( 0);
+    //     text.SetPosition(400.0f - x / 2 , (300.0f - y /2));
+    //     text.SetRotation( text.GetRotation() +  1.0f);
+    //     window.BeginDrawing();
+    //     window.Clear(Fusion::Color {0.1f, 0.4f, 0.3f, 1.0f});
+    //     sprite.SetPosition(xx, 0.0f);
+    //     sprite.SetSize(100.0f, 100.0f);
+    //     // sprite.SetPosition(250.0f, 50.0f);
+        
+    //     // sprite.SetSize(100.0f, 100.0f);
+    //     // window.Draw(sprite);
+    //     window.Draw(sprite);
+    //     window.Draw(text);
+    //     window.EndDrawing();
+    // }
     
     return 0;
 }

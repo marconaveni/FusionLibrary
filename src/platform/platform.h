@@ -15,6 +15,7 @@ namespace Fusion
         virtual void SwapBuffersPollEvents() = 0;
         virtual void Shutdown() = 0;
         virtual void Clear(Color color) = 0;
+        virtual Sizei GetWindowSize() const = 0;
     };
 }
 
