@@ -21,6 +21,7 @@ namespace Fusion
         unsigned int GetId() const;
         const std::map<int, stbtt_packedchar> &GetCharData() const { return m_CharData; }
         float GetTopToBaseline() const;
+        float GetLineHeight() const;
         Sizei GetAtlasSize() const { return m_AtlasSize; }
     
 
@@ -30,6 +31,7 @@ namespace Fusion
         unsigned int m_FontTextureID = 0;
         stbtt_fontinfo m_FontInfo;
         float m_TopToBaseline = 0.0f;
+        float m_LineHeight = 0.0f;
         Sizei m_AtlasSize = {0, 0}; // Tamanho do atlas de textura
     };
 

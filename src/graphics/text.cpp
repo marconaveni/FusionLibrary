@@ -5,7 +5,7 @@
 namespace Fusion
 {
     Text::Text(const Font &font)
-        : m_Spacing(0), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_IsNeedMensured(true), m_MeasuredText(0)
+        : m_Spacing(0), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_IsNeedMensured(true), m_MeasuredText({0.0f, 0.0f})
     {
         SetFont(font);
     }
@@ -38,62 +38,71 @@ namespace Fusion
     }
     Vector2f Text::MeasureText()
     {
-        if (m_IsNeedMensured)
+        if (!m_IsNeedMensured)
         {
-            m_IsNeedMensured = false;
-
-            if (m_Text.empty())
-            {
-                return Vector2f{0};
-            }
-
-            float xpos = 0.0f;
-            float ypos = 0.0f;
-
-            // Variáveis para rastrear a caixa delimitadora vertical do texto
-            float minY = 0.0f, maxY = 0.0f;
-
-            size_t i = 0;
-            const float scale = GetScale();
-            while (i < m_Text.length())
-            {
-                int32_t codepoint = Fusion::Utf8::DecodeNext(m_Text, i);
-
-                if (codepoint == 0)
-                {
-                    break;
-                }
-
-                auto itGlyph = m_Font->GetCharData().find(codepoint);
-                if (itGlyph == m_Font->GetCharData().end())
-                {
-                    codepoint = '?';
-                    itGlyph = m_Font->GetCharData().find(codepoint);
-                    if (itGlyph == m_Font->GetCharData().end())
-                    {
-                        continue;
-                    }
-                }
-
-                stbtt_packedchar pc = itGlyph->second;
-                stbtt_aligned_quad q;
-
-                // Esta função calcula a posição do caractere (q) e atualiza o xpos com o avanço.
-                // É a mesma função usada para renderizar, mas aqui só nos importam as métricas.
-                stbtt_GetPackedQuad(&pc, m_Font->GetAtlasSize().width, m_Font->GetAtlasSize().height, 0, &xpos, &ypos, &q, 0);
-
-                xpos += m_Spacing;
-
-                // Atualiza a altura máxima baseada no caractere mais alto e mais baixo
-                minY = std::min(minY, q.y0 * scale);
-                maxY = std::max(maxY, q.y1 * scale);
-            }
-
-            xpos -= m_Spacing; // Remove o espaçamento final
-
-            m_MeasuredText.x = xpos * scale;  // A largura final é a posição final de x
-            m_MeasuredText.y = (maxY - minY); // A altura é a diferença entre o ponto mais alto e o mais baixo
+            return m_MeasuredText;
         }
+
+        m_IsNeedMensured = false;
+
+        if (m_Text.empty() || m_Font == nullptr)
+        {
+            m_MeasuredText = {0.0f, 0.0f};
+            return m_MeasuredText;
+        }
+
+        float maxWidth = 0.0f;                       // Armazena a largura da linha mais longa
+        float currentLineWidth = 0.0f;               // Largura da linha que estamos medindo
+        float totalHeight = m_Font->GetLineHeight(); // Começa com a altura de uma linha
+
+        size_t i = 0;
+        while (i < m_Text.length())
+        {
+            int32_t codepoint = Fusion::Utf8::DecodeNext(m_Text, i);
+            if (codepoint == 0)
+            {
+                break;
+            }
+
+            // Se encontramos uma quebra de linha
+            if (codepoint == '\n')
+            {
+                // Remove o espaçamento extra do final da última linha
+                if (currentLineWidth > 0)
+                {
+                    currentLineWidth -= m_Spacing;
+                }
+                maxWidth = std::max(maxWidth, currentLineWidth); // Compara a largura da linha que acabamos de medir com a máxima
+                currentLineWidth = 0.0f;                         // Reseta a largura para a próxima linha
+                totalHeight += m_Font->GetLineHeight();          // Adiciona a altura de mais uma linha
+                continue;
+            }
+
+            auto itGlyph = m_Font->GetCharData().find(codepoint);
+            if (itGlyph == m_Font->GetCharData().end())
+            {
+                codepoint = '?';
+                itGlyph = m_Font->GetCharData().find(codepoint);
+                if (itGlyph == m_Font->GetCharData().end())
+                    continue;
+            }
+
+            stbtt_packedchar pc = itGlyph->second;
+
+            // Adiciona o avanço do caractere e o espaçamento à largura da linha atual
+            currentLineWidth += pc.xadvance + m_Spacing;
+        }
+
+        if (currentLineWidth > 0)
+        {
+            currentLineWidth -= m_Spacing; // remove o ultimo espaçamento
+        }
+        maxWidth = std::max(maxWidth, currentLineWidth); // Após o loop, faz uma última verificação para a última linha do texto
+
+        // Aplica a escala final ao resultado
+        const float scale = GetScale();
+        m_MeasuredText.x = maxWidth * scale;
+        m_MeasuredText.y = totalHeight * scale;
 
         return m_MeasuredText;
     }
@@ -116,8 +125,6 @@ namespace Fusion
         float xpos = m_Position.x;
         float ypos = m_Position.y + m_Font->GetTopToBaseline();
 
-        float x = m_Font->GetTopToBaseline();
-
         size_t i = 0;
         while (i < m_Text.length())
         {
@@ -126,6 +133,13 @@ namespace Fusion
             if (codepoint == 0)
             {
                 break;
+            }
+
+            if (codepoint == '\n')
+            {
+                ypos += m_Font->GetLineHeight(); // Avança para a próxima linha
+                xpos = m_Position.x;             // Reseta para o início da linha
+                continue;                        // Pula para a próxima iteração
             }
 
             auto itGlyph = m_Font->GetCharData().find(codepoint);
@@ -142,8 +156,11 @@ namespace Fusion
             stbtt_packedchar pc = itGlyph->second; // Atribuição direta!
 
             stbtt_aligned_quad q;
-            stbtt_GetPackedQuad(&pc, m_Font->GetAtlasSize().width, m_Font->GetAtlasSize().height, 0, &xpos, &ypos, &q, 0);
+            float temp_x = xpos;
+            float temp_y = ypos;
+            stbtt_GetPackedQuad(&pc, m_Font->GetAtlasSize().width, m_Font->GetAtlasSize().height, 0, &temp_x, &temp_y, &q, 0);
 
+            xpos = temp_x;
             xpos += m_Spacing; // gera espaçamento adicionar parametro depois
 
             glm::vec4 p1 = {q.x0, q.y0, 0.0f, 1.0f}; // Top-left

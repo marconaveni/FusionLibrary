@@ -64,14 +64,14 @@ namespace Fusion
         m_Render->BeginRender();
     }
 
-    void Window::Draw(const Sprite &sprite)
+    void Window::Draw(const Sprite &sprite, Shader* customShader)
     {
-        m_Render->DrawTexture(sprite);
+        m_Render->DrawTexture(sprite, customShader);
     }
 
-    void Window::Draw(Text &text)
+    void Window::Draw(Text &text, Shader* customShader)
     {
-        m_Render->DrawText(text);
+        m_Render->DrawText(text, customShader);
     }
 
     void Window::EndDrawing()

@@ -1,7 +1,6 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-
 #include <string>
 #include <unordered_map>
 
@@ -9,47 +8,48 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-enum DefaultShader
+namespace Fusion
 {
-    DEFAULT_SHADER, 
-    TEXT_DEFAULT_SHADER,
-    CUSTOM_SHADER
-};
 
-class Shader
-{
-public:
-    
-    unsigned int ID; // the program ID
-    std::unordered_map<std::string, int> uniformCache;
-  
+    enum DefaultShader
+    {
+        DEFAULT_SHADER,
+        TEXT_DEFAULT_SHADER
+    };
 
-    Shader();
+    class Shader
+    {
+    public:
+        unsigned int ID; // the program ID
+        std::unordered_map<std::string, int> uniformCache;
 
-    // constructor reads and builds the shader
-    Shader(const std::string& vertexPath, const std::string& fragmentPath);
+        Shader(DefaultShader typeShader = DEFAULT_SHADER);
 
-    ~Shader();
+        ~Shader();
 
-    void LoadShader(DefaultShader typeShader, const std::string& vertexPath = "", const std::string& fragmentPath = "");
+        void LoadShader(const std::string &vertexPath = "", const std::string &fragmentPath = "");
 
-    // use/activate the shader
-    void use();
+        // use/activate the shader
+        void use();
 
-    int getUniformLocation(const std::string& name);
-    void getUniformMatrix4(const std::string& name, glm::mat4& projection);
+        int getUniformLocation(const std::string &name);
+        void getUniformMatrix4(const std::string &name, glm::mat4 &projection);
 
-    // utility uniform functions
-    void setBool(const std::string &name, bool value) const;  
-    void setInt(const std::string &name, int value) const;   
-    void setFloat(const std::string &name, float value) const;
-    void Unload();
-    
-private:
+        // utility uniform functions
+        void SetBool(const std::string &name, bool value) const;
+        void SetInt(const std::string &name, int value) const;
+        void SetFloat(const std::string &name, float value) const;
+        void SetVec2(const std::string &name, float v1, float v2) const;
+        void SetVec3(const std::string &name, float v1, float v2, float v3) const;
+        void SetVec4(const std::string &name, float v1, float v2, float v3, float v4) const;
+        void Unload();
 
-    // utility function for checking shader compilation/linking errors.
-    void checkCompileErrors(unsigned int shader, std::string type);
+    private:
+        // utility function for checking shader compilation/linking errors.
+        void checkCompileErrors(unsigned int shader, std::string type);
+        DefaultShader m_TypeShader;
+    };
 
-};
-  
+}
+
 #endif

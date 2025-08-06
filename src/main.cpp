@@ -3,6 +3,137 @@
 #ifdef TEST
 
 
+
+/*
+#include "window.h"
+#include "sprite.h"
+#include "text.h"
+#include "shader.h"
+#include "font.h"
+#include <iostream>
+
+
+int main()
+{
+
+    const int screenWidth = 800;
+    const int screenHeight = 600;
+
+    Fusion::Window window;
+    // Para este exemplo, a resolução virtual é a mesma da janela.
+    window.InitWindow("FusionLibrary [Shaders] - Exemplo de Contorno", screenWidth, screenHeight);
+
+    // Carrega a textura e a fonte
+    // (Assumindo que os arquivos estão nas pastas corretas relativas ao executável)
+    Fusion::Texture fudesumiTexture("../assets/fudesumi.png");
+    Fusion::Font defaultFont("../assets/NataSans-Regular.ttf", 20, 224);
+
+    // 2. Carregar o Shader Customizado
+    //--------------------------------------------------------------------------------------
+    // Carregamos o shader passando uma string vazia para o vertex shader.
+    // A nova lógica da sua classe Shader usará o vertex shader padrão automaticamente.
+    Fusion::Shader outlineShader(Fusion::DEFAULT_SHADER);
+    outlineShader.LoadShader("", "../shaders/outline.fs");
+
+
+    // 3. Preparar e Enviar os Uniforms Iniciais para o Shader
+    //--------------------------------------------------------------------------------------
+    float outlineSize = 5.0f;
+    Fusion::Color outlineColor = { 1.0f, 0.0f, 0.0f, 1.0f }; // Vermelho
+    Fusion::Vector2f textureSize = { (float)fudesumiTexture.GetSize().width, (float)fudesumiTexture.GetSize().height };
+
+    // Ativa o shader para poder enviar os uniforms
+    outlineShader.use();
+    outlineShader.SetFloat("outlineSize", outlineSize);
+    outlineShader.SetVec4("outlineColor", outlineColor.r, outlineColor.g, outlineColor.b, outlineColor.a);
+    outlineShader.SetVec2("textureSize", textureSize.x, textureSize.y);
+
+
+    // Cria o sprite que usará a textura
+    Fusion::Sprite fudesumiSprite(fudesumiTexture);
+    fudesumiSprite.SetPosition(screenWidth / 2.0f - fudesumiTexture.GetSize().width / 2.0f, 30.0f);
+
+    // Prepara os textos da UI
+    Fusion::Text text1(defaultFont);
+    text1.SetText("\tShader-based\ntexture outline");
+    text1.SetPosition(10, 10);
+    text1.SetColor({0.5f, 0.5f, 0.5f, 1.0f}); // GRAY
+    text1.SetSpacing(3);
+    text1.SetScale(5);
+
+    Fusion::Text text2(defaultFont);
+    text2.SetText("Scroll mouse wheel to change outline size");
+    text2.SetPosition(10, 72);
+    text2.SetColor({0.5f, 0.5f, 0.5f, 1.0f}); // GRAY
+
+    Fusion::Text text3(defaultFont);
+    text3.SetColor({0.69f, 0.19f, 0.19f, 1.0f}); // MAROON
+    text3.SetPosition(10, 120);
+
+    //--------------------------------------------------------------------------------------
+
+    // Loop principal do jogo
+    while (!window.WindowShouldClose())
+    {
+        // 4. Atualização
+        //----------------------------------------------------------------------------------
+       // outlineSize += GetMouseWheelMove(); // Simulado
+       // if (outlineSize < 1.0f) outlineSize = 1.0f;
+
+        // Envia o valor atualizado do 'outlineSize' para o shader a cada quadro
+        outlineShader.use();
+        outlineShader.SetFloat("outlineSize", outlineSize);
+
+        // Atualiza o texto que mostra o tamanho
+        char buffer[64];
+        snprintf(buffer, sizeof(buffer), "Outline size: %i px", (int)outlineSize);
+        text3.SetText(buffer);
+        //----------------------------------------------------------------------------------
+
+        // 5. Desenho
+        //----------------------------------------------------------------------------------
+        window.BeginDrawing();
+
+            window.Clear({0.96f, 0.96f, 0.96f, 1.0f}); // RAYWHITE
+
+            // Aplica o shader customizado apenas a esta chamada de desenho
+             window.Draw(fudesumiSprite, &outlineShader);
+            //window.Draw(fudesumiSprite);
+
+            // Os textos são desenhados com o shader padrão, pois não passamos um customizado
+            window.Draw(text1);
+           // window.Draw(text2);
+           // window.Draw(text3);
+
+            // Nota: FusionLibrary ainda não tem DrawFPS, então foi omitido.
+
+        window.EndDrawing();
+        //----------------------------------------------------------------------------------
+    }
+
+    // 6. Desinicialização
+    //--------------------------------------------------------------------------------------
+    // Na FusionLibrary, a limpeza é automática graças ao RAII.
+    // Os destrutores de Window, Texture, Font e Shader serão chamados quando 'main' terminar.
+    //--------------------------------------------------------------------------------------
+
+    return 0;
+}
+
+
+
+
+*/
+
+
+
+
+
+
+
+
+
+/*
 #include "window.h"
 #include "sprite.h"
 #include "camera2D.h" // Inclua a câmera
@@ -60,7 +191,9 @@ int main()
     
     return 0;
 }
-/*
+*/
+
+
 
 #include "window.h"
 #include "sprite.h"
@@ -121,7 +254,7 @@ int main()
     return 0;
 }
 
-*/
+
 
 /*
 

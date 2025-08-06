@@ -10,6 +10,8 @@
 namespace Fusion
 {
     Renderer::Renderer()
+    : m_TextureShader(DEFAULT_SHADER)
+    , m_TextShader(TEXT_DEFAULT_SHADER)
     {
         m_MaxQuads = 1000;
         m_MaxVertices = m_MaxQuads * 4;
@@ -41,15 +43,17 @@ namespace Fusion
         }
     }
 
-    void Renderer::DrawTexture(const Sprite &sprite)
+    void Renderer::DrawTexture(const Sprite &sprite, Shader* customShader)
     {
 
+        Shader* shaderToUse = customShader ? customShader : &m_TextureShader;
+
         // 1. Verifica se o shader de textura precisa ser ativado
-        if (m_CurrentShader == nullptr || m_TextureShader.ID != m_CurrentShader->ID)
+        if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
         {
             Flush(); // Desenha qualquer lote antigo (como texto) com o shader antigo
 
-            m_CurrentShader = &m_TextureShader;
+            m_CurrentShader = shaderToUse;
             SetProjection(m_Projection);
         }
 
@@ -78,19 +82,21 @@ namespace Fusion
         }
     }
 
-    void Renderer::DrawText(const Text &text)
+    void Renderer::DrawText(const Text &text, Shader* customShader)
     {
 
         const Font &font = *text.GetFont();
         const std::string &textContent = text.GetText();
         const Color color = text.GetColor();
 
+        Shader* shaderToUse = customShader ? customShader : &m_TextShader;
+
         // 1. Verifica se o shader de textura precisa ser ativado
-        if (m_CurrentShader == nullptr || m_TextShader.ID != m_CurrentShader->ID)
+        if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
         {
             Flush(); // Desenha qualquer lote antigo com o shader antigo
 
-            m_CurrentShader = &m_TextShader;
+            m_CurrentShader = shaderToUse;
             SetProjection(m_Projection);
             glUniform4f(m_CurrentShader->getUniformLocation("textColor"), color.r, color.g, color.b, color.a);
         }
@@ -148,8 +154,8 @@ namespace Fusion
         // ==================================================
 
         // ====== Start Shader program ======
-        m_TextureShader.LoadShader(DEFAULT_SHADER);
-        m_TextShader.LoadShader(TEXT_DEFAULT_SHADER);
+        m_TextureShader.LoadShader();
+        m_TextShader.LoadShader();
         // ==================================================
 
         m_Projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f); // tela 800x600

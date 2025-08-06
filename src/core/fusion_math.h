@@ -2,7 +2,6 @@
 #ifndef FUSION_MATH_H
 #define FUSION_MATH_H
 
-
 namespace Fusion
 {
     template <typename T>
@@ -11,7 +10,7 @@ namespace Fusion
         T x;
         T y;
     };
-    
+
     using Vector2f = Vector2<float>;
     using Vector2i = Vector2<int>;
     using Vector2u = Vector2<unsigned int>;
@@ -34,7 +33,7 @@ namespace Fusion
         float width;
         float height;
     };
-    
+
     struct Color
     {
         float r;
@@ -42,6 +41,13 @@ namespace Fusion
         float b;
         float a;
     };
+
+    enum BlendMode
+    {
+        BLEND_ALPHA,      // Mesclagem com base no canal alfa (padrão)
+        BLEND_ADDITIVE,   // Mesclagem aditiva, clareia a imagem
+        BLEND_MULTIPLIED, // Mesclagem multiplicada, escurece a imagem
+    };
 }
 
-#endif 
+#endif

@@ -14,6 +14,7 @@ namespace Fusion
     class Text;
     class RenderTexture;
     class Camera2D;
+    class Shader;
 
     class Window
     {
@@ -27,8 +28,8 @@ namespace Fusion
         Sizei GetWindowSize() const;
         void Clear(Color color);
         void BeginDrawing();
-        void Draw(const Sprite &sprite);
-        void Draw(Text &text);
+        void Draw(const Sprite &sprite, Shader* customShader = nullptr);
+        void Draw(Text &text, Shader* customShader = nullptr);
         void EndDrawing();
         void BeginScissorMode(int x, int y, int width, int height);
         void EndScissorMode();

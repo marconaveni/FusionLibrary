@@ -79,8 +79,10 @@ namespace Fusion
         float scale = stbtt_ScaleForPixelHeight(&m_FontInfo, fontSize);
         int ascent, descent, lineGap;
         stbtt_GetFontVMetrics(&m_FontInfo, &ascent, &descent, &lineGap);
+        
 
         m_TopToBaseline = ascent * scale;
+        m_LineHeight = (ascent - descent + lineGap) * scale;
 
         stbtt_PackEnd(&pack_context); // Boa prática chamar PackEnd.
 
@@ -107,5 +109,9 @@ namespace Fusion
         return m_TopToBaseline;
     }
 
+    float Font::GetLineHeight() const
+    {
+        return m_LineHeight;
+    }
 
 } // namespace Fusion

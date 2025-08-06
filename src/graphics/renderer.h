@@ -28,8 +28,8 @@ namespace Fusion
         void BeginRender();
         void EndRender();
 
-        void DrawTexture(const Sprite &sprite);
-        void DrawText(const Text &text);
+        void DrawTexture(const Sprite &sprite, Shader* customShader = nullptr);
+        void DrawText(const Text &text, Shader* customShader = nullptr);
 
         void BeginScissorMode(int x, int y, int width, int height);
         void EndScissorMode();
