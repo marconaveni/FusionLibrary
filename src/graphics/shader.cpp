@@ -52,10 +52,11 @@ void Shader::LoadShader(DefaultShader typeShader, const std::string &vertexPath,
     out vec2 TexCoord;
 
     uniform mat4 projection; // Só precisamos da projeção, pois aPos já está no espaço do mundo
+    uniform mat4 view;
 
     void main()
     {
-        gl_Position = projection * vec4(aPos, 1.0); // Aplica apenas a projeção
+        gl_Position = projection * view * vec4(aPos, 1.0); // Aplica apenas a projeção
         ourColor = aColor;
         TexCoord = aTexCoord;
     }
@@ -85,12 +86,13 @@ void Shader::LoadShader(DefaultShader typeShader, const std::string &vertexPath,
     layout (location = 2) in vec2 aTexCoord; // Coordenada da textura
 
     uniform mat4 projection;
+    uniform mat4 view;
 
     out vec2 TexCoord;
 
     void main()
     {
-        gl_Position = projection * vec4(aPos, 1.0);  // A posição já vem calculada, só aplicamos a projeção
+        gl_Position = projection * view * vec4(aPos, 1.0);  // A posição já vem calculada, só aplicamos a projeção
         TexCoord = aTexCoord;
     }
 )";

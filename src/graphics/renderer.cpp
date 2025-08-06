@@ -15,6 +15,8 @@ namespace Fusion
         m_MaxVertices = m_MaxQuads * 4;
         m_MaxIndices = m_MaxQuads * 6;
         m_Vertices.resize(m_MaxVertices);
+
+        m_View = glm::mat4(1.0f);
     }
 
     Renderer::~Renderer()
@@ -219,6 +221,8 @@ namespace Fusion
         if (m_CurrentShader)
         {
             m_CurrentShader->use();
+            m_CurrentShader->getUniformMatrix4("projection", m_Projection);
+            m_CurrentShader->getUniformMatrix4("view", m_View); // ENVIA A MATRIZ DE VISTA PARA O SHADER
         }
 
         glBindVertexArray(m_BatchVAO);

@@ -13,6 +13,7 @@ namespace Fusion
     class Sprite;
     class Text;
     class RenderTexture;
+    class Camera2D;
 
     class Window
     {
@@ -33,6 +34,9 @@ namespace Fusion
         void EndScissorMode();
         void BeginTextureMode(const RenderTexture &target);
         void EndTextureMode();
+        void BeginMode2D(const Camera2D &camera);
+        void EndMode2D();
+        double GetTime() const;
 
     private:
         std::unique_ptr<Renderer> m_Render;

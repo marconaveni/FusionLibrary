@@ -2,75 +2,66 @@
 #define TEST
 #ifdef TEST
 
-// Includes necessários para a sua biblioteca
+
 #include "window.h"
-#include "font.h"
-#include "text.h"
-#include <iostream> // Usado para imprimir no console e ver o ciclo de vida
-
-/**
- * @brief Função que representa uma sessão de jogo completa com a FusionLibrary.
- * * @param windowTitle O título da janela para esta sessão.
- */
-void RunGameSession(const char* windowTitle)
-{
-    // 1. Inicialização: Um objeto Window é criado na pilha (stack).
-    Fusion::Window window;
-    
-    // Para este exemplo, a resolução virtual é a mesma da janela.
-    window.InitWindow(windowTitle, 800, 600);
-    
-    // Na FusionLibrary, para desenhar texto, precisamos carregar uma fonte e criar um objeto Text.
-    // (Assumindo que a fonte está na pasta assets relativa ao executável)
-    Fusion::Font gameFont("../assets/NataSans-Regular.ttf", 20); 
-    Fusion::Text infoText(gameFont);
-
-    infoText.SetText("Pressione ESC para fechar esta janela.");
-    infoText.SetColor({0.5f, 0.5f, 0.5f, 1.0f}); // Cor similar a DARKGRAY
-    infoText.SetPosition(140, 200);
-
-    // Nota: Sua biblioteca ainda não tem um limitador de FPS, então SetTargetFPS() foi omitido.
-
-    std::cout << "Iniciando sessao da janela: '" << windowTitle << "'\n";
-
-    // 2. Loop Principal do Jogo
-    while (!window.WindowShouldClose())
-    {
-        window.BeginDrawing();
-        
-        // Limpa o fundo com uma cor. Usamos floats de 0.0 a 1.0.
-        // Cor similar a RAYWHITE (245, 245, 245, 255)
-        window.Clear({0.96f, 0.96f, 0.96f, 1.0f}); 
-        
-        window.Draw(infoText);
-        
-        window.EndDrawing();
-    }
-
-    // 3. Limpeza Final: Acontece automaticamente!
-    // Quando a função 'RunGameSession' termina, a variável 'window' sai de escopo.
-    // O destrutor de Fusion::Window (~Window) é chamado, que deve chamar CloseWindow()/Shutdown().
-    std::cout << "Finalizando sessao da janela: '" << windowTitle << "'\n";
-}
+#include "sprite.h"
+#include "camera2D.h" // Inclua a câmera
 
 int main()
 {
-    // Executa a primeira sessão do jogo
-    RunGameSession("Primeira Janela (Fusion)");
+    Fusion::Window window;
+    window.InitWindow("Camera Test", 800, 600);
+    
+    Fusion::Texture tex("../assets/test2.png");
+    Fusion::Sprite sprite(tex);
+    sprite.SetPosition(200, 200);
 
-    // Neste ponto, tudo foi finalizado. É seguro começar de novo.
-    std::cout << "\n-----------------------------------\n";
-    std::cout << "PRONTA PARA RECOMEÇAR A INICIALIZAÇÃO\n";
-    std::cout << "-----------------------------------\n\n";
+    // Cria e configura a câmera
+    Fusion::Camera2D camera;
+    camera.target = { sprite.GetPosition().x, sprite.GetPosition().y }; // Câmera segue o sprite
+    camera.offset = { 400, 300 }; // Centraliza a visão no meio da tela 800x600
+    camera.zoom = 1.0f;
 
-    // Executa uma segunda sessão, criando uma nova janela
-    RunGameSession("Segunda Janela Recriada (Fusion)");
+    while (!window.WindowShouldClose())
+    {
+        // --- LÓGICA DE ATUALIZAÇÃO ---
+        // Gira a câmera lentamente
+        camera.rotation += 0.5f; 
+        // Aumenta e diminui o zoom
+        camera.zoom = sin(window.GetTime()) + 1.5f; 
 
+        // --- DESENHO ---
+        window.BeginDrawing();
+        window.Clear({0.1f, 0.1f, 0.1f, 1.0f});
+
+        // Inicia o modo de câmera
+        window.BeginMode2D(camera);
+
+            // Desenhe aqui tudo que deve ser afetado pela câmera (o "mundo" do jogo)
+            window.Draw(sprite);
+
+            // Desenha um "chão" para vermos a rotação
+            Fusion::Sprite floor(tex);
+            floor.SetPosition(0, 400);
+            floor.SetSize(800, 50);
+            window.Draw(floor);
+        
+        // Termina o modo de câmera
+        window.EndMode2D();
+        
+        // Desenhe aqui a UI e outros elementos que NÃO devem ser afetados pela câmera
+        // Por exemplo:
+        // Fusion::Text scoreText(...);
+        // scoreText.SetPosition(10, 10);
+        // window.Draw(scoreText);
+
+        window.EndDrawing();
+    }
+    
     return 0;
 }
-
-
 /*
+
 #include "window.h"
 #include "sprite.h"
 #include "text.h"
@@ -119,20 +110,19 @@ int main()
            //                         (float)target.GetTexture()->GetSize().width, -(float)target.GetTexture()->GetSize().height});  
 
             screenSprite.SetPosition(200, 150);
-            screenSprite.SetSize(400, 300);
+            screenSprite.SetSize(600, 500);
 
             window.Draw(screenSprite);
             window.Draw(player);
 
         window.EndDrawing();
     }
-
-    window.CloseWindow();
-    
+   
     return 0;
 }
 
 */
+
 /*
 
 #include "window.h"
@@ -196,6 +186,8 @@ while (!window.WindowShouldClose())
     window.EndDrawing();
 }
 
+*/
+
 
     // while (!window.WindowShouldClose())
     // {
@@ -218,8 +210,10 @@ while (!window.WindowShouldClose())
     //     window.EndDrawing();
     // }
     
-    return 0;
-}  */
+//    return 0;
+//}  
+
+
 
 #else
 

@@ -17,6 +17,7 @@ include_directories(include
 add_executable(game
     ${CMAKE_SOURCE_DIR}/src/core/window.cpp
     ${CMAKE_SOURCE_DIR}/src/external/glad.c
+    ${CMAKE_SOURCE_DIR}/src/graphics/camera2d.cpp
     ${CMAKE_SOURCE_DIR}/src/graphics/font.cpp
     ${CMAKE_SOURCE_DIR}/src/graphics/render_texture.cpp
     ${CMAKE_SOURCE_DIR}/src/graphics/renderer.cpp

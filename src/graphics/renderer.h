@@ -35,7 +35,10 @@ namespace Fusion
         void EndScissorMode();
 
         void Init(int width, int height);
-        void SetProjection(const glm::mat4& projection);
+        void SetProjection(const glm::mat4 &projection);
+        
+        void SetViewMatrix(const glm::mat4 &view) { m_View = view; }
+        void ResetViewMatrix() { m_View = glm::mat4(1.0f); }
 
     private:
         void InitBatch();
@@ -56,6 +59,8 @@ namespace Fusion
         Shader m_TextShader;
 
         glm::mat4 m_Projection;
+        glm::mat4 m_View;
+        bool m_IsCameraActive = false;
 
         size_t m_MaxQuads;
         size_t m_MaxVertices;

@@ -4,6 +4,7 @@
 #include "sprite.h"
 #include "text.h"
 #include "render_texture.h"
+#include "camera2D.h"
 #include <cmath>
 
 namespace Fusion
@@ -125,5 +126,20 @@ namespace Fusion
         const Sizei size = GetWindowSize();
         glViewport(0, 0, size.width, size.height);
         m_Render->SetProjection(m_DefaultProjection); // Restaura a projeção da janela
+    }
+
+    void Window::BeginMode2D(const Camera2D &camera)
+    {
+        m_Render->EndRender(); // Desenha qualquer coisa pendente no modo padrão
+        m_Render->SetViewMatrix(camera.GetViewMatrix());
+    }
+    void Window::EndMode2D()
+    {
+        m_Render->EndRender(); // Desenha qualquer coisa pendente no modo 2D
+        m_Render->ResetViewMatrix();
+    }
+    double Window::GetTime() const
+    {
+        return glfwGetTime();
     }
 }
