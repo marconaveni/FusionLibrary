@@ -225,7 +225,9 @@ int main()
             // Limpa a textura com uma cor de fundo
             window.Clear(Fusion::Color{0.2f, 0.2f, 0.8f, 1.0f});
             // Desenha o jogador dentro da textura
-            window.Draw(player);
+            window.BeginBlendMode(Fusion::BLEND_MULTIPLIED);
+                window.Draw(player);
+            window.EndBlendMode();
             window.Draw(text);
             text.SetText("Texto renderizado no texture render");
         window.EndTextureMode();

@@ -133,11 +133,23 @@ namespace Fusion
         m_Render->EndRender(); // Desenha qualquer coisa pendente no modo padrão
         m_Render->SetViewMatrix(camera.GetViewMatrix());
     }
+
     void Window::EndMode2D()
     {
         m_Render->EndRender(); // Desenha qualquer coisa pendente no modo 2D
         m_Render->ResetViewMatrix();
     }
+
+    void Window::BeginBlendMode(BlendMode mode)
+    {
+        m_Render->BeginBlendMode(mode);
+    }
+    
+    void Window::EndBlendMode()
+    {
+        m_Render->EndBlendMode();
+    }
+
     double Window::GetTime() const
     {
         return glfwGetTime();

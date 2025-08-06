@@ -10,8 +10,7 @@
 namespace Fusion
 {
     Renderer::Renderer()
-    : m_TextureShader(DEFAULT_SHADER)
-    , m_TextShader(TEXT_DEFAULT_SHADER)
+        : m_TextureShader(DEFAULT_SHADER), m_TextShader(TEXT_DEFAULT_SHADER)
     {
         m_MaxQuads = 1000;
         m_MaxVertices = m_MaxQuads * 4;
@@ -43,10 +42,10 @@ namespace Fusion
         }
     }
 
-    void Renderer::DrawTexture(const Sprite &sprite, Shader* customShader)
+    void Renderer::DrawTexture(const Sprite &sprite, Shader *customShader)
     {
 
-        Shader* shaderToUse = customShader ? customShader : &m_TextureShader;
+        Shader *shaderToUse = customShader ? customShader : &m_TextureShader;
 
         // 1. Verifica se o shader de textura precisa ser ativado
         if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
@@ -82,14 +81,14 @@ namespace Fusion
         }
     }
 
-    void Renderer::DrawText(const Text &text, Shader* customShader)
+    void Renderer::DrawText(const Text &text, Shader *customShader)
     {
 
         const Font &font = *text.GetFont();
         const std::string &textContent = text.GetText();
         const Color color = text.GetColor();
 
-        Shader* shaderToUse = customShader ? customShader : &m_TextShader;
+        Shader *shaderToUse = customShader ? customShader : &m_TextShader;
 
         // 1. Verifica se o shader de textura precisa ser ativado
         if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
@@ -142,6 +141,36 @@ namespace Fusion
     {
         // 2. Desativa o teste para voltar ao normal.
         glDisable(GL_SCISSOR_TEST);
+    }
+
+    void Renderer::BeginBlendMode(BlendMode mode)
+    {
+        Flush();
+
+        switch (mode)
+        {
+        case BLEND_ADDITIVE:
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            glBlendEquation(GL_FUNC_ADD);
+            break;
+        case BLEND_MULTIPLIED:
+            glBlendFunc(GL_DST_COLOR, GL_ZERO);
+            glBlendEquation(GL_FUNC_ADD);
+            break;
+        case BLEND_ALPHA:
+        default:
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);             // Modo padrão
+            glBlendEquation(GL_FUNC_ADD);
+            break;
+        }
+    }
+
+    void Renderer::EndBlendMode()
+    {
+        Flush();
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);             // Modo padrão
+        glBlendEquation(GL_FUNC_ADD);
     }
 
     void Renderer::Init(int width, int height)

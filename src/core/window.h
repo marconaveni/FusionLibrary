@@ -28,8 +28,8 @@ namespace Fusion
         Sizei GetWindowSize() const;
         void Clear(Color color);
         void BeginDrawing();
-        void Draw(const Sprite &sprite, Shader* customShader = nullptr);
-        void Draw(Text &text, Shader* customShader = nullptr);
+        void Draw(const Sprite &sprite, Shader *customShader = nullptr);
+        void Draw(Text &text, Shader *customShader = nullptr);
         void EndDrawing();
         void BeginScissorMode(int x, int y, int width, int height);
         void EndScissorMode();
@@ -37,6 +37,8 @@ namespace Fusion
         void EndTextureMode();
         void BeginMode2D(const Camera2D &camera);
         void EndMode2D();
+        void BeginBlendMode(BlendMode mode);
+        void EndBlendMode();
         double GetTime() const;
 
     private:

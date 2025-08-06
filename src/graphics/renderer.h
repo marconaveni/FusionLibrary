@@ -28,15 +28,18 @@ namespace Fusion
         void BeginRender();
         void EndRender();
 
-        void DrawTexture(const Sprite &sprite, Shader* customShader = nullptr);
-        void DrawText(const Text &text, Shader* customShader = nullptr);
+        void DrawTexture(const Sprite &sprite, Shader *customShader = nullptr);
+        void DrawText(const Text &text, Shader *customShader = nullptr);
 
         void BeginScissorMode(int x, int y, int width, int height);
         void EndScissorMode();
 
+        void BeginBlendMode(BlendMode mode);
+        void EndBlendMode();
+
         void Init(int width, int height);
         void SetProjection(const glm::mat4 &projection);
-        
+
         void SetViewMatrix(const glm::mat4 &view) { m_View = view; }
         void ResetViewMatrix() { m_View = glm::mat4(1.0f); }
 
