@@ -30,6 +30,14 @@ namespace Fusion
         void BeginDrawing();
         void Draw(const Sprite &sprite, Shader *customShader = nullptr);
         void Draw(Text &text, Shader *customShader = nullptr);
+        void DrawRectangle(int x, int y, int width, int height, Color color);
+        void DrawCircle(int centerX, int centerY, float radius, Color color);
+        void DrawCircle(Vector2f center, float radius, Color color);
+        void DrawCircleLines(int centerX, int centerY, float radius, Color color);
+        void DrawCircleLines(Vector2f center, float radius, Color color);
+        void DrawTriangle(Vector2f v1, Vector2f v2, Vector2f v3, Color color);
+        void DrawLine(Vector2f startPos, Vector2f endPos, float thick, Color color);
+        void DrawRectangleLines(int x, int y, int width, int height, float thick, Color color);
         void EndDrawing();
         void BeginScissorMode(int x, int y, int width, int height);
         void EndScissorMode();
@@ -39,6 +47,8 @@ namespace Fusion
         void EndMode2D();
         void BeginBlendMode(BlendMode mode);
         void EndBlendMode();
+        float GetFrameTime() const;
+        int GetFPS() const;
         double GetTime() const;
 
     private:

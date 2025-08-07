@@ -1,5 +1,6 @@
 #include "platform_desktop_glfw.h"
 #include <iostream>
+#include <cmath>
 
 struct WindowStatus
 {
@@ -37,6 +38,8 @@ namespace Fusion
         }
 
         glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
+
+        m_LastTime = glfwGetTime();
     }
 
     bool PlatformDesktopGLFW::WindowShouldClose()
@@ -75,6 +78,29 @@ namespace Fusion
             return true;
         }
         return false;
+    }
+
+    void PlatformDesktopGLFW::UpdateTime()
+    {
+        m_CurrentTime = glfwGetTime();
+        m_FrameTime = static_cast<float>(m_CurrentTime - m_LastTime);
+        m_LastTime = m_CurrentTime;
+
+        // Evita divisão por zero se o tempo do quadro for muito pequeno
+        if (m_FrameTime > 0.0f)
+        {
+            m_Fps = static_cast<int>(std::round(1.0f / m_FrameTime));
+        }
+    }
+
+    float PlatformDesktopGLFW::GetFrameTime() const
+    {
+        return m_FrameTime;
+    }
+
+    int PlatformDesktopGLFW::GetFPS() const
+    {
+        return m_Fps;
     }
 
     void PlatformDesktopGLFW::FramebufferSizeCallback(GLFWwindow *window, int width, int height)

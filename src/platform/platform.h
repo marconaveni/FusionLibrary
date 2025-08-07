@@ -8,15 +8,18 @@ namespace Fusion
     class Platform
     {
     public:
-        virtual ~Platform() = default; 
+        virtual ~Platform() = default;
 
-        virtual void Init(const char* title, int width, int height) = 0;
+        virtual void Init(const char *title, int width, int height) = 0;
         virtual bool WindowShouldClose() = 0;
         virtual void SwapBuffersPollEvents() = 0;
         virtual void Shutdown() = 0;
         virtual void Clear(Color color) = 0;
         virtual Sizei GetWindowSize() const = 0;
         virtual bool IsWindowResized() = 0;
+        virtual void UpdateTime() = 0;
+        virtual float GetFrameTime() const = 0;
+        virtual int GetFPS() const = 0;
     };
 }
 

@@ -64,19 +64,60 @@ namespace Fusion
         m_Render->BeginRender();
     }
 
-    void Window::Draw(const Sprite &sprite, Shader* customShader)
+    void Window::Draw(const Sprite &sprite, Shader *customShader)
     {
         m_Render->DrawTexture(sprite, customShader);
     }
 
-    void Window::Draw(Text &text, Shader* customShader)
+    void Window::Draw(Text &text, Shader *customShader)
     {
         m_Render->DrawText(text, customShader);
+    }
+
+    void Window::DrawRectangle(int x, int y, int width, int height, Color color)
+    {
+        m_Render->DrawRectangle(x, y, width, height, color);
+    }
+
+    void Window::DrawCircle(int centerX, int centerY, float radius, Color color)
+    {
+        m_Render->DrawCircle(Vector2f({(float)centerX, (float)centerY}), radius, color);
+    }
+
+    void Window::DrawCircle(Vector2f center, float radius, Color color)
+    {
+        m_Render->DrawCircle(center, radius, color);
+    }
+
+    void Window::DrawCircleLines(int centerX, int centerY, float radius, Color color)
+    {
+        m_Render->DrawCircleLines(Vector2f({(float)centerX, (float)centerY}), radius, color);
+    }
+
+    void Window::DrawCircleLines(Vector2f center, float radius, Color color)
+    {
+        m_Render->DrawCircleLines(center, radius, color);
+    }
+
+    void Window::DrawTriangle(Vector2f v1, Vector2f v2, Vector2f v3, Color color)
+    {
+        m_Render->DrawTriangle(v1, v2, v3, color);
+    }
+
+    void Window::DrawLine(Vector2f startPos, Vector2f endPos, float thick, Color color)
+    {
+        m_Render->DrawLine(startPos, endPos, thick, color);
+    }
+
+    void Window::DrawRectangleLines(int x, int y, int width, int height, float thick, Color color)
+    {
+        m_Render->DrawRectangleLines(x, y, width, height, thick, color);
     }
 
     void Window::EndDrawing()
     {
         m_Render->EndRender();
+        m_Platform->UpdateTime(); // Atualiza o tempo no final de cada quadro, antes de trocar os buffers
         m_Platform->SwapBuffersPollEvents();
     }
 
@@ -144,10 +185,20 @@ namespace Fusion
     {
         m_Render->BeginBlendMode(mode);
     }
-    
+
     void Window::EndBlendMode()
     {
         m_Render->EndBlendMode();
+    }
+
+    float Window::GetFrameTime() const
+    {
+        return m_Platform->GetFrameTime();
+    }
+
+    int Window::GetFPS() const
+    {
+        return m_Platform->GetFPS();
     }
 
     double Window::GetTime() const
