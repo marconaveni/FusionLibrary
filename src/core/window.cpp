@@ -117,8 +117,7 @@ namespace Fusion
     void Window::EndDrawing()
     {
         m_Render->EndRender();
-        m_Platform->UpdateTime(); // Atualiza o tempo no final de cada quadro, antes de trocar os buffers
-        m_Platform->SwapBuffersPollEvents();
+        m_Platform->PollEventsAndUpdate();
     }
 
     void Window::BeginScissorMode(int x, int y, int width, int height)
@@ -205,4 +204,27 @@ namespace Fusion
     {
         return glfwGetTime();
     }
+
+    void Window::SetTargetFPS(int fps)
+    {
+        m_Platform->SetTargetFPS(fps);
+    }
+
+    // --- IMPLEMENTAÇÃO DOS MÉTODOS DE INPUT ---
+    bool Window::IsKeyPressed(int key) const { return m_Platform->IsKeyPressed(key); }
+    bool Window::IsKeyDown(int key) const { return m_Platform->IsKeyDown(key); }
+    bool Window::IsKeyReleased(int key) const { return m_Platform->IsKeyReleased(key); }
+    bool Window::IsMouseButtonPressed(int button) const { return m_Platform->IsMouseButtonPressed(button); }
+    bool Window::IsMouseButtonDown(int button) const { return m_Platform->IsMouseButtonDown(button); }
+    bool Window::IsMouseButtonReleased(int button) const { return m_Platform->IsMouseButtonReleased(button); }
+    Vector2f Window::GetMousePosition() const { return m_Platform->GetMousePosition(); }
+    float Window::GetMouseWheelMove() const { return m_Platform->GetMouseWheelMove(); }
+    
+    // --- IMPLEMENTAÇÃO DOS MÉTODOS DE GAMEPAD ---
+    bool Window::IsGamepadAvailable(int gamepad) const { return m_Platform->IsGamepadAvailable(gamepad); }
+    const char *Window::GetGamepadName(int gamepad) const { return m_Platform->GetGamepadName(gamepad); }
+    bool Window::IsGamepadButtonPressed(int gamepad, int button) const { return m_Platform->IsGamepadButtonPressed(gamepad, button); }
+    bool Window::IsGamepadButtonDown(int gamepad, int button) const { return m_Platform->IsGamepadButtonDown(gamepad, button); }
+    bool Window::IsGamepadButtonReleased(int gamepad, int button) const { return m_Platform->IsGamepadButtonReleased(gamepad, button); }
+    float Window::GetGamepadAxisMovement(int gamepad, int axis) const { return m_Platform->GetGamepadAxisMovement(gamepad, axis); }
 }

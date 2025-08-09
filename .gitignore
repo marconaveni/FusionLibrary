@@ -1,3 +1,4 @@
 build
 src/external/glm
 .vscode
+.github

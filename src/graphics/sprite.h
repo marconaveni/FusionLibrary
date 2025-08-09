@@ -23,6 +23,8 @@ namespace Fusion
 
         const Texture *GetTexture() const { return m_Texture; }
 
+        void SetColor(Color color) { m_Color = color; }
+
     private:
         virtual void UpdateGeometry() const override; 
         const Texture *m_Texture;

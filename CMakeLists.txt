@@ -14,6 +14,8 @@ include_directories(include
     ${CMAKE_SOURCE_DIR}/src/system
 )
 
+
+
 add_executable(game
     ${CMAKE_SOURCE_DIR}/src/core/window.cpp
     ${CMAKE_SOURCE_DIR}/src/external/glad.c
@@ -32,4 +34,10 @@ add_executable(game
 )
 
 
-target_link_libraries(game glfw ${CMAKE_DL_LIBS})
+target_link_libraries(game PRIVATE glfw ${CMAKE_DL_LIBS} )
+
+# Para bibliotecas específicas de plataforma, como a winmm para Windows
+if(WIN32)
+    # A biblioteca winmm é necessária para funções como timeBeginPeriod
+    target_link_libraries(game PRIVATE winmm)
+endif()
