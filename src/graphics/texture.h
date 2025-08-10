@@ -23,6 +23,7 @@ namespace Fusion
         Sizei GetSize() const;
         unsigned int GetId() const;
         bool IsFboTexture() const;
+        void Unload();
 
     private:
         unsigned int m_Id = 0;

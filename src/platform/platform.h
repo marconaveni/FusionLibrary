@@ -11,6 +11,7 @@ namespace Fusion
         virtual ~Platform() = default;
 
         virtual void Init(const char *title, int width, int height) = 0;
+        virtual bool IsWindowActive() = 0;
         virtual bool WindowShouldClose() = 0;
         virtual void PollEventsAndUpdate() = 0;
         virtual void InputEvents() = 0;

@@ -23,7 +23,8 @@ namespace Fusion
     {
     public:
         Renderer();
-        ~Renderer();
+
+        void Shutdown();
 
         void BeginRender();
         void EndRender();

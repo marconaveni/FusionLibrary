@@ -90,6 +90,11 @@ namespace Fusion
         m_PreviousTime = glfwGetTime();
     }
 
+    bool PlatformDesktopGLFW::IsWindowActive()
+    {
+        return m_Window != nullptr;
+    }
+
     bool PlatformDesktopGLFW::WindowShouldClose()
     {
         return glfwWindowShouldClose(m_Window);
@@ -117,7 +122,7 @@ namespace Fusion
                 double sleepSeconds = waitTime - 0.001;
                 if (sleepSeconds > 0.0)
                 {
-                    //std::cout << sleepSeconds << "\n";
+                    // std::cout << sleepSeconds << "\n";
                     std::this_thread::sleep_for(std::chrono::duration<double>(sleepSeconds)); // comentando esse bloco if o limitador de quadros funcionou bem
                 }
 
@@ -134,7 +139,7 @@ namespace Fusion
         // Atualiza o estado do input para o próximo quadro
         InputEvents();
 
-                // Processa os eventos de janela (como fechar)
+        // Processa os eventos de janela (como fechar)
         glfwPollEvents();
 
         // Mede o tempo final do quadro, incluindo a espera
@@ -147,8 +152,6 @@ namespace Fusion
         {
             m_Fps = static_cast<int>(std::round(1.0 / m_FrameTime));
         }
-
-
     }
 
     void PlatformDesktopGLFW::InputEvents()
@@ -198,10 +201,16 @@ namespace Fusion
     void PlatformDesktopGLFW::Shutdown()
     {
 #if defined(_WIN32)
-        // timeEndPeriod(1);
+        timeEndPeriod(1);
 #endif
-        glfwDestroyWindow(m_Window);
-        glfwTerminate();
+
+        if (m_Window != nullptr)
+        {
+            glfwDestroyWindow(m_Window);
+            glfwTerminate();
+            m_Window = nullptr;
+            std::cout << "Close Window\n";
+        }
     }
 
     void PlatformDesktopGLFW::Clear(Color color)

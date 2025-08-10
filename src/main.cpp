@@ -62,5 +62,8 @@ int main()
         window.EndDrawing();
     }
 
+    texture.Unload();
+    window.Close();
+
     return 0;
 }

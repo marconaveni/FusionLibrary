@@ -1,4 +1,4 @@
-#include "camera2D.h"
+#include "camera2d.h"
 #include "glm/gtc/matrix_transform.hpp"
 
 namespace Fusion 

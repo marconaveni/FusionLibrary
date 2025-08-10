@@ -20,7 +20,7 @@ namespace Fusion
 
     Font::~Font()
     {
-        glDeleteTextures(1, &m_FontTextureID);
+        Unload();
     }
 
     void Font::SetSmooth(bool enable)
@@ -44,7 +44,6 @@ namespace Fusion
         }
         LoadFont(ttf_buffer, fontSize, charCount);
     }
-
 
     void Font::LoadFromFile(const char *path, const float fontSize, int charCount)
     {
@@ -126,7 +125,7 @@ namespace Fusion
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glBindTexture(GL_TEXTURE_2D, 0); 
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     unsigned int Font::GetId() const
@@ -142,6 +141,15 @@ namespace Fusion
     float Font::GetLineHeight() const
     {
         return m_LineHeight;
+    }
+
+    void Font::Unload()
+    {
+        if (m_FontTextureID != 0)
+        {
+            glDeleteTextures(1, &m_FontTextureID);
+            m_FontTextureID = 0; // Evita dupla liberação
+        }
     }
 
 } // namespace Fusion

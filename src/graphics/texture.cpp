@@ -40,7 +40,7 @@ namespace Fusion
 
     Texture::~Texture()
     {
-        glDeleteTextures(1, &m_Id);
+        Unload();
     }
 
     void Texture::SetSmooth(bool enable)
@@ -119,6 +119,15 @@ namespace Fusion
     bool Texture::IsFboTexture() const
     {
         return m_IsFboTexture;
+    }
+
+    void Texture::Unload()
+    {
+        if (m_Id != 0)
+        {
+            glDeleteTextures(1, &m_Id);
+            m_Id = 0; // Evita dupla liberação
+        }
     }
 
 } // namespace Fusion

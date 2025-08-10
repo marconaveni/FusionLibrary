@@ -26,11 +26,21 @@ namespace Fusion
         m_View = glm::mat4(1.0f);
     }
 
-    Renderer::~Renderer()
+    void Renderer::Shutdown()
     {
+        m_TextureShader.Unload();
+        m_TextShader.Unload();
+
+        glDeleteTextures(1, &m_DefaultTextureID);
+
         glDeleteVertexArrays(1, &m_BatchVAO);
         glDeleteBuffers(1, &m_BatchVBO);
         glDeleteBuffers(1, &m_BatchEBO);
+
+        m_BatchVAO = 0;
+        m_BatchVBO = 0;
+        m_BatchEBO = 0;
+        m_DefaultTextureID = 0;
     }
 
     void Renderer::BeginRender()

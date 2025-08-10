@@ -4,7 +4,7 @@
 #include "sprite.h"
 #include "text.h"
 #include "render_texture.h"
-#include "camera2D.h"
+#include "camera2d.h"
 #include "font_data.h"
 #include <cmath>
 
@@ -17,10 +17,7 @@ namespace Fusion
 
     Window::~Window()
     {
-        if (m_Platform)
-        {
-            m_Platform->Shutdown();
-        }
+        Close();
     }
 
     void Window::InitWindow(const char *title, int width, int height)
@@ -33,6 +30,17 @@ namespace Fusion
         m_DefaultProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
 
         m_defaultFont.LoadFromMemory(DefaultFont::NataSansRegular, DefaultFont::NataSansRegularLen, 32);
+    }
+
+    void Window::Close()
+    {
+        if (m_Platform->IsWindowActive())
+        {
+            // a ordem importa descarregamos os recursos de font e render antes de fechar o janela/contexto do opengl
+            m_defaultFont.Unload(); 
+            m_Render->Shutdown(); 
+            m_Platform->Shutdown();
+        }
     }
 
     bool Window::WindowShouldClose()

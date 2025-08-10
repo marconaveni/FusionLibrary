@@ -26,6 +26,7 @@ namespace Fusion
         float GetTopToBaseline() const;
         float GetLineHeight() const;
         Sizei GetAtlasSize() const { return m_AtlasSize; }
+        void Unload();
     
 
 

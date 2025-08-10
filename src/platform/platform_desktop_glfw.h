@@ -21,6 +21,7 @@ namespace Fusion
     {
     public:
         virtual void Init(const char *title, int width, int height) override;
+        virtual bool IsWindowActive() override;
         virtual bool WindowShouldClose() override;
         virtual void PollEventsAndUpdate() override;
         virtual void InputEvents() override;
@@ -86,19 +87,6 @@ namespace Fusion
         void OnFramebufferResize(int width, int height);
     };
 
-    // //void ProcessInput();
-
-    // void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
-
-    // int InitPlatform(const char* title, int width, int height);
-
-    // bool WindowShouldClose();
-
-    // void ClosePlatform();
-
-    // void EndDrawing();
-
-    // void Clear(Color color);
 }
 
 #endif
