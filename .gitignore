@@ -2,3 +2,5 @@ build
 src/external/glm
 .vscode
 .github
+chat.py
+cpp.txt

@@ -5,6 +5,8 @@
 #include "fusion_math.h"
 #include "glm/gtc/matrix_transform.hpp"
 
+#include "font.h"
+
 namespace Fusion
 {
 
@@ -15,6 +17,7 @@ namespace Fusion
     class RenderTexture;
     class Camera2D;
     class Shader;
+    class Font;
 
     class Window
     {
@@ -74,11 +77,14 @@ namespace Fusion
         bool IsGamepadButtonDown(int gamepad, int button) const;
         bool IsGamepadButtonReleased(int gamepad, int button) const;
         float GetGamepadAxisMovement(int gamepad, int axis) const;
+        
+        Font& GetDefaultFont();
 
     private:
         std::unique_ptr<Renderer> m_Render;
         std::unique_ptr<Platform> m_Platform;
         glm::mat4 m_DefaultProjection; // Salvar a projeção da janela
+        Font m_defaultFont;
     };
 
 }

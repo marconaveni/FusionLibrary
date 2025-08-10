@@ -3,7 +3,6 @@
 #include <iostream>
 #include <vector>
 
-
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
 
@@ -15,12 +14,37 @@ namespace Fusion
         LoadFromFile(path, fontSize, charCount);
     }
 
+    Font::Font()
+    {
+    }
+
     Font::~Font()
     {
         glDeleteTextures(1, &m_FontTextureID);
     }
 
-    // Substitua sua função Font::LoadFromFile por esta versão completa:
+    void Font::SetSmooth(bool enable)
+    {
+
+        glBindTexture(GL_TEXTURE_2D, m_FontTextureID);
+
+        // set texture filtering parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (enable) ? GL_LINEAR : GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (enable) ? GL_LINEAR : GL_NEAREST);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    void Font::LoadFromMemory(unsigned char *data, size_t sizeData, float fontSize, int charCount)
+    {
+        std::vector<unsigned char> ttf_buffer;
+        for (size_t i = 0; i < sizeData; i++)
+        {
+            ttf_buffer.push_back(data[i]);
+        }
+        LoadFont(ttf_buffer, fontSize, charCount);
+    }
+
 
     void Font::LoadFromFile(const char *path, const float fontSize, int charCount)
     {
@@ -43,6 +67,11 @@ namespace Fusion
         fread(ttf_buffer.data(), 1, fileSize, fontFile);
         fclose(fontFile);
 
+        LoadFont(ttf_buffer, fontSize, charCount);
+    }
+
+    void Font::LoadFont(std::vector<unsigned char> &ttf_buffer, float fontSize, int charCount)
+    {
         if (!stbtt_InitFont(&m_FontInfo, ttf_buffer.data(), 0))
         {
             std::cerr << "Erro ao inicializar informações da fonte stbtt." << std::endl;
@@ -79,7 +108,6 @@ namespace Fusion
         float scale = stbtt_ScaleForPixelHeight(&m_FontInfo, fontSize);
         int ascent, descent, lineGap;
         stbtt_GetFontVMetrics(&m_FontInfo, &ascent, &descent, &lineGap);
-        
 
         m_TopToBaseline = ascent * scale;
         m_LineHeight = (ascent - descent + lineGap) * scale;
@@ -97,6 +125,8 @@ namespace Fusion
         // set the texture wrapping parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glBindTexture(GL_TEXTURE_2D, 0); 
     }
 
     unsigned int Font::GetId() const

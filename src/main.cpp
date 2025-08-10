@@ -14,9 +14,10 @@ int main()
 
     window.SetTargetFPS(60);
 
-    Fusion::Font font("../assets/NataSans-Regular.ttf", 32, 224);
-    Fusion::Text text(font);
+    // Fusion::Font font("../assets/NataSans-Regular.ttf", 32, 224);
+    Fusion::Text text(window.GetDefaultFont());
     text.SetPosition(10, 10);
+    text.SetScale(4);
     Fusion::Texture texture("../assets/test2.png");
     Fusion::Sprite player(texture);
     player.SetPosition({350, 250});
@@ -24,26 +25,29 @@ int main()
 
     float speed = 5.0f; // pixels por segundo
 
-
     while (!window.WindowShouldClose())
     {
-
 
         // --- ATUALIZAÇÃO ---
         float frameTime = window.GetFrameTime();
         Fusion::Vector2f pos = player.GetPosition();
 
         if (window.IsKeyDown(GLFW_KEY_W) || window.IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_UP))
+        {
             pos.y -= speed;
+            window.GetDefaultFont().SetSmooth(true);
+        }
         if (window.IsKeyDown(GLFW_KEY_S) || window.IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_DOWN))
+        {
             pos.y += speed;
+            window.GetDefaultFont().SetSmooth(false);
+        }
         if (window.IsKeyDown(GLFW_KEY_A) || window.IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_LEFT))
             pos.x -= speed;
         if (window.IsKeyDown(GLFW_KEY_D) || window.IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_RIGHT))
             pos.x += speed;
 
         player.SetPosition(pos);
-
 
         // --- DESENHO ---
         window.BeginDrawing();
@@ -56,11 +60,7 @@ int main()
         window.Draw(text);
 
         window.EndDrawing();
-
-
     }
 
     return 0;
 }
-
-

@@ -5,6 +5,7 @@
 #include "text.h"
 #include "render_texture.h"
 #include "camera2D.h"
+#include "font_data.h"
 #include <cmath>
 
 namespace Fusion
@@ -30,6 +31,8 @@ namespace Fusion
         m_Render->Init(width, height);
 
         m_DefaultProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
+
+        m_defaultFont.LoadFromMemory(DefaultFont::NataSansRegular, DefaultFont::NataSansRegularLen, 32);
     }
 
     bool Window::WindowShouldClose()
@@ -227,4 +230,11 @@ namespace Fusion
     bool Window::IsGamepadButtonDown(int gamepad, int button) const { return m_Platform->IsGamepadButtonDown(gamepad, button); }
     bool Window::IsGamepadButtonReleased(int gamepad, int button) const { return m_Platform->IsGamepadButtonReleased(gamepad, button); }
     float Window::GetGamepadAxisMovement(int gamepad, int axis) const { return m_Platform->GetGamepadAxisMovement(gamepad, axis); }
+    
+    
+    
+    Font &Window::GetDefaultFont()
+    {
+       return m_defaultFont;
+    }
 }
