@@ -3,14 +3,19 @@
 #include "sprite.h"
 #include "font.h"
 #include "text.h"
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h> // Inclua para ter acesso aos códigos de tecla (ex: GLFW_KEY_W)
 #include <iostream>
+
+#include "platform_desktop_glfw.h"
 
 int main()
 {
 
     Fusion::Window window;
     window.InitWindow("Teste de Input", 800, 600);
+
+
 
     window.SetTargetFPS(60);
 
@@ -20,14 +25,18 @@ int main()
     text.SetScale(4);
     Fusion::Texture texture("../assets/test2.png");
     Fusion::Sprite player(texture);
+    Fusion::Sprite player2(texture);
     player.SetPosition({350, 250});
+    player2.SetPosition({350, 250});
     player.SetSize({100, 100});
+    player2.SetSize({100, 100});
 
     float speed = 5.0f; // pixels por segundo
 
     while (!window.WindowShouldClose())
     {
 
+        Fusion::Core::PollEvents();
         // --- ATUALIZAÇÃO ---
         float frameTime = window.GetFrameTime();
         Fusion::Vector2f pos = player.GetPosition();
@@ -60,6 +69,7 @@ int main()
         window.Draw(text);
 
         window.EndDrawing();
+
     }
 
     texture.Unload();

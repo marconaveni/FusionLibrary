@@ -23,20 +23,79 @@ extern "C"
 namespace Fusion
 {
 
+    int Core::s_ActiveWindowCount = 0;
+    bool Core::s_IsInitialized = false;
+    GLFWwindow *Core::s_sharedWindow = nullptr;
+
+    void Core::Init()
+    {
+        // Só inicializa a GLFW uma vez
+        if (!s_IsInitialized)
+        {
+            if (glfwInit())
+            {
+                s_IsInitialized = true;
+                std::cout << "INFO::CORE::GLFW inicializada.\n";
+            }
+        }
+    }
+
+    void Core::Shutdown()
+    {
+        // Só finaliza a GLFW se ela foi inicializada
+        if (s_IsInitialized)
+        {
+            glfwTerminate();
+            s_IsInitialized = false;
+            std::cout << "INFO::CORE::GLFW finalizada.\n";
+        }
+    }
+
+    void Core::PollEvents()
+    {
+        glfwPollEvents();
+    }
+
+    void Core::RegisterWindow()
+    {
+        s_ActiveWindowCount++;
+    }
+
+    void Core::UnregisterWindow()
+    {
+        s_ActiveWindowCount--;
+
+        // Se for a última janela a ser fechada, desliga a GLFW
+        if (s_ActiveWindowCount == 0)
+        {
+            Shutdown();
+        }
+    }
+
     void PlatformDesktopGLFW::Init(const char *title, int width, int height)
     {
 #if defined(_WIN32)
         timeBeginPeriod(1);
 #endif
 
-        glfwInit();
+        // glfwInit();
+
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        m_Window = glfwCreateWindow(width, height, title, NULL, NULL);
+        GLFWwindow *shareWindow = nullptr;
+        if (Core::s_sharedWindow != nullptr)
+        {
+            // Converte o Platform* genérico para a nossa implementação específica para obter o GLFWwindow*
+            shareWindow = Core::s_sharedWindow;
+        }
+
+        m_Window = glfwCreateWindow(width, height, title, NULL, shareWindow);
         m_ViewPortWidth = width;
         m_ViewPortHeight = height;
+
+        Core::s_sharedWindow = m_Window;
 
         if (!m_Window)
         {
@@ -95,6 +154,11 @@ namespace Fusion
         return m_Window != nullptr;
     }
 
+    void PlatformDesktopGLFW::MakeContextCurrent()
+    {
+        glfwMakeContextCurrent(m_Window);
+    }
+
     bool PlatformDesktopGLFW::WindowShouldClose()
     {
         return glfwWindowShouldClose(m_Window);
@@ -140,7 +204,7 @@ namespace Fusion
         InputEvents();
 
         // Processa os eventos de janela (como fechar)
-        glfwPollEvents();
+        // glfwPollEvents();
 
         // Mede o tempo final do quadro, incluindo a espera
         m_CurrentTime = glfwGetTime();
@@ -207,7 +271,7 @@ namespace Fusion
         if (m_Window != nullptr)
         {
             glfwDestroyWindow(m_Window);
-            glfwTerminate();
+            // glfwTerminate();
             m_Window = nullptr;
             std::cout << "Close Window\n";
         }

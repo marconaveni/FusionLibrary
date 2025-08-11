@@ -17,11 +17,55 @@
 namespace Fusion
 {
 
+
+    class Core
+    {
+    public:
+        // Não permitir instanciar esta classe
+        Core() = delete;
+
+        // Chamado pela primeira janela para inicializar a GLFW
+        static void Init();
+
+        // Chamado pela última janela para finalizar a GLFW
+        static void Shutdown();
+
+        // Processa eventos para todas as janelas. Deve ser chamado no loop principal.
+        static void PollEvents();
+
+        static GLFWwindow *s_sharedWindow;
+
+    private:
+        friend class Window; // Permite que a Window acesse os métodos privados
+
+        // Métodos para a classe Window registrar/desregistrar sua existência
+        static void RegisterWindow();
+        static void UnregisterWindow();
+
+        static int s_ActiveWindowCount; // Contador de janelas ativas
+        static bool s_IsInitialized;   
+
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     class PlatformDesktopGLFW : public Platform
     {
     public:
         virtual void Init(const char *title, int width, int height) override;
         virtual bool IsWindowActive() override;
+        virtual void MakeContextCurrent() override;
         virtual bool WindowShouldClose() override;
         virtual void PollEventsAndUpdate() override;
         virtual void InputEvents() override;

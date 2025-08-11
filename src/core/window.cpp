@@ -22,6 +22,10 @@ namespace Fusion
 
     void Window::InitWindow(const char *title, int width, int height)
     {
+        Core::Init();
+        Core::RegisterWindow();
+
+
         m_Render = std::make_unique<Renderer>();
         m_Platform = std::make_unique<PlatformDesktopGLFW>();
         m_Platform->Init(title, width, height);
@@ -40,6 +44,7 @@ namespace Fusion
             m_defaultFont.Unload(); 
             m_Render->Shutdown(); 
             m_Platform->Shutdown();
+            Core::UnregisterWindow();
         }
     }
 
@@ -65,6 +70,7 @@ namespace Fusion
 
     void Window::BeginDrawing()
     {
+        m_Platform->MakeContextCurrent();
         if (IsWindowResize())
         {
             Sizei newSize = m_Platform->GetWindowSize();
