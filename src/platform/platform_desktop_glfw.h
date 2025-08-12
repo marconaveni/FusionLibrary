@@ -1,10 +1,7 @@
 #ifndef PLATFORM_DESKTOP_GLFW_H
 #define PLATFORM_DESKTOP_GLFW_H
 
-#define GLFW_INCLUDE_NONE // Disable the standard OpenGL header inclusion on GLFW3
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "core.h"
 #include "platform.h"
 
 #define MAX_KEYS 512
@@ -16,47 +13,6 @@
 
 namespace Fusion
 {
-
-
-    class Core
-    {
-    public:
-        // Não permitir instanciar esta classe
-        Core() = delete;
-
-        // Chamado pela primeira janela para inicializar a GLFW
-        static void Init();
-
-        // Chamado pela última janela para finalizar a GLFW
-        static void Shutdown();
-
-        // Processa eventos para todas as janelas. Deve ser chamado no loop principal.
-        static void PollEvents();
-
-        static GLFWwindow *s_sharedWindow;
-
-    private:
-        friend class Window; // Permite que a Window acesse os métodos privados
-
-        // Métodos para a classe Window registrar/desregistrar sua existência
-        static void RegisterWindow();
-        static void UnregisterWindow();
-
-        static int s_ActiveWindowCount; // Contador de janelas ativas
-        static bool s_IsInitialized;   
-
-    };
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -75,6 +31,7 @@ namespace Fusion
         virtual bool IsWindowResized() override;
         virtual void UpdateTime() override;
         virtual float GetFrameTime() const override;
+        virtual float GetTime() const override;
         virtual int GetFPS() const override;
         virtual void SetTargetFPS(int fps) override;
 

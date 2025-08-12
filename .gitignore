@@ -1,6 +1,9 @@
 build
+build_web
 src/external/glm
 .vscode
 .github
 chat.py
 cpp.txt
+projeto.txt
+scripts.txt

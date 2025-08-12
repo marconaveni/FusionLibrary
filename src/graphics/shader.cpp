@@ -22,7 +22,11 @@ namespace Fusion
     void Shader::LoadShader(const std::string &vertexPath, const std::string &fragmentPath)
     {
 
-        const char *fsDefaultShader = R"(
+
+
+#if !defined(FUSION_PLATFORM_WEB)
+
+        const char *fsDefaultShader = R"(       
     #version 330 core
     
     in vec4 ourColor;       // Cor recebida do Vertex Shader
@@ -93,6 +97,82 @@ namespace Fusion
         TexCoord = aTexCoord;
     }
 )";
+
+#else
+
+        const char *fsDefaultShader = R"(#version 300 es
+    precision mediump float;
+    
+    in vec4 ourColor;       // Cor recebida do Vertex Shader
+    in vec2 TexCoord;
+
+    uniform sampler2D ourTexture;
+
+    out vec4 FragColor;
+
+    void main()
+    {
+        vec4 texColor = texture(ourTexture, TexCoord); // Pega a cor da textura normalmente  
+        FragColor = texColor * ourColor;               // Combina a cor da textura com a cor do vértice (que inclui o alfa)
+    }
+)";
+
+        const char *vsDefaultShader = R"(#version 300 es
+    precision mediump float;
+    layout (location = 0) in vec3 aPos;         // Posição já em coordenadas de mundo
+    layout (location = 1) in vec4 aColor;       // Cor do vértice (RGBA)
+    layout (location = 2) in vec2 aTexCoord;    // Coordenada da textura
+
+    out vec4 ourColor; // Saídas para o Fragment Shader
+    out vec2 TexCoord;
+
+    uniform mat4 projection; // Só precisamos da projeção, pois aPos já está no espaço do mundo
+    uniform mat4 view;
+
+    void main()
+    {
+        gl_Position = projection * view * vec4(aPos, 1.0); // Aplica apenas a projeção
+        ourColor = aColor;
+        TexCoord = aTexCoord;
+    }
+)";
+
+        const char *fsDefaultTextShader = R"(#version 300 es
+    precision mediump float;
+    in vec2 TexCoord;
+
+    uniform sampler2D ourTexture;
+    uniform vec4 textColor;
+
+    out vec4 FragColor;
+
+    void main()
+    {
+        float alpha = texture(ourTexture, TexCoord).r;        // Pega o alfa do canal vermelho da textura da fonte
+        FragColor = vec4(textColor.rgb, alpha * textColor.a); // branco com alpha da fonte
+    }
+)";
+
+        const char *vsDefaultTextShader = R"(#version 300 es
+    precision mediump float;
+
+    layout (location = 0) in vec3 aPos;      // Posição do vértice
+    layout (location = 1) in vec4 aColor;    // Cor do vértice (mesmo que não usemos, precisa estar aqui)
+    layout (location = 2) in vec2 aTexCoord; // Coordenada da textura
+
+    uniform mat4 projection;
+    uniform mat4 view;
+
+    out vec2 TexCoord;
+
+    void main()
+    {
+        gl_Position = projection * view * vec4(aPos, 1.0);  // A posição já vem calculada, só aplicamos a projeção
+        TexCoord = aTexCoord;
+    }
+)";
+
+#endif
 
         std::string vertexCode;
         std::string fragmentCode;

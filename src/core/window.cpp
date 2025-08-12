@@ -1,11 +1,18 @@
 #include "window.h"
+
+#if defined(FUSION_PLATFORM_WEB)
+#include "platform_web.h"
+#else
 #include "platform_desktop_glfw.h"
+#endif
+
 #include "renderer.h"
 #include "sprite.h"
 #include "text.h"
 #include "render_texture.h"
 #include "camera2d.h"
 #include "font_data.h"
+#include "core.h"
 #include <cmath>
 
 namespace Fusion
@@ -25,9 +32,16 @@ namespace Fusion
         Core::Init();
         Core::RegisterWindow();
 
-
         m_Render = std::make_unique<Renderer>();
+
+#if defined(FUSION_PLATFORM_WEB)
+        // Se estivermos compilando para a web, usa a PlatformWeb
+        m_Platform = std::make_unique<PlatformWeb>();
+#else
+        // Senão, usa a plataforma de desktop padrão
         m_Platform = std::make_unique<PlatformDesktopGLFW>();
+#endif
+
         m_Platform->Init(title, width, height);
         m_Render->Init(width, height);
 
@@ -41,8 +55,8 @@ namespace Fusion
         if (m_Platform->IsWindowActive())
         {
             // a ordem importa descarregamos os recursos de font e render antes de fechar o janela/contexto do opengl
-            m_defaultFont.Unload(); 
-            m_Render->Shutdown(); 
+            m_defaultFont.Unload();
+            m_Render->Shutdown();
             m_Platform->Shutdown();
             Core::UnregisterWindow();
         }
@@ -219,7 +233,7 @@ namespace Fusion
 
     double Window::GetTime() const
     {
-        return glfwGetTime();
+        return m_Platform->GetTime();
     }
 
     void Window::SetTargetFPS(int fps)
@@ -236,7 +250,7 @@ namespace Fusion
     bool Window::IsMouseButtonReleased(int button) const { return m_Platform->IsMouseButtonReleased(button); }
     Vector2f Window::GetMousePosition() const { return m_Platform->GetMousePosition(); }
     float Window::GetMouseWheelMove() const { return m_Platform->GetMouseWheelMove(); }
-    
+
     // --- IMPLEMENTAÇÃO DOS MÉTODOS DE GAMEPAD ---
     bool Window::IsGamepadAvailable(int gamepad) const { return m_Platform->IsGamepadAvailable(gamepad); }
     const char *Window::GetGamepadName(int gamepad) const { return m_Platform->GetGamepadName(gamepad); }
@@ -244,11 +258,16 @@ namespace Fusion
     bool Window::IsGamepadButtonDown(int gamepad, int button) const { return m_Platform->IsGamepadButtonDown(gamepad, button); }
     bool Window::IsGamepadButtonReleased(int gamepad, int button) const { return m_Platform->IsGamepadButtonReleased(gamepad, button); }
     float Window::GetGamepadAxisMovement(int gamepad, int axis) const { return m_Platform->GetGamepadAxisMovement(gamepad, axis); }
-    
-    
-    
+
     Font &Window::GetDefaultFont()
     {
-       return m_defaultFont;
+        return m_defaultFont;
     }
+
+    void Window::SetMainLoop(std::function<void()> loop)
+    {
+        // A Window tem a definição completa, então ela pode chamar o método.
+        m_Platform->SetMainLoop(std::move(loop));
+    }
+
 }

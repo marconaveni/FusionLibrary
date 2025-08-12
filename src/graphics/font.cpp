@@ -117,7 +117,19 @@ namespace Fusion
         glDeleteTextures(1, &m_FontTextureID); // deleta se já houver outra textura carregada
         glGenTextures(1, &m_FontTextureID);
         glBindTexture(GL_TEXTURE_2D, m_FontTextureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, m_AtlasSize.width, m_AtlasSize.height, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap.data());
+        
+        
+#if defined(FUSION_PLATFORM_WEB)
+    // Na Web (WebGL 2), para uma textura de 1 canal, usamos GL_R8 como formato interno.
+#define CHANNEL  GL_R8
+#else
+    // No Desktop, GL_RED funciona perfeitamente.
+#define CHANNEL  GL_RED
+
+#endif
+
+        glTexImage2D(GL_TEXTURE_2D, 0, CHANNEL, m_AtlasSize.width, m_AtlasSize.height, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap.data());
+
         // set texture filtering parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

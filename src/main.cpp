@@ -3,11 +3,25 @@
 #include "sprite.h"
 #include "font.h"
 #include "text.h"
-#define GLFW_INCLUDE_NONE
-#include <GLFW/glfw3.h> // Inclua para ter acesso aos códigos de tecla (ex: GLFW_KEY_W)
+#include "core.h"
+
 #include <iostream>
 
-#include "platform_desktop_glfw.h"
+#if defined(FUSION_PLATFORM_WEB)
+#include "platform.h" 
+#include <emscripten/emscripten.h>
+#endif
+
+// Função que representa um único frame do nosso jogo
+void UpdateAndDrawFrame(Fusion::Window &window)
+{
+    window.BeginDrawing();
+    // Por enquanto, vamos limpar a tela com uma cor
+    window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
+    window.DrawCircle({100,100}, 50, {1.0f, 0.1f, 0.1f, 1.0f});
+    // Futuramente, as chamadas de desenho virão aqui
+    window.EndDrawing();
+}
 
 int main()
 {
@@ -15,7 +29,13 @@ int main()
     Fusion::Window window;
     window.InitWindow("Teste de Input", 800, 600);
 
+#if defined(FUSION_PLATFORM_WEB)
 
+    window.SetMainLoop([&]() {
+        UpdateAndDrawFrame(window);
+    });
+
+#else
 
     window.SetTargetFPS(60);
 
@@ -69,11 +89,10 @@ int main()
         window.Draw(text);
 
         window.EndDrawing();
-
     }
 
     texture.Unload();
     window.Close();
-
+#endif
     return 0;
 }

@@ -2,6 +2,7 @@
 #define PLATFORM_H
 
 #include "fusion_math.h" // Para Color, Vector2, etc.
+#include <functional>
 
 namespace Fusion
 {
@@ -22,6 +23,7 @@ namespace Fusion
         virtual bool IsWindowResized() = 0;
         virtual void UpdateTime() = 0;
         virtual float GetFrameTime() const = 0;
+        virtual float GetTime() const = 0;
         virtual int GetFPS() const = 0;
         virtual void SetTargetFPS(int fps) = 0;
 
@@ -45,6 +47,11 @@ namespace Fusion
         virtual bool IsGamepadButtonDown(int gamepad, int button) const = 0;
         virtual bool IsGamepadButtonReleased(int gamepad, int button) const = 0;
         virtual float GetGamepadAxisMovement(int gamepad, int axis) const = 0;
+
+
+        virtual void SetMainLoop(std::function<void()> loop) {};
+    
+
     };
 }
 

@@ -2,9 +2,9 @@
 #define WINDOW_H
 
 #include <memory>
+#include <functional>
 #include "fusion_math.h"
 #include "glm/gtc/matrix_transform.hpp"
-
 #include "font.h"
 
 namespace Fusion
@@ -80,6 +80,8 @@ namespace Fusion
         float GetGamepadAxisMovement(int gamepad, int axis) const;
         
         Font& GetDefaultFont();
+
+        void SetMainLoop(std::function<void()> loop);
 
     private:
         std::unique_ptr<Renderer> m_Render;

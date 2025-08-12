@@ -1,4 +1,5 @@
 #include "platform_desktop_glfw.h"
+#include "core.h"
 #include <iostream>
 #include <cmath>
 #include <cstring> // Para memset
@@ -23,54 +24,7 @@ extern "C"
 namespace Fusion
 {
 
-    int Core::s_ActiveWindowCount = 0;
-    bool Core::s_IsInitialized = false;
-    GLFWwindow *Core::s_sharedWindow = nullptr;
 
-    void Core::Init()
-    {
-        // Só inicializa a GLFW uma vez
-        if (!s_IsInitialized)
-        {
-            if (glfwInit())
-            {
-                s_IsInitialized = true;
-                std::cout << "INFO::CORE::GLFW inicializada.\n";
-            }
-        }
-    }
-
-    void Core::Shutdown()
-    {
-        // Só finaliza a GLFW se ela foi inicializada
-        if (s_IsInitialized)
-        {
-            glfwTerminate();
-            s_IsInitialized = false;
-            std::cout << "INFO::CORE::GLFW finalizada.\n";
-        }
-    }
-
-    void Core::PollEvents()
-    {
-        glfwPollEvents();
-    }
-
-    void Core::RegisterWindow()
-    {
-        s_ActiveWindowCount++;
-    }
-
-    void Core::UnregisterWindow()
-    {
-        s_ActiveWindowCount--;
-
-        // Se for a última janela a ser fechada, desliga a GLFW
-        if (s_ActiveWindowCount == 0)
-        {
-            Shutdown();
-        }
-    }
 
     void PlatformDesktopGLFW::Init(const char *title, int width, int height)
     {
@@ -307,6 +261,11 @@ namespace Fusion
     float PlatformDesktopGLFW::GetFrameTime() const
     {
         return m_FrameTime;
+    }
+
+    float PlatformDesktopGLFW::GetTime() const
+    {
+        return glfwGetTime();
     }
 
     int PlatformDesktopGLFW::GetFPS() const
