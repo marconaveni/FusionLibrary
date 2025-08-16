@@ -65,14 +65,45 @@ if(FUSION_BUILD_FOR_WEB)
 else()
     message(STATUS "FusionLibrary: Compilando para Desktop")
 
-    add_subdirectory(libs/glfw)
+    #add_subdirectory(libs/glfw)
+
+      # set(FUSION_GLFW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/glfw")   # opção B (com 's')
+
+    if(EXISTS "${FUSION_GLFW_DIR}/CMakeLists.txt")
+        message(STATUS "FusionLibrary: Using GLFW from submodule at ${FUSION_GLFW_DIR}")
+        set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+        set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+        add_subdirectory("${FUSION_GLFW_DIR}")
+    else()
+        message(STATUS "FusionLibrary: GLFW submodule not found. Using FetchContent to retrieve GLFW")
+
+        include(FetchContent)
+
+        FetchContent_Declare(
+        glfw
+        GIT_REPOSITORY https://github.com/glfw/glfw.git
+        GIT_TAG 3.3.9   
+        )
+
+        # Desliga artefatos que não precisamos
+        set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+        set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+
+        FetchContent_MakeAvailable(glfw)
+    endif()
+
+    set(PLATFORM_LIBS glfw)
+
     
     set(PLATFORM_SOURCES
         src/platform/platform_desktop_glfw.cpp
         libs/glad_desktop/src/glad.c
     )
-    set(PLATFORM_LIBS glfw)
-
+    
     set(INCLUDE_GLAD
         libs/glad_desktop/include
     )
@@ -100,95 +131,3 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT FUSION_BUILD_FOR_WEB)
     # Nenhuma biblioteca extra necessária.
 endif()
 
-
-
-
-# cmake_minimum_required(VERSION 3.25)
-# project(FusionLibrary LANGUAGES C CXX)
-
-# set(CMAKE_CXX_STANDARD 20)
-
-
-# # Adicione esta opção para escolher a plataforma de compilação
-# option(FUSION_BUILD_FOR_WEB "Set to ON to build for WebAssembly with Emscripten" OFF)
-
-# # --- Configuração Específica da Plataforma ---
-# if(FUSION_BUILD_FOR_WEB)
-#     message(STATUS "FusionLibrary: Compilando para a Web (WebAssembly)")
-
-    
-#     # Para a web, não precisamos de bibliotecas de sistema adicionais
-#     set(PLATFORM_LIBS "") 
-
-#     # Por enquanto, não temos arquivos de plataforma web, adicionaremos em breve
-#     set(PLATFORM_SOURCES 
-#        src/platform/platform_web.cpp
-#     ) 
-
-# else()
-#     message(STATUS "FusionLibrary: Compilando para Desktop")
-
-
-#     # Bibliotecas para Desktop
-#     set(PLATFORM_LIBS glfw) 
-
-#     # Para desktop, compilamos e usamos o GLFW local
-#     add_subdirectory(libs/glfw)
-
-#     # Arquivo de plataforma para Desktop
-#     set(PLATFORM_SOURCES
-#         src/platform/platform_desktop_glfw.cpp
-#     )
-    
-    
-# endif()
-
-# set(COMMON_SOURCES
-#     src/core/core.cpp
-#     src/core/window.cpp
-#     src/external/glad.c # Vamos remover isso para a web depois
-#     src/graphics/camera2d.cpp
-#     src/graphics/font.cpp
-#     src/graphics/render_texture.cpp
-#     src/graphics/renderer.cpp
-#     src/graphics/shader.cpp
-#     src/graphics/sprite.cpp
-#     src/graphics/text.cpp
-#     src/graphics/texture.cpp
-#     src/graphics/transformable.cpp
-#     src/system/fusion_utf8.cpp
-#     src/main.cpp
-# )
-
-
-# # --- Definição do Executável ---
-# add_executable(game
-#     ${COMMON_SOURCES}
-#     ${PLATFORM_SOURCES} # Adiciona os fontes da plataforma correta
-# )
-
-
-# # --- Inclusão de Diretórios ---
-# target_include_directories(game PRIVATE
-#     include 
-#     src/core
-#     src/external
-#     src/graphics
-#     src/platform
-#     src/system
-#     ${CMAKE_CURRENT_SOURCE_DIR}/libs/glfw/include # Inclui apenas se for desktop, mas não causa erro na web
-# )
-
-
-# # A variável PLATFORM_LIBS garantirá que 'glfw' só seja linkado no desktop
-# target_link_libraries(game PRIVATE ${PLATFORM_LIBS})
-
-# # Para bibliotecas específicas de plataforma, como a winmm para Windows
-# if(WIN32 AND NOT FUSION_BUILD_FOR_WEB)
-#     # A biblioteca winmm é necessária para funções como timeBeginPeriod
-#     target_link_libraries(game PRIVATE winmm)
-# # Para Linux Desktop, precisamos de bibliotecas do sistema
-# elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT FUSION_BUILD_FOR_WEB)
-#     #target_link_libraries(game PRIVATE Threads::Threads m)   isso aqui da erro  se puder me explicar pq isso pois compila normal 
-
-# endif()

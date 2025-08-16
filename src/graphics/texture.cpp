@@ -38,6 +38,10 @@ namespace Fusion
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    Texture::Texture()
+    {
+    }
+
     Texture::~Texture()
     {
         Unload();
@@ -88,9 +92,9 @@ namespace Fusion
             return false;
         }
         unsigned char *data = stbi_load(path, &m_Width, &m_Height, &m_NrChannels, 0);
-        Load(data);
+        const bool loadedData = Load(data);
         stbi_image_free(data);
-        return true;
+        return loadedData;
     }
 
     bool Texture::LoadFromMemory(unsigned char *buffer, size_t len)
@@ -101,9 +105,9 @@ namespace Fusion
             return false;
         }
         unsigned char *data = stbi_load_from_memory(buffer, len, &m_Width, &m_Height, &m_NrChannels, 0);
-        Load(data);
+        const bool loadedData = Load(data);
         stbi_image_free(data);
-        return true;
+        return loadedData;
     }
 
     Sizei Texture::GetSize() const

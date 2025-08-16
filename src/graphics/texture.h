@@ -16,6 +16,7 @@ namespace Fusion
         Texture(const char *path);
         Texture(unsigned char *data, size_t len);
         Texture(int width, int height);
+        Texture();
         ~Texture();
         bool LoadFromFile(const char *path);
         bool LoadFromMemory(unsigned char *data, size_t len);
