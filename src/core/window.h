@@ -18,6 +18,7 @@ namespace Fusion
     class Camera2D;
     class Shader;
     class Font;
+    class Input;
 
     class Window
     {
@@ -51,35 +52,15 @@ namespace Fusion
         void EndMode2D();
         void BeginBlendMode(BlendMode mode);
         void EndBlendMode();
-        
+
         // Timer
         float GetFrameTime() const;
         int GetFPS() const;
         double GetTime() const;
         void SetTargetFPS(int fps);
 
-        // --- MÉTODOS DE INPUT ---
-        // Teclado
-        bool IsKeyPressed(int key) const;
-        bool IsKeyDown(int key) const;
-        bool IsKeyReleased(int key) const;
-
-        // Mouse
-        bool IsMouseButtonPressed(int button) const;
-        bool IsMouseButtonDown(int button) const;
-        bool IsMouseButtonReleased(int button) const;
-        Vector2f GetMousePosition() const;
-        float GetMouseWheelMove() const;
-
-        // Gamepad
-        bool IsGamepadAvailable(int gamepad) const;
-        const char *GetGamepadName(int gamepad) const;
-        bool IsGamepadButtonPressed(int gamepad, int button) const;
-        bool IsGamepadButtonDown(int gamepad, int button) const;
-        bool IsGamepadButtonReleased(int gamepad, int button) const;
-        float GetGamepadAxisMovement(int gamepad, int axis) const;
-        
-        Font& GetDefaultFont();
+        Font &GetDefaultFont();
+        Input* GetInput();
 
         void SetMainLoop(std::function<void()> loop);
 
@@ -87,6 +68,7 @@ namespace Fusion
         std::unique_ptr<Renderer> m_Render;
         std::unique_ptr<Platform> m_Platform;
         glm::mat4 m_DefaultProjection; // Salvar a projeção da janela
+        Input* m_input{};
         Font m_defaultFont;
     };
 

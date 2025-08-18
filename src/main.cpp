@@ -4,6 +4,7 @@
 #include "font.h"
 #include "text.h"
 #include "core.h"
+#include "input.h"
 
 #include <iostream>
 
@@ -92,19 +93,19 @@ int main()
         float frameTime = window.GetFrameTime();
         Fusion::Vector2f pos = player.GetPosition();
 
-        if (window.IsKeyDown(GLFW_KEY_W) || window.IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_UP))
+        if (window.GetInput()->IsKeyDown(GLFW_KEY_W) || window.GetInput()->IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_UP))
         {
             pos.y -= speed;
             window.GetDefaultFont().SetSmooth(true);
         }
-        if (window.IsKeyDown(GLFW_KEY_S) || window.IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_DOWN))
+        if (window.GetInput()->IsKeyDown(GLFW_KEY_S) || window.GetInput()->IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_DOWN))
         {
             pos.y += speed;
             window.GetDefaultFont().SetSmooth(false);
         }
-        if (window.IsKeyDown(GLFW_KEY_A) || window.IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_LEFT))
+        if (window.GetInput()->IsKeyDown(GLFW_KEY_A) || window.GetInput()->IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_LEFT))
             pos.x -= speed;
-        if (window.IsKeyDown(GLFW_KEY_D) || window.IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_RIGHT))
+        if (window.GetInput()->IsKeyDown(GLFW_KEY_D) || window.GetInput()->IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_RIGHT))
             pos.x += speed;
 
         player.SetPosition(pos);

@@ -71,7 +71,7 @@ namespace Fusion
 
     void PlatformWeb::InputEvents()
     {
-        EmscriptenGamepadEvent gamepadState;
+        EmscriptenGamepadEvent gamepadState{};
         int numGamepads = 0;
         if (emscripten_sample_gamepad_data() == EMSCRIPTEN_RESULT_SUCCESS)
         {

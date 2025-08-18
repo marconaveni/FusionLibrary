@@ -2,7 +2,6 @@
 #include "core.h"
 #include <iostream>
 #include <cmath>
-#include <cstring> // Para memset
 #include <thread>  // Para std::this_thread::sleep_for
 #include <chrono>  // Para std::chrono::duration
 
@@ -23,8 +22,6 @@ extern "C"
 
 namespace Fusion
 {
-
-
 
     void PlatformDesktopGLFW::Init(const char *title, int width, int height)
     {
@@ -69,19 +66,6 @@ namespace Fusion
             return;
         }
 
-        // --- INICIALIZAÇÃO DO INPUT ---
-        // Zera todos os arrays de estado
-        memset(m_keyCurrentState, 0, sizeof(m_keyCurrentState));
-        memset(m_keyPreviousState, 0, sizeof(m_keyPreviousState));
-        memset(m_mouseCurrentState, 0, sizeof(m_mouseCurrentState));
-        memset(m_mousePreviousState, 0, sizeof(m_mousePreviousState));
-        memset(m_gamepadReady, 0, sizeof(m_gamepadReady));
-        memset(m_gamepadAxisState, 0, sizeof(m_gamepadAxisState));
-        memset(m_gamepadButtonCurrentState, 0, sizeof(m_gamepadButtonCurrentState));
-        memset(m_gamepadButtonPreviousState, 0, sizeof(m_gamepadButtonPreviousState));
-        m_mouseWheelMove = 0.0f;
-        m_previousMouseWheelMove = 0.0f;
-
         // Registra as funções de callback no GLFW
         glfwSetKeyCallback(m_Window, KeyCallback);
         glfwSetMouseButtonCallback(m_Window, MouseButtonCallback);
@@ -91,11 +75,12 @@ namespace Fusion
         glfwSetJoystickCallback(JoystickCallback); // Registra o callback de conexão do joystick
 
         // Verifica quais gamepads já estão conectados no início
-        for (int i = 0; i < MAX_GAMEPADS; i++)
+        for (int i = 0; i < 4; i++)
         {
             if (glfwJoystickPresent(i))
             {
-                m_gamepadReady[i] = true;
+                m_input.RegisterGamePad(i, glfwGetJoystickName(i));
+                // m_gamepad.ready[i] = true;
                 std::cout << "INFO: Gamepad conectado na porta " << i << ": " << glfwGetJoystickName(i) << "\n";
             }
         }
@@ -174,43 +159,29 @@ namespace Fusion
 
     void PlatformDesktopGLFW::InputEvents()
     {
-        // Atualiza o estado anterior das teclas e botões
-        for (int i = 0; i < MAX_KEYS; i++)
-        {
-            m_keyPreviousState[i] = m_keyCurrentState[i];
-        }
+        m_input.UpdateKeyboardPreviousState();
+        m_input.UpdateMousePreviousState();
+        m_input.ResetMouseWhellMove();
 
-        for (int i = 0; i < MAX_MOUSE_BUTTONS; i++)
+        for (int i = 0; i < gamePadCount; i++)
         {
-            m_mousePreviousState[i] = m_mouseCurrentState[i];
-        }
-
-        // Reseta o movimento da roda do mouse
-        m_mouseWheelMove = 0.0f;
-
-        for (int i = 0; i < MAX_GAMEPADS; i++)
-        {
-            if (m_gamepadReady[i] && glfwJoystickIsGamepad(i))
+            if (m_input.IsGamepadAvailable(i) && glfwJoystickIsGamepad(i))
             {
-                // Copia o estado atual para o anterior
-                for (int j = 0; j < MAX_GAMEPAD_BUTTONS; j++)
-                {
-                    m_gamepadButtonPreviousState[i][j] = m_gamepadButtonCurrentState[i][j];
-                }
+                m_input.UpdateGamepadPreviousState(i);
             }
 
             GLFWgamepadstate state;
             if (glfwGetGamepadState(i, &state))
             {
                 // Atualiza o estado dos botões
-                for (int j = 0; j < MAX_GAMEPAD_BUTTONS; j++)
+                for (int j = 0; j < gamePadButtonCount; j++)
                 {
-                    m_gamepadButtonCurrentState[i][j] = (state.buttons[j] == GLFW_PRESS);
+                    m_input.UpdateGamePadCurrentState(i, j, (state.buttons[j] == GLFW_PRESS));
                 }
                 // Atualiza o estado dos eixos
-                for (int j = 0; j < MAX_GAMEPAD_AXES; j++)
+                for (int j = 0; j < gamePadAxisCount; j++)
                 {
-                    m_gamepadAxisState[i][j] = state.axes[j];
+                    m_input.UpdateGamePadCurrentStateAxis(i, j, state.axes[j]);
                 }
             }
         }
@@ -290,45 +261,11 @@ namespace Fusion
         }
     }
 
-    bool PlatformDesktopGLFW::IsKeyPressed(int key) const
+    Input *PlatformDesktopGLFW::GetInput()
     {
-        return m_keyCurrentState[key] && !m_keyPreviousState[key];
+        return &m_input;
     }
 
-    bool PlatformDesktopGLFW::IsKeyDown(int key) const
-    {
-        return m_keyCurrentState[key];
-    }
-
-    bool PlatformDesktopGLFW::IsKeyReleased(int key) const
-    {
-        return !m_keyCurrentState[key] && m_keyPreviousState[key];
-    }
-
-    bool PlatformDesktopGLFW::IsMouseButtonPressed(int button) const
-    {
-        return m_mouseCurrentState[button] && !m_mousePreviousState[button];
-    }
-
-    bool PlatformDesktopGLFW::IsMouseButtonDown(int button) const
-    {
-        return m_mouseCurrentState[button];
-    }
-
-    bool PlatformDesktopGLFW::IsMouseButtonReleased(int button) const
-    {
-        return !m_mouseCurrentState[button] && m_mousePreviousState[button];
-    }
-
-    Vector2f PlatformDesktopGLFW::GetMousePosition() const
-    {
-        return m_mousePosition;
-    }
-
-    float PlatformDesktopGLFW::GetMouseWheelMove() const
-    {
-        return m_mouseWheelMove;
-    }
 
     void PlatformDesktopGLFW::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
     {
@@ -343,24 +280,34 @@ namespace Fusion
     void PlatformDesktopGLFW::KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     {
         PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
-        if (platform && key >= 0 && key < MAX_KEYS)
+        if (platform && key >= 0 && key < keyCount)
         {
             if (action == GLFW_PRESS)
-                platform->m_keyCurrentState[key] = true;
+            {
+                platform->m_input.UpdateKeyboardCurrentState(key, true);
+            }
             else if (action == GLFW_RELEASE)
-                platform->m_keyCurrentState[key] = false;
+            {
+                platform->m_input.UpdateKeyboardCurrentState(key, false);
+            }
         }
     }
 
     void PlatformDesktopGLFW::MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
         PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
-        if (platform && button >= 0 && button < MAX_MOUSE_BUTTONS)
+        if (platform && button >= 0 && button < mouseButtonsCount)
         {
             if (action == GLFW_PRESS)
-                platform->m_mouseCurrentState[button] = true;
+            {
+                platform->m_input.UpdateMouseCurrentState(button, true);
+                // platform->m_mouseCurrentState[button] = true;
+            }
             else if (action == GLFW_RELEASE)
-                platform->m_mouseCurrentState[button] = false;
+            {
+                platform->m_input.UpdateMouseCurrentState(button, false);
+                // platform->m_mouseCurrentState[button] = false;
+            }
         }
     }
 
@@ -369,8 +316,11 @@ namespace Fusion
         PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
         if (platform)
         {
-            platform->m_mousePosition.x = (float)xpos;
-            platform->m_mousePosition.y = (float)ypos;
+            Vector2f position{
+                static_cast<float>(xpos), static_cast<float>(ypos)
+            };
+
+            platform->m_input.UpdateMousePosition(position);
         }
     }
 
@@ -379,7 +329,7 @@ namespace Fusion
         PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
         if (platform)
         {
-            platform->m_mouseWheelMove = (float)yoffset;
+            platform->m_input.UpdateMouseWhellMove(static_cast<float>(yoffset));
         }
     }
 
@@ -391,52 +341,12 @@ namespace Fusion
         m_isResized = true;
     }
 
-    bool PlatformDesktopGLFW::IsGamepadAvailable(int gamepad) const
-    {
-        return (gamepad < MAX_GAMEPADS) && m_gamepadReady[gamepad];
-    }
-
-    const char *PlatformDesktopGLFW::GetGamepadName(int gamepad) const
-    {
-        if (IsGamepadAvailable(gamepad))
-            return glfwGetGamepadName(gamepad);
-        return nullptr;
-    }
-
-    bool PlatformDesktopGLFW::IsGamepadButtonPressed(int gamepad, int button) const
-    {
-        return IsGamepadAvailable(gamepad) && m_gamepadButtonCurrentState[gamepad][button] && !m_gamepadButtonPreviousState[gamepad][button];
-    }
-
-    bool PlatformDesktopGLFW::IsGamepadButtonDown(int gamepad, int button) const
-    {
-        return IsGamepadAvailable(gamepad) && m_gamepadButtonCurrentState[gamepad][button];
-    }
-
-    bool PlatformDesktopGLFW::IsGamepadButtonReleased(int gamepad, int button) const
-    {
-        return IsGamepadAvailable(gamepad) && !m_gamepadButtonCurrentState[gamepad][button] && m_gamepadButtonPreviousState[gamepad][button];
-    }
-
-    float PlatformDesktopGLFW::GetGamepadAxisMovement(int gamepad, int axis) const
-    {
-        float value = 0.0f;
-        if (IsGamepadAvailable(gamepad) && axis < MAX_GAMEPAD_AXES)
-        {
-            value = m_gamepadAxisState[gamepad][axis];
-            // Aplica uma "deadzone" para evitar movimentos fantasmas
-            if (fabs(value) < 0.1f)
-                value = 0.0f;
-        }
-        return value;
-    }
-
     void PlatformDesktopGLFW::JoystickCallback(int jid, int event)
     {
 
         if (event == GLFW_CONNECTED)
         {
-            if (jid < MAX_GAMEPADS)
+            if (jid < gamePadCount)
             {
                 // Um joystick foi conectado
                 // A implementação real deve atualizar o estado interno
@@ -445,7 +355,7 @@ namespace Fusion
         }
         else if (event == GLFW_DISCONNECTED)
         {
-            if (jid < MAX_GAMEPADS)
+            if (jid < gamePadCount)
             {
                 // Um joystick foi desconectado
                 std::cout << "INFO: Joystick desconectado: " << jid << std::endl;

@@ -13,7 +13,9 @@
 #include "camera2d.h"
 #include "font_data.h"
 #include "core.h"
+#include "input.h"
 #include <cmath>
+#include <iostream>
 
 namespace Fusion
 {
@@ -44,6 +46,12 @@ namespace Fusion
 
         m_Platform->Init(title, width, height);
         m_Render->Init(width, height);
+        m_input = m_Platform->GetInput();
+
+        if(m_input)
+        {
+            std::cout << "m_input error \n";
+        }
 
         m_DefaultProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
 
@@ -241,27 +249,14 @@ namespace Fusion
         m_Platform->SetTargetFPS(fps);
     }
 
-    // --- IMPLEMENTAÇÃO DOS MÉTODOS DE INPUT ---
-    bool Window::IsKeyPressed(int key) const { return m_Platform->IsKeyPressed(key); }
-    bool Window::IsKeyDown(int key) const { return m_Platform->IsKeyDown(key); }
-    bool Window::IsKeyReleased(int key) const { return m_Platform->IsKeyReleased(key); }
-    bool Window::IsMouseButtonPressed(int button) const { return m_Platform->IsMouseButtonPressed(button); }
-    bool Window::IsMouseButtonDown(int button) const { return m_Platform->IsMouseButtonDown(button); }
-    bool Window::IsMouseButtonReleased(int button) const { return m_Platform->IsMouseButtonReleased(button); }
-    Vector2f Window::GetMousePosition() const { return m_Platform->GetMousePosition(); }
-    float Window::GetMouseWheelMove() const { return m_Platform->GetMouseWheelMove(); }
-
-    // --- IMPLEMENTAÇÃO DOS MÉTODOS DE GAMEPAD ---
-    bool Window::IsGamepadAvailable(int gamepad) const { return m_Platform->IsGamepadAvailable(gamepad); }
-    const char *Window::GetGamepadName(int gamepad) const { return m_Platform->GetGamepadName(gamepad); }
-    bool Window::IsGamepadButtonPressed(int gamepad, int button) const { return m_Platform->IsGamepadButtonPressed(gamepad, button); }
-    bool Window::IsGamepadButtonDown(int gamepad, int button) const { return m_Platform->IsGamepadButtonDown(gamepad, button); }
-    bool Window::IsGamepadButtonReleased(int gamepad, int button) const { return m_Platform->IsGamepadButtonReleased(gamepad, button); }
-    float Window::GetGamepadAxisMovement(int gamepad, int axis) const { return m_Platform->GetGamepadAxisMovement(gamepad, axis); }
-
     Font &Window::GetDefaultFont()
     {
         return m_defaultFont;
+    }
+
+    Input *Window::GetInput()
+    {
+        return m_input;
     }
 
     void Window::SetMainLoop(std::function<void()> loop)
