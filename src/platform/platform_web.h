@@ -3,6 +3,7 @@
 
 #include "platform.h" // Inclui a interface base
 #include <functional>
+#include <emscripten/html5.h>
 
 namespace Fusion
 {
@@ -20,7 +21,7 @@ namespace Fusion
         virtual void MakeContextCurrent() override {};
         virtual bool WindowShouldClose() override { return false; }
         virtual void PollEventsAndUpdate() override;
-        virtual void InputEvents() override {}
+        virtual void InputEvents() override;
         virtual void Shutdown() override {}
         virtual void Clear(Color color) override;
         virtual Sizei GetWindowSize() const override { return Sizei(); }
@@ -51,6 +52,8 @@ namespace Fusion
         virtual bool IsGamepadButtonDown(int gamepad, int button) const override { return false; }
         virtual bool IsGamepadButtonReleased(int gamepad, int button) const override { return false; }
         virtual float GetGamepadAxisMovement(int gamepad, int axis) const override { return 0.0f; }
+
+        static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData);
 
     private:
         std::function<void()> m_MainLoop;

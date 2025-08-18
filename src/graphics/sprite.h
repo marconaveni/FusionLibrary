@@ -13,16 +13,12 @@ namespace Fusion
     public:
         friend class Renderer;
 
+        Sprite();
         explicit Sprite(const Texture &texture);
-
         explicit Sprite(const Texture &&texture) = delete;
-
         void SetTexture(const Texture &texture);
-
         void SetTexture(const Texture &&texture) = delete;
-
         const Texture *GetTexture() const { return m_Texture; }
-
         void SetColor(Color color) { m_Color = color; }
 
     private:

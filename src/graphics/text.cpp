@@ -4,6 +4,11 @@
 
 namespace Fusion
 {
+    Text::Text()
+        : m_Spacing(0), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_IsNeedMensured(true), m_MeasuredText({0.0f, 0.0f})
+    {
+    }
+
     Text::Text(const Font &font)
         : m_Spacing(0), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_IsNeedMensured(true), m_MeasuredText({0.0f, 0.0f})
     {

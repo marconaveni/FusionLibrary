@@ -10,19 +10,18 @@ namespace Fusion
     class Texture
     {
     public:
-        // Desabilita a cópia
-        Texture(const Texture &) = delete;
-        Texture &operator=(const Texture &) = delete;
-        Texture(const char *path);
-        Texture(unsigned char *data, size_t len);
-        Texture(int width, int height);
         Texture();
         ~Texture();
+        Texture(const char *path);
+        Texture(int width, int height);
+        Texture(const Texture &) = delete; // Desabilita a cópia
+        Texture &operator=(const Texture &) = delete;
+        Texture(unsigned char *data, size_t len);
         bool LoadFromFile(const char *path);
         bool LoadFromMemory(unsigned char *data, size_t len);
+        unsigned int GetId() const;
         void SetSmooth(bool enable);
         Sizei GetSize() const;
-        unsigned int GetId() const;
         bool IsFboTexture() const;
         void Unload();
 

@@ -10,7 +10,6 @@ option(FUSION_BUILD_FOR_WEB "Set to ON to build for WebAssembly with Emscripten"
 set(COMMON_SOURCES
     src/core/core.cpp
     src/core/window.cpp
-    # src/external/glad.c 
     src/graphics/camera2d.cpp
     src/graphics/font.cpp
     src/graphics/render_texture.cpp
@@ -48,9 +47,7 @@ if(FUSION_BUILD_FOR_WEB)
     # Adiciona a definição para que o código C++ saiba que está na web
     target_compile_definitions(game PRIVATE FUSION_PLATFORM_WEB)
     
-    # Adiciona as flags do Emscripten para habilitar WebGL2 (compatível com OpenGL ES 3.0)
-    # Isso é essencial para que o GLAD encontre as funções.
-    set_property(TARGET game APPEND_STRING PROPERTY LINK_FLAGS " -s FULL_ES3=1  -s USE_GLFW=3 ")
+    set_property(TARGET game APPEND_STRING PROPERTY LINK_FLAGS " -s FULL_ES3=1  -s USE_GLFW=3  --preload-file ../assets/ ")  # parametros estão hardcode deixar dinamico  
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
     set(PLATFORM_SOURCES 
@@ -64,10 +61,6 @@ if(FUSION_BUILD_FOR_WEB)
 
 else()
     message(STATUS "FusionLibrary: Compilando para Desktop")
-
-    #add_subdirectory(libs/glfw)
-
-      # set(FUSION_GLFW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/glfw")   # opção B (com 's')
 
     if(EXISTS "${FUSION_GLFW_DIR}/CMakeLists.txt")
         message(STATUS "FusionLibrary: Using GLFW from submodule at ${FUSION_GLFW_DIR}")

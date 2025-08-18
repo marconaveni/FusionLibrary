@@ -57,18 +57,56 @@ namespace Fusion
         }
 
         std::cout << "PlatformWeb: Graphics initialized successfully!" << std::endl;
+
+        emscripten_set_gamepadconnected_callback(NULL, 1, EmscriptenGamepadCallback);
+        emscripten_set_gamepaddisconnected_callback(NULL, 1, EmscriptenGamepadCallback);
     }
 
     void PlatformWeb::PollEventsAndUpdate()
     {
+        InputEvents();
         glfwSwapBuffers(g_window);
-        std::cout << "aqui\n";
+        // std::cout << "aqui\n";
+    }
+
+    void PlatformWeb::InputEvents()
+    {
+        EmscriptenGamepadEvent gamepadState;
+        int numGamepads = 0;
+        if (emscripten_sample_gamepad_data() == EMSCRIPTEN_RESULT_SUCCESS)
+        {
+            numGamepads = emscripten_get_num_gamepads();
+        }
+
+        for (int i = 0; (i < numGamepads) && (i < 4); i++)
+        {
+            int result = emscripten_get_gamepad_status(i, &gamepadState);
+
+            if (result == EMSCRIPTEN_RESULT_SUCCESS)
+            {
+                for (int j = 0; (j < gamepadState.numButtons) && (j < 32); j++)
+                {
+                    // m_gamepadButtonPreviousState[i][j] = m_gamepadButtonCurrentState[i][j];
+                    if (gamepadState.digitalButton[j] == true)
+                        std::cout << "button " << gamepadState.digitalButton[j] << "\n";
+                }
+            }
+            for (int j = 0; (j < gamepadState.numAxes) && (j < 8); j++)
+            {
+                std::cout << "axis " << gamepadState.axis[j] << "\n";
+            }
+        }
     }
 
     void PlatformWeb::Clear(Color color)
     {
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    EM_BOOL PlatformWeb::EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData)
+    {
+        return 1;
     }
 
     void PlatformWeb::SetMainLoop(std::function<void()> loop)

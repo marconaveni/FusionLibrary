@@ -35,17 +35,7 @@ namespace Fusion
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void Font::LoadFromMemory(unsigned char *data, size_t sizeData, float fontSize, int charCount)
-    {
-        std::vector<unsigned char> ttf_buffer;
-        for (size_t i = 0; i < sizeData; i++)
-        {
-            ttf_buffer.push_back(data[i]);
-        }
-        LoadFont(ttf_buffer, fontSize, charCount);
-    }
-
-    void Font::LoadFromFile(const char *path, const float fontSize, int charCount)
+    bool Font::LoadFromFile(const char *path, const float fontSize, int charCount)
     {
 
         std::vector<unsigned char> ttf_buffer;
@@ -54,7 +44,7 @@ namespace Fusion
         if (!fontFile)
         {
             std::cerr << "Erro ao abrir arquivo de fonte: " << path << std::endl;
-            return;
+            return false;
         }
 
         fseek(fontFile, 0, SEEK_END);
@@ -66,15 +56,25 @@ namespace Fusion
         fread(ttf_buffer.data(), 1, fileSize, fontFile);
         fclose(fontFile);
 
-        LoadFont(ttf_buffer, fontSize, charCount);
+        return Load(ttf_buffer, fontSize, charCount);
     }
 
-    void Font::LoadFont(std::vector<unsigned char> &ttf_buffer, float fontSize, int charCount)
+    bool Font::LoadFromMemory(unsigned char *data, size_t sizeData, float fontSize, int charCount)
+    {
+        std::vector<unsigned char> ttf_buffer;
+        for (size_t i = 0; i < sizeData; i++)
+        {
+            ttf_buffer.push_back(data[i]);
+        }
+        return Load(ttf_buffer, fontSize, charCount);
+    }
+
+    bool Font::Load(std::vector<unsigned char> &ttf_buffer, float fontSize, int charCount)
     {
         if (!stbtt_InitFont(&m_FontInfo, ttf_buffer.data(), 0))
         {
             std::cerr << "Erro ao inicializar informações da fonte stbtt." << std::endl;
-            return;
+            return false;
         }
 
         // o tamanho do atlas está sendo definido com um tamanho fixo e isso
@@ -88,7 +88,7 @@ namespace Fusion
         if (!stbtt_PackBegin(&pack_context, bitmap.data(), m_AtlasSize.width, m_AtlasSize.height, 0, 1, nullptr))
         {
             std::cerr << "Erro ao inicializar o stb_truetype pack context." << std::endl;
-            return;
+            return false;
         }
 
         stbtt_PackSetOversampling(&pack_context, 2, 2);
@@ -133,11 +133,14 @@ namespace Fusion
         // set texture filtering parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        
         // set the texture wrapping parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        return true;
     }
 
     unsigned int Font::GetId() const

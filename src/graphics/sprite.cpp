@@ -3,6 +3,10 @@
 
 namespace Fusion
 {
+    Sprite::Sprite()
+        : Transformable(), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f})
+    {
+    }
 
     Sprite::Sprite(const Texture &texture)
         : Transformable(), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f})
@@ -58,7 +62,7 @@ namespace Fusion
 
         if (m_Texture->IsFboTexture())
         {
-            std::swap(topV, bottomV);  // não exibe adicionando esse bloco 
+            std::swap(topV, bottomV); // não exibe adicionando esse bloco
         }
 
         // 4. Monta os vetores de UV finais
