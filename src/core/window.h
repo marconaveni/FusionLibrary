@@ -18,7 +18,6 @@ namespace Fusion
     class Camera2D;
     class Shader;
     class Font;
-    class Input;
 
     class Window
     {
@@ -60,7 +59,6 @@ namespace Fusion
         void SetTargetFPS(int fps);
 
         Font &GetDefaultFont();
-        Input* GetInput();
 
         void SetMainLoop(std::function<void()> loop);
 
@@ -68,7 +66,6 @@ namespace Fusion
         std::unique_ptr<Renderer> m_Render;
         std::unique_ptr<Platform> m_Platform;
         glm::mat4 m_DefaultProjection; // Salvar a projeção da janela
-        Input* m_input{};
         Font m_defaultFont;
     };
 

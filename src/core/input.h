@@ -10,13 +10,15 @@
 namespace Fusion
 {
 
-
-
     class Input
     {
 
     public:
-        Input();
+
+        Input(const Input &) = delete;
+        Input &operator=(const Input &) = delete; // Deleted copy assignment
+        static Input& GetInstance(); // Singleton inputs não precisam ter varias instancias
+        
 
         bool IsGamepadAvailable(int gamepad) const;
         std::string GetGamepadName(int gamepad) const;
@@ -32,7 +34,7 @@ namespace Fusion
         bool IsMouseButtonPressed(int button) const;
         bool IsMouseButtonDown(int button) const;
         bool IsMouseButtonReleased(int button) const;
-        Vector2f GetMousePosition() const;
+        Vector2i GetMousePosition() const;
         float GetMouseWheelMove() const;
 
         void UpdateGamepadPreviousState(int gamepad);
@@ -47,13 +49,16 @@ namespace Fusion
         void UpdateMousePreviousState();
         void UpdateMouseCurrentState(int button, bool state);
         void UpdateMouseWhellMove(float move);
-        void UpdateMousePosition(Vector2f position);
+        void UpdateMousePosition(Vector2i position);
         void ResetMouseWhellMove();
 
     private:
-        Gamepad m_gamePads[gamePadCount];
-        Keyboard m_keyboard;
-        Mouse m_mouse;
+
+        Input();
+        ~Input();
+        Gamepad::GamepadData m_gamePads[Gamepad::gamePadCount];
+        Keyboard::KeyboardData m_keyboard;
+        Mouse::MouseData m_mouse;
     };
 } // namespace Fusion
 

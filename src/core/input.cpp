@@ -9,9 +9,19 @@ namespace Fusion
     {
     }
 
+    Input::~Input()
+    {
+    }
+
+    Input &Input::GetInstance()
+    {
+        static Input instance;
+        return instance;
+    }
+
     bool Input::IsGamepadAvailable(int gamepad) const
     {
-        return (gamepad < gamePadCount) && m_gamePads[gamepad].ready;
+        return (gamepad < Gamepad::gamePadCount) && m_gamePads[gamepad].ready;
     }
 
     std::string Input::GetGamepadName(int gamepad) const
@@ -37,7 +47,7 @@ namespace Fusion
     float Input::GetGamepadAxisMovement(int gamepad, int axis) const
     {
         float value = 0.0f;
-        if (IsGamepadAvailable(gamepad) && axis < gamePadAxisCount)
+        if (IsGamepadAvailable(gamepad) && axis < Gamepad::gamePadAxisCount)
         {
             value = m_gamePads[gamepad].axisState[axis];
             if (fabs(value) < 0.1f)
@@ -51,7 +61,7 @@ namespace Fusion
     void Input::UpdateGamepadPreviousState(int gamepad)
     {
         // Copia o estado atual para o anterior
-        for (int j = 0; j < gamePadButtonCount; j++)
+        for (int j = 0; j < Gamepad::gamePadButtonCount; j++)
         {
             m_gamePads[gamepad].previousState[j] = m_gamePads[gamepad].currentState[j];
         }
@@ -77,7 +87,7 @@ namespace Fusion
 
     void Input::UnRegisterGamePad(int gamepad)
     {
-        m_gamePads[gamepad].name = gamePadDefaultName;
+        m_gamePads[gamepad].name = Gamepad::gamePadDefaultName;
         m_gamePads[gamepad].ready = false;
 
         m_gamePads[gamepad].axisState.fill(0.0f);
@@ -88,7 +98,7 @@ namespace Fusion
     void Input::UpdateKeyboardPreviousState()
     {
         // Atualiza o estado anterior das teclas e botões
-        for (int i = 0; i < keyCount; i++)
+        for (int i = 0; i < Keyboard::keyCount; i++)
         {
             m_keyboard.previousState[i] = m_keyboard.currentState[i];
         }
@@ -101,7 +111,7 @@ namespace Fusion
 
     void Input::UpdateMousePreviousState()
     {
-        for (int i = 0; i < mouseButtonsCount; i++)
+        for (int i = 0; i < Mouse::mouseButtonsCount; i++)
         {
             m_mouse.previousState[i] = m_mouse.currentState[i];
         }
@@ -117,7 +127,7 @@ namespace Fusion
         m_mouse.wheelMove = move;
     }
 
-    void Input::UpdateMousePosition(Vector2f position)
+    void Input::UpdateMousePosition(Vector2i position)
     {
         m_mouse.position = position;
     }
@@ -157,7 +167,7 @@ namespace Fusion
         return !m_mouse.currentState[button] && m_mouse.previousState[button];
     }
 
-    Vector2f Input::GetMousePosition() const
+    Vector2i Input::GetMousePosition() const
     {
         return m_mouse.position;
     }

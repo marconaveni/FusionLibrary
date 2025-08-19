@@ -1,0 +1,23 @@
+BasedOnStyle: Google
+TabWidth: 4
+IndentWidth: 4
+BreakBeforeBraces: Allman
+PointerAlignment: Left
+SpacesBeforeTrailingComments: 2
+ColumnLimit: 170
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortLambdasOnASingleLine: Inline
+NamespaceIndentation: All
+IncludeBlocks: Preserve
+AccessModifierOffset: -4
+EmptyLineBeforeAccessModifier: Always
+EmptyLineAfterAccessModifier: Always
+PackConstructorInitializers: NextLineOnly
+BreakConstructorInitializers: BeforeComma
+Cpp11BracedListStyle: false
+BinPackArguments: false
+BinPackParameters: false
+MaxEmptyLinesToKeep: 1
+

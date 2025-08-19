@@ -29,7 +29,6 @@ namespace Fusion
         virtual float GetTime() const = 0;
         virtual int GetFPS() const = 0;
         virtual void SetTargetFPS(int fps) = 0;
-        virtual Input* GetInput() = 0;
 
         virtual void SetMainLoop(std::function<void()> loop) {};
     

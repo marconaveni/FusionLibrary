@@ -9,7 +9,10 @@ option(FUSION_BUILD_FOR_WEB "Set to ON to build for WebAssembly with Emscripten"
 
 set(COMMON_SOURCES
     src/core/core.cpp
+    src/core/gamepad.cpp
     src/core/input.cpp
+    src/core/keyboard.cpp
+    src/core/mouse.cpp
     src/core/window.cpp
     src/graphics/camera2d.cpp
     src/graphics/font.cpp

@@ -32,13 +32,12 @@ namespace Fusion
         virtual float GetTime() const override { return 0.0f; }
         virtual int GetFPS() const override { return 0; }
         virtual void SetTargetFPS(int fps) override {}
-        virtual Input* GetInput() override;
+ 
 
         static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData);
         
     private:
         std::function<void()> m_MainLoop;
-        static Input s_input;
     };
 }
 

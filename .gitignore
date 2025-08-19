@@ -3,6 +3,7 @@ build_web
 src/external/glm
 .vscode
 .github
+.cache
 chat.py
 cpp.txt
 fusion.txt

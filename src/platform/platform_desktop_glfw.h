@@ -30,7 +30,6 @@ namespace Fusion
         virtual int GetFPS() const override;
         virtual void SetTargetFPS(int fps) override;
 
-        virtual Input* GetInput() override;
 
 
     private:
@@ -44,7 +43,7 @@ namespace Fusion
         double m_targetFrameTime = 0.0;
         int m_Fps = 0;
 
-        Input m_input;
+        //Input m_input;
 
         // GLFW callback
         static void FramebufferSizeCallback(GLFWwindow *window, int width, int height);

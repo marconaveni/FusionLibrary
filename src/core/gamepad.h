@@ -5,35 +5,32 @@
 #include <string_view>
 #include <array>
 
-namespace Fusion
+namespace Fusion::Gamepad
 {
 
+    // #define GLFW_GAMEPAD_BUTTON_A               0
+    // #define GLFW_GAMEPAD_BUTTON_B               1
+    // #define GLFW_GAMEPAD_BUTTON_X               2
+    // #define GLFW_GAMEPAD_BUTTON_Y               3
+    // #define GLFW_GAMEPAD_BUTTON_LEFT_BUMPER     4
+    // #define GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER    5
+    // #define GLFW_GAMEPAD_BUTTON_BACK            6
+    // #define GLFW_GAMEPAD_BUTTON_START           7
+    // #define GLFW_GAMEPAD_BUTTON_GUIDE           8
+    // #define GLFW_GAMEPAD_BUTTON_LEFT_THUMB      9
+    // #define GLFW_GAMEPAD_BUTTON_RIGHT_THUMB     10
+    // #define GLFW_GAMEPAD_BUTTON_DPAD_UP         11
+    // #define GLFW_GAMEPAD_BUTTON_DPAD_RIGHT      12
+    // #define GLFW_GAMEPAD_BUTTON_DPAD_DOWN       13
+    // #define GLFW_GAMEPAD_BUTTON_DPAD_LEFT       14
+    // #define GLFW_GAMEPAD_BUTTON_LAST            GLFW_GAMEPAD_BUTTON_DPAD_LEFT
 
-// #define GLFW_GAMEPAD_BUTTON_A               0
-// #define GLFW_GAMEPAD_BUTTON_B               1
-// #define GLFW_GAMEPAD_BUTTON_X               2
-// #define GLFW_GAMEPAD_BUTTON_Y               3
-// #define GLFW_GAMEPAD_BUTTON_LEFT_BUMPER     4
-// #define GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER    5
-// #define GLFW_GAMEPAD_BUTTON_BACK            6
-// #define GLFW_GAMEPAD_BUTTON_START           7
-// #define GLFW_GAMEPAD_BUTTON_GUIDE           8
-// #define GLFW_GAMEPAD_BUTTON_LEFT_THUMB      9
-// #define GLFW_GAMEPAD_BUTTON_RIGHT_THUMB     10
-// #define GLFW_GAMEPAD_BUTTON_DPAD_UP         11
-// #define GLFW_GAMEPAD_BUTTON_DPAD_RIGHT      12
-// #define GLFW_GAMEPAD_BUTTON_DPAD_DOWN       13
-// #define GLFW_GAMEPAD_BUTTON_DPAD_LEFT       14
-// #define GLFW_GAMEPAD_BUTTON_LAST            GLFW_GAMEPAD_BUTTON_DPAD_LEFT
+    // #define GLFW_GAMEPAD_BUTTON_CROSS       GLFW_GAMEPAD_BUTTON_A
+    // #define GLFW_GAMEPAD_BUTTON_CIRCLE      GLFW_GAMEPAD_BUTTON_B
+    // #define GLFW_GAMEPAD_BUTTON_SQUARE      GLFW_GAMEPAD_BUTTON_X
+    // #define GLFW_GAMEPAD_BUTTON_TRIANGLE    GLFW_GAMEPAD_BUTTON_Y
 
-// #define GLFW_GAMEPAD_BUTTON_CROSS       GLFW_GAMEPAD_BUTTON_A
-// #define GLFW_GAMEPAD_BUTTON_CIRCLE      GLFW_GAMEPAD_BUTTON_B
-// #define GLFW_GAMEPAD_BUTTON_SQUARE      GLFW_GAMEPAD_BUTTON_X
-// #define GLFW_GAMEPAD_BUTTON_TRIANGLE    GLFW_GAMEPAD_BUTTON_Y
-
-
-
-    enum GamepadButton
+    enum Button
     {
         GAMEPAD_BUTTON_UNKNOWN = 0,      // Unknown button, just for error checking
         GAMEPAD_BUTTON_LEFT_FACE_UP,     // Gamepad left DPAD up button
@@ -55,13 +52,12 @@ namespace Fusion
         GAMEPAD_BUTTON_RIGHT_THUMB       // Gamepad joystick pressed button right
     };
 
-    
     static constexpr unsigned int gamePadCount{8};        // Maximum number of supported joysticks
     static constexpr unsigned int gamePadButtonCount{32}; // Maximum number of supported buttons
     static constexpr unsigned int gamePadAxisCount{8};    // Maximum number of supported axes
     static constexpr std::string_view gamePadDefaultName{"No Joystick"};
 
-    struct Gamepad
+    struct GamepadData
     {
         bool ready;
         std::array<float, gamePadAxisCount> axisState{};
@@ -69,6 +65,13 @@ namespace Fusion
         std::array<bool, gamePadButtonCount> previousState{};
         std::string name{gamePadDefaultName}; // default name
     };
+
+    bool IsGamepadAvailable(int gamepad);
+    std::string GetGamepadName(int gamepad);
+    bool IsGamepadButtonPressed(int gamepad, int button);
+    bool IsGamepadButtonDown(int gamepad, int button);
+    bool IsGamepadButtonReleased(int gamepad, int button);
+    float GetGamepadAxisMovement(int gamepad, int axis);
 
 } // namespace Fusion
 

@@ -12,6 +12,7 @@ namespace Fusion
     };
 
     using Vector2f = Vector2<float>;
+    using Vector2d = Vector2<double>;
     using Vector2i = Vector2<int>;
     using Vector2u = Vector2<unsigned int>;
 

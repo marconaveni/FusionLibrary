@@ -46,12 +46,7 @@ namespace Fusion
 
         m_Platform->Init(title, width, height);
         m_Render->Init(width, height);
-        m_input = m_Platform->GetInput();
 
-        if(m_input == nullptr)
-        {
-            std::cout << "m_input error \n";
-        }
 
         m_DefaultProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
 
@@ -254,10 +249,6 @@ namespace Fusion
         return m_defaultFont;
     }
 
-    Input *Window::GetInput()
-    {
-        return m_input;
-    }
 
     void Window::SetMainLoop(std::function<void()> loop)
     {
