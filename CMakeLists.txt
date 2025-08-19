@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 project(FusionLibrary LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 # Opção de Compilação
 option(FUSION_BUILD_FOR_WEB "Set to ON to build for WebAssembly with Emscripten" OFF)

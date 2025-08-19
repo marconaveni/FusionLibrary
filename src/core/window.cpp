@@ -48,7 +48,7 @@ namespace Fusion
         m_Render->Init(width, height);
         m_input = m_Platform->GetInput();
 
-        if(m_input)
+        if(m_input == nullptr)
         {
             std::cout << "m_input error \n";
         }

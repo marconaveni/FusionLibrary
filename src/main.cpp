@@ -6,7 +6,8 @@
 #include "core.h"
 #include "input.h"
 
-#include <iostream>
+#include <format>
+#include <print>
 
 #if defined(FUSION_PLATFORM_WEB)
 #include "platform.h" 
@@ -115,9 +116,10 @@ int main()
         window.Clear({0.1f, 0.1f, 0.1f, 1.0f});
 
         window.Draw(player);
-        std::string fps = std::to_string(window.GetFPS());
+        
+        std::string fps = std::format("{} fps",  window.GetFPS());
         text.SetText(fps);
-        std::cout << window.GetFPS() << "\n";
+        std::println("{}",fps);
         window.Draw(text);
 
         window.EndDrawing();

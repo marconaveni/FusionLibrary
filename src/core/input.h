@@ -7,9 +7,10 @@
 #include "mouse.h"
 #include <string>
 
-
 namespace Fusion
 {
+
+
 
     class Input
     {
@@ -42,7 +43,7 @@ namespace Fusion
 
         void UpdateKeyboardPreviousState();
         void UpdateKeyboardCurrentState(int key, bool state);
-        
+
         void UpdateMousePreviousState();
         void UpdateMouseCurrentState(int button, bool state);
         void UpdateMouseWhellMove(float move);
