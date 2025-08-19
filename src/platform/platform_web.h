@@ -36,7 +36,7 @@ namespace Fusion
 
         static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData);
         
-        private:
+    private:
         std::function<void()> m_MainLoop;
         static Input s_input;
     };

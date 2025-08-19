@@ -2,14 +2,14 @@
 #include "core.h"
 #include <iostream>
 #include <cmath>
-#include <thread>  // Para std::this_thread::sleep_for
-#include <chrono>  // Para std::chrono::duration
+#include <thread> // Para std::this_thread::sleep_for
+#include <chrono> // Para std::chrono::duration
 
-struct WindowStatus
-{
-    int viewPortWidth;
-    int viewPortHeight;
-};
+// struct WindowStatus
+// {
+//     int viewPortWidth;
+//     int viewPortHeight;
+// };
 
 // note que isso é usado para evitar chamar bibliotecas do windows que podem causar muitos conflitos
 #if defined(_WIN32)
@@ -75,12 +75,11 @@ namespace Fusion
         glfwSetJoystickCallback(JoystickCallback); // Registra o callback de conexão do joystick
 
         // Verifica quais gamepads já estão conectados no início
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < gamePadCount; i++)
         {
             if (glfwJoystickPresent(i))
             {
                 m_input.RegisterGamePad(i, glfwGetJoystickName(i));
-                // m_gamepad.ready[i] = true;
                 std::cout << "INFO: Gamepad conectado na porta " << i << ": " << glfwGetJoystickName(i) << "\n";
             }
         }
@@ -143,7 +142,7 @@ namespace Fusion
         InputEvents();
 
         // Processa os eventos de janela (como fechar)
-        // glfwPollEvents();
+        glfwPollEvents();
 
         // Mede o tempo final do quadro, incluindo a espera
         m_CurrentTime = glfwGetTime();
@@ -165,6 +164,14 @@ namespace Fusion
 
         for (int i = 0; i < gamePadCount; i++)
         {
+
+            // se não está presente, garanta o unregister
+            if (!glfwJoystickPresent(i))
+            {
+                m_input.UnRegisterGamePad(i);
+                continue; // nada pra ler desse id
+            }
+
             if (m_input.IsGamepadAvailable(i) && glfwJoystickIsGamepad(i))
             {
                 m_input.UpdateGamepadPreviousState(i);
@@ -266,7 +273,6 @@ namespace Fusion
         return &m_input;
     }
 
-
     void PlatformDesktopGLFW::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
     {
         PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
@@ -317,8 +323,7 @@ namespace Fusion
         if (platform)
         {
             Vector2f position{
-                static_cast<float>(xpos), static_cast<float>(ypos)
-            };
+                static_cast<float>(xpos), static_cast<float>(ypos)};
 
             platform->m_input.UpdateMousePosition(position);
         }

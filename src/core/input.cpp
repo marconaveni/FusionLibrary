@@ -78,7 +78,11 @@ namespace Fusion
     void Input::UnRegisterGamePad(int gamepad)
     {
         m_gamePads[gamepad].name = gamePadDefaultName;
-        m_gamePads[gamepad].ready = true;
+        m_gamePads[gamepad].ready = false;
+
+        m_gamePads[gamepad].axisState.fill(0.0f);
+        m_gamePads[gamepad].currentState.fill(false);
+        m_gamePads[gamepad].previousState.fill(false);
     }
 
     void Input::UpdateKeyboardPreviousState()

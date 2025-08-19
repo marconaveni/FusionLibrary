@@ -89,9 +89,9 @@ int main()
     while (!window.WindowShouldClose())
     {
 
-        Fusion::Core::PollEvents();
-        // --- ATUALIZAÇÃO ---
-        float frameTime = window.GetFrameTime();
+        //Fusion::Core::PollEvents();
+
+        // float frameTime = window.GetFrameTime();
         Fusion::Vector2f pos = player.GetPosition();
 
         if (window.GetInput()->IsKeyDown(GLFW_KEY_W) || window.GetInput()->IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_UP))
@@ -119,7 +119,7 @@ int main()
         
         std::string fps = std::format("{} fps",  window.GetFPS());
         text.SetText(fps);
-        std::println("{}",fps);
+        //std::println("{}",fps);
         window.Draw(text);
 
         window.EndDrawing();

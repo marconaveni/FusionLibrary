@@ -473,7 +473,7 @@ namespace Fusion
 
         // Reseta o contador para o próximo lote
         m_VertexCount = 0;
-        m_Vertices.clear();
+        //m_Vertices.clear();  // tem custo 
     }
 
     void Renderer::CheckFlushShape()
