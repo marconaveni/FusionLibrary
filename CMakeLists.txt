@@ -28,12 +28,12 @@ set(COMMON_SOURCES
 )
 
 set(COMMON_INCLUDES
-    include 
-    src/core 
-    src/external 
-    src/graphics 
-    src/platform 
-    src/system
+    "include"
+    "src/core"
+    "src/external"
+    "src/graphics"
+    "src/platform"
+    "src/system"
 )
 
 # Definição do Executável (movido para cima para que possamos definir propriedades nele)
@@ -43,7 +43,7 @@ add_executable(game
 
 # Configuração Específica da Plataforma
 if(FUSION_BUILD_FOR_WEB)
-    message(STATUS "FusionLibrary: Compilando para a Web (WebAssembly)")
+    message(STATUS "[FusionLibrary]: Compilando para a Web (WebAssembly)")
     
     # Linkamos contra a biblioteca 'GL' que o Emscripten fornece.
     set(PLATFORM_LIBS GL) 
@@ -63,34 +63,23 @@ if(FUSION_BUILD_FOR_WEB)
         libs/glad_web/include
     )
 
+    
+
 else()
-    message(STATUS "FusionLibrary: Compilando para Desktop")
+
+    message(STATUS "[FusionLibrary]: Compilando para Desktop")
+
+    set(FUSION_GLFW_DIR ${CMAKE_SOURCE_DIR}/libs/glfw)
 
     if(EXISTS "${FUSION_GLFW_DIR}/CMakeLists.txt")
-        message(STATUS "FusionLibrary: Using GLFW from submodule at ${FUSION_GLFW_DIR}")
+        message(STATUS "[FusionLibrary]: Using GLFW from submodule at ${FUSION_GLFW_DIR}")
         set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
         set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
         set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
         set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
         add_subdirectory("${FUSION_GLFW_DIR}")
     else()
-        message(STATUS "FusionLibrary: GLFW submodule not found. Using FetchContent to retrieve GLFW")
-
-        include(FetchContent)
-
-        FetchContent_Declare(
-        glfw
-        GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.3.9   
-        )
-
-        # Desliga artefatos que não precisamos
-        set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-        set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-
-        FetchContent_MakeAvailable(glfw)
+        message(FATAL "[FusionLibrary]: GLFW submodule not found. try run comand "git submodule update --init --recursive"")
     endif()
 
     set(PLATFORM_LIBS glfw)
