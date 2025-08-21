@@ -1,6 +1,5 @@
 build
 build_web
-src/external/glm
 .vscode
 .github
 .cache
