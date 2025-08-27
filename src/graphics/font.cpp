@@ -1,4 +1,5 @@
 #include "font.h"
+
 #include <glad/glad.h>
 #include <iostream>
 #include <vector>
@@ -8,7 +9,7 @@
 
 namespace Fusion
 {
-    Font::Font(const char *path, const float fontSize, int charCount)
+    Font::Font(const char* path, const float fontSize, int charCount)
         : m_FontInfo()
     {
         LoadFromFile(path, fontSize, charCount);
@@ -35,12 +36,12 @@ namespace Fusion
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    bool Font::LoadFromFile(const char *path, const float fontSize, int charCount)
+    bool Font::LoadFromFile(const char* path, const float fontSize, int charCount)
     {
 
         std::vector<unsigned char> ttf_buffer;
 
-        FILE *fontFile = fopen(path, "rb");
+        FILE* fontFile = fopen(path, "rb");
         if (!fontFile)
         {
             std::cerr << "Erro ao abrir arquivo de fonte: " << path << std::endl;
@@ -59,7 +60,7 @@ namespace Fusion
         return Load(ttf_buffer, fontSize, charCount);
     }
 
-    bool Font::LoadFromMemory(unsigned char *data, size_t sizeData, float fontSize, int charCount)
+    bool Font::LoadFromMemory(unsigned char* data, size_t sizeData, float fontSize, int charCount)
     {
         std::vector<unsigned char> ttf_buffer;
         for (size_t i = 0; i < sizeData; i++)
@@ -69,7 +70,7 @@ namespace Fusion
         return Load(ttf_buffer, fontSize, charCount);
     }
 
-    bool Font::Load(std::vector<unsigned char> &ttf_buffer, float fontSize, int charCount)
+    bool Font::Load(std::vector<unsigned char>& ttf_buffer, float fontSize, int charCount)
     {
         if (!stbtt_InitFont(&m_FontInfo, ttf_buffer.data(), 0))
         {
@@ -117,23 +118,24 @@ namespace Fusion
         glDeleteTextures(1, &m_FontTextureID); // deleta se já houver outra textura carregada
         glGenTextures(1, &m_FontTextureID);
         glBindTexture(GL_TEXTURE_2D, m_FontTextureID);
-        
-        
+
+
 #if defined(FUSION_PLATFORM_WEB)
-    // Na Web (WebGL 2), para uma textura de 1 canal, usamos GL_R8 como formato interno.
-#define CHANNEL  GL_R8
+        // Na Web (WebGL 2), para uma textura de 1 canal, usamos GL_R8 como formato interno.
+#define CHANNEL GL_R8
 #else
-    // No Desktop, GL_RED funciona perfeitamente.
-#define CHANNEL  GL_RED
+        // No Desktop, GL_RED funciona perfeitamente.
+#define CHANNEL GL_RED
 
 #endif
 
-        glTexImage2D(GL_TEXTURE_2D, 0, CHANNEL, m_AtlasSize.width, m_AtlasSize.height, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap.data());
+        glTexImage2D(GL_TEXTURE_2D, 0, CHANNEL, m_AtlasSize.width, m_AtlasSize.height, 0, GL_RED, GL_UNSIGNED_BYTE,
+                     bitmap.data());
 
         // set texture filtering parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        
+
         // set the texture wrapping parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

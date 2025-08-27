@@ -1,5 +1,5 @@
-#ifndef FUSION_RENDER_TEXTURE_H
-#define FUSION_RENDER_TEXTURE_H
+#ifndef RENDER_TEXTURE_H
+#define RENDER_TEXTURE_H
 
 #include "texture.h"
 #include <memory>

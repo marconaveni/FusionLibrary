@@ -1,6 +1,8 @@
 #include "text.h"
-#include "fusion_utf8.h"
+
 #include <cmath>
+
+#include "fusion_utf8.h"
 
 namespace Fusion
 {
@@ -9,13 +11,13 @@ namespace Fusion
     {
     }
 
-    Text::Text(const Font &font)
+    Text::Text(const Font& font)
         : m_Spacing(0), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_IsNeedMensured(true), m_MeasuredText({0.0f, 0.0f})
     {
         SetFont(font);
     }
 
-    void Text::SetFont(const Font &font)
+    void Text::SetFont(const Font& font)
     {
         m_Font = &font;
         m_IsNeedMensured = true;
@@ -77,9 +79,10 @@ namespace Fusion
                 {
                     currentLineWidth -= m_Spacing;
                 }
-                maxWidth = std::max(maxWidth, currentLineWidth); // Compara a largura da linha que acabamos de medir com a máxima
-                currentLineWidth = 0.0f;                         // Reseta a largura para a próxima linha
-                totalHeight += m_Font->GetLineHeight();          // Adiciona a altura de mais uma linha
+                maxWidth = std::max(maxWidth,
+                                    currentLineWidth);  // Compara a largura da linha que acabamos de medir com a máxima
+                currentLineWidth = 0.0f;                // Reseta a largura para a próxima linha
+                totalHeight += m_Font->GetLineHeight(); // Adiciona a altura de mais uma linha
                 continue;
             }
 
@@ -102,7 +105,8 @@ namespace Fusion
         {
             currentLineWidth -= m_Spacing; // remove o ultimo espaçamento
         }
-        maxWidth = std::max(maxWidth, currentLineWidth); // Após o loop, faz uma última verificação para a última linha do texto
+        maxWidth = std::max(maxWidth,
+                            currentLineWidth); // Após o loop, faz uma última verificação para a última linha do texto
 
         // Aplica a escala final ao resultado
         const float scale = GetScale();
@@ -163,7 +167,8 @@ namespace Fusion
             stbtt_aligned_quad q;
             float temp_x = xpos;
             float temp_y = ypos;
-            stbtt_GetPackedQuad(&pc, m_Font->GetAtlasSize().width, m_Font->GetAtlasSize().height, 0, &temp_x, &temp_y, &q, 0);
+            stbtt_GetPackedQuad(&pc, m_Font->GetAtlasSize().width, m_Font->GetAtlasSize().height, 0, &temp_x, &temp_y,
+                                &q, 0);
 
             xpos = temp_x;
             xpos += m_Spacing; // gera espaçamento adicionar parametro depois
@@ -175,10 +180,14 @@ namespace Fusion
 
             const float scale = GetScale();
             glm::vec3 scale_pivot = glm::vec3(m_Position.x, m_Position.y, 0.0f);
-            p1 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) * glm::translate(glm::mat4(1.0f), -scale_pivot) * p1;
-            p2 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) * glm::translate(glm::mat4(1.0f), -scale_pivot) * p2;
-            p3 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) * glm::translate(glm::mat4(1.0f), -scale_pivot) * p3;
-            p4 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) * glm::translate(glm::mat4(1.0f), -scale_pivot) * p4;
+            p1 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) *
+                 glm::translate(glm::mat4(1.0f), -scale_pivot) * p1;
+            p2 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) *
+                 glm::translate(glm::mat4(1.0f), -scale_pivot) * p2;
+            p3 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) *
+                 glm::translate(glm::mat4(1.0f), -scale_pivot) * p3;
+            p4 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) *
+                 glm::translate(glm::mat4(1.0f), -scale_pivot) * p4;
 
             p1 = transform * p1;
             p2 = transform * p2;
@@ -201,4 +210,4 @@ namespace Fusion
     {
         return std::max(m_Position.width, m_Position.height);
     }
-}
+} // namespace Fusion

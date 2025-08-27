@@ -18,6 +18,6 @@ namespace Fusion::Keyboard
     bool IsKeyDown(int key);
     bool IsKeyReleased(int key);
 
-} // namespace Fusion
+} // namespace Fusion::Keyboard
 
 #endif

@@ -3,13 +3,13 @@
 
 #include <glad/glad.h>
 #include <vector>
-#include "shader.h"
-#include "fusion_math.h"
-#include "vertex.h"
 
+#include "fusion_math.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "shader.h"
+#include "vertex.h"
 
 namespace Fusion
 {
@@ -22,6 +22,7 @@ namespace Fusion
     class Renderer
     {
     public:
+
         Renderer();
 
         void Shutdown();
@@ -29,14 +30,14 @@ namespace Fusion
         void BeginRender();
         void EndRender();
 
-        void DrawTexture(const Sprite &sprite, Shader *customShader = nullptr);
-        void DrawText(const Text &text, Shader *customShader = nullptr);
+        void DrawTexture(const Sprite& sprite, Shader* customShader = nullptr);
+        void DrawText(const Text& text, Shader* customShader = nullptr);
 
         void DrawRectangle(int x, int y, int width, int height, Color color);
         void DrawCircle(Vector2f center, float radius, Color color);
-        void DrawCircleLines(Vector2f center, float radius, Color color); 
-        void DrawTriangle(Vector2f v1, Vector2f v2, Vector2f v3, Color color); 
-        void DrawLine(Vector2f startPos, Vector2f endPos, float thick, Color color);   
+        void DrawCircleLines(Vector2f center, float radius, Color color);
+        void DrawTriangle(Vector2f v1, Vector2f v2, Vector2f v3, Color color);
+        void DrawLine(Vector2f startPos, Vector2f endPos, float thick, Color color);
         void DrawRectangleLines(int x, int y, int width, int height, float thick, Color color);
 
         void BeginScissorMode(int x, int y, int width, int height);
@@ -46,12 +47,13 @@ namespace Fusion
         void EndBlendMode();
 
         void Init(int width, int height);
-        void SetProjection(const glm::mat4 &projection);
+        void SetProjection(const glm::mat4& projection);
 
-        void SetViewMatrix(const glm::mat4 &view) { m_View = view; }
+        void SetViewMatrix(const glm::mat4& view) { m_View = view; }
         void ResetViewMatrix() { m_View = glm::mat4(1.0f); }
 
     private:
+
         void InitBatch();
         void CreateDefaultTexture();
         void Flush();
@@ -67,7 +69,7 @@ namespace Fusion
 
         GLuint m_DefaultTextureID = 0;
         GLuint m_CurrentTextureID = 0;
-        Shader *m_CurrentShader = nullptr;
+        Shader* m_CurrentShader = nullptr;
 
         Shader m_TextureShader;
         Shader m_TextShader;
@@ -81,6 +83,6 @@ namespace Fusion
         size_t m_MaxIndices;
     };
 
-}
+} // namespace Fusion
 
 #endif

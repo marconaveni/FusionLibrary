@@ -1,10 +1,13 @@
 #include "platform_desktop_glfw.h"
-#include "core.h"
-#include <iostream>
-#include <cmath>
-#include <thread> // Para std::this_thread::sleep_for
-#include <chrono> // Para std::chrono::duration
 
+#include <chrono> // Para std::chrono::duration
+#include <cmath>
+#include <iostream>
+#include <thread> // Para std::this_thread::sleep_for
+
+#include "core.h"
+#include "fusion_math.h"
+#include "input.h"
 
 // note que isso é usado para evitar chamar bibliotecas do windows que podem causar muitos conflitos
 #if defined(_WIN32)
@@ -18,7 +21,7 @@ extern "C"
 namespace Fusion
 {
 
-    void PlatformDesktopGLFW::Init(const char *title, int width, int height)
+    void PlatformDesktopGLFW::Init(const char* title, int width, int height)
     {
 #if defined(_WIN32)
         timeBeginPeriod(1);
@@ -30,7 +33,7 @@ namespace Fusion
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        GLFWwindow *shareWindow = nullptr;
+        GLFWwindow* shareWindow = nullptr;
         if (Core::s_sharedWindow != nullptr)
         {
             // Converte o Platform* genérico para a nossa implementação específica para obter o GLFWwindow*
@@ -124,9 +127,7 @@ namespace Fusion
                 }
 
                 // Espera ocupada (busy-wait) para o tempo restante, garantindo precisão
-                while (glfwGetTime() < destinationTime)
-                {
-                }
+                while (glfwGetTime() < destinationTime) {}
             }
         }
 
@@ -263,9 +264,9 @@ namespace Fusion
         }
     }
 
-    void PlatformDesktopGLFW::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
+    void PlatformDesktopGLFW::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
     {
-        PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
+        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
 
         if (platform)
         {
@@ -273,9 +274,9 @@ namespace Fusion
         }
     }
 
-    void PlatformDesktopGLFW::KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
+    void PlatformDesktopGLFW::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
     {
-        PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
+        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
         if (platform && key >= 0 && key < Keyboard::keyCount)
         {
             if (action == GLFW_PRESS)
@@ -289,9 +290,9 @@ namespace Fusion
         }
     }
 
-    void PlatformDesktopGLFW::MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
+    void PlatformDesktopGLFW::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     {
-        PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
+        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
         if (platform && button >= 0 && button < Mouse::mouseButtonsCount)
         {
             if (action == GLFW_PRESS)
@@ -307,21 +308,20 @@ namespace Fusion
         }
     }
 
-    void PlatformDesktopGLFW::MouseCursorPosCallback(GLFWwindow *window, double xpos, double ypos)
+    void PlatformDesktopGLFW::MouseCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     {
-        PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
+        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
         if (platform)
         {
-            Vector2i position{
-                static_cast<int>(xpos), static_cast<int>(ypos)};
+            Vector2i position{static_cast<int>(xpos), static_cast<int>(ypos)};
 
             Input::GetInstance().UpdateMousePosition(position);
         }
     }
 
-    void PlatformDesktopGLFW::MouseScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
+    void PlatformDesktopGLFW::MouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     {
-        PlatformDesktopGLFW *platform = static_cast<PlatformDesktopGLFW *>(glfwGetWindowUserPointer(window));
+        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
         if (platform)
         {
             Input::GetInstance().UpdateMouseWhellMove(static_cast<float>(yoffset));
@@ -359,4 +359,4 @@ namespace Fusion
         }
     }
 
-}
+} // namespace Fusion

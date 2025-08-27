@@ -1,8 +1,9 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#include "fusion_math.h" // Para Color, Vector2, etc.
 #include <functional>
+
+#include "fusion_math.h" // Para Color, Vector2, etc.
 
 namespace Fusion
 {
@@ -12,11 +13,12 @@ namespace Fusion
     class Platform
     {
     public:
+
         virtual ~Platform() = default;
 
-        virtual void Init(const char *title, int width, int height) = 0;
+        virtual void Init(const char* title, int width, int height) = 0;
         virtual bool IsWindowActive() = 0;
-        virtual void MakeContextCurrent() = 0; 
+        virtual void MakeContextCurrent() = 0;
         virtual bool WindowShouldClose() = 0;
         virtual void PollEventsAndUpdate() = 0;
         virtual void InputEvents() = 0;
@@ -31,9 +33,7 @@ namespace Fusion
         virtual void SetTargetFPS(int fps) = 0;
 
         virtual void SetMainLoop(std::function<void()> loop) {};
-    
-
     };
-}
+} // namespace Fusion
 
 #endif

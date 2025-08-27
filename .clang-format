@@ -1,23 +1,94 @@
-BasedOnStyle: Google
-TabWidth: 4
-IndentWidth: 4
-BreakBeforeBraces: Allman
-PointerAlignment: Left
-SpacesBeforeTrailingComments: 2
-ColumnLimit: 170
-AllowAllParametersOfDeclarationOnNextLine: false
-AllowShortIfStatementsOnASingleLine: WithoutElse
-AllowShortFunctionsOnASingleLine: InlineOnly
-AllowShortLambdasOnASingleLine: Inline
-NamespaceIndentation: All
-IncludeBlocks: Preserve
+# Project
+Standard: c++20
+ColumnLimit: 120
+
+# Indentation
 AccessModifierOffset: -4
+BitFieldColonSpacing: Both
+ContinuationIndentWidth: 4
+IndentCaseLabels: true
+IndentCaseBlocks: true
+IndentExternBlock: Indent
+IndentPPDirectives: None
+IndentRequires: true
+IndentWidth: 4  #mudar 4
+IndentWrappedFunctionNames: true
+TabWidth: 4
+UseTab: Never
+
+# Empty lines
 EmptyLineBeforeAccessModifier: Always
 EmptyLineAfterAccessModifier: Always
-PackConstructorInitializers: NextLineOnly
-BreakConstructorInitializers: BeforeComma
-Cpp11BracedListStyle: false
-BinPackArguments: false
-BinPackParameters: false
-MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 2
+
+# Braces
+BreakBeforeBraces: Custom
+BraceWrapping:
+    AfterCaseLabel: false
+    AfterClass: true
+    AfterControlStatement: Always
+    AfterEnum: true
+    AfterFunction: true
+    AfterNamespace: true
+    AfterStruct: true
+    AfterUnion: true
+    AfterExternBlock: true
+    BeforeCatch: false
+    BeforeElse: true
+    BeforeLambdaBody: true
+    BeforeWhile: false
+    IndentBraces: false
+    SplitEmptyFunction: true
+    SplitEmptyRecord: true
+    SplitEmptyNamespace: true
+
+
+# case
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortStatementsOnASingleLine: true     
+AllowShortBlocksOnASingleLine: true         
+AllowShortFunctionsOnASingleLine: InlineOnly 
+
+AllowShortCaseExpressionOnASingleLine: true
+AlignConsecutiveShortCaseStatements:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+  AlignCaseColons: true
+
+# Namespaces
+CompactNamespaces: false
+FixNamespaceComments: true
+NamespaceIndentation: All
+
+# Initializers & arguments
+PackConstructorInitializers: NextLineOnly    
+ConstructorInitializerIndentWidth: 4
+BreakConstructorInitializers: BeforeComma 
+Cpp11BracedListStyle: true
+
+#templates
+BreakTemplateDeclarations: Yes
+
+
+# Pointer alignment
+PointerAlignment: Left
+
+# Comments
+ReflowComments: false
+
+# lambdas
+AllowShortLambdasOnASingleLine: Inline
+
+# ordenação de includes
+SortIncludes: true
+IncludeBlocks: Regroup
+
+IncludeCategories:
+  - Regex: '^<.*>'
+    Priority: 1      # headers do sistema (std, libs externas)
+  - Regex: '.*'
+    Priority: 2      # headers locais do projeto
+
 

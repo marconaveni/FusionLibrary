@@ -1,4 +1,5 @@
 #include "texture.h"
+
 #include <glad/glad.h>
 #include <iostream>
 
@@ -7,12 +8,12 @@
 
 namespace Fusion
 {
-    Texture::Texture(const char *path)
+    Texture::Texture(const char* path)
     {
         LoadFromFile(path);
     }
 
-    Texture::Texture(unsigned char *data, size_t len)
+    Texture::Texture(unsigned char* data, size_t len)
     {
         LoadFromMemory(data, len);
     }
@@ -58,7 +59,7 @@ namespace Fusion
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    bool Texture::Load(unsigned char *data)
+    bool Texture::Load(unsigned char* data)
     {
         glDeleteTextures(1, &m_Id);
         glGenTextures(1, &m_Id);
@@ -68,9 +69,10 @@ namespace Fusion
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
         // set the texture wrapping parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                        GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        
+
         // set texture filtering parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -89,27 +91,27 @@ namespace Fusion
         return true;
     }
 
-    bool Texture::LoadFromFile(const char *path)
+    bool Texture::LoadFromFile(const char* path)
     {
         if (m_IsFboTexture)
         {
             std::cout << "Failed to load texture this is FBO Texture\n";
             return false;
         }
-        unsigned char *data = stbi_load(path, &m_Width, &m_Height, &m_NrChannels, 0);
+        unsigned char* data = stbi_load(path, &m_Width, &m_Height, &m_NrChannels, 0);
         const bool loadedData = Load(data);
         stbi_image_free(data);
         return loadedData;
     }
 
-    bool Texture::LoadFromMemory(unsigned char *buffer, size_t len)
+    bool Texture::LoadFromMemory(unsigned char* buffer, size_t len)
     {
         if (m_IsFboTexture)
         {
             std::cout << "Failed to load texture this is FBO Texture\n";
             return false;
         }
-        unsigned char *data = stbi_load_from_memory(buffer, len, &m_Width, &m_Height, &m_NrChannels, 0);
+        unsigned char* data = stbi_load_from_memory(buffer, len, &m_Width, &m_Height, &m_NrChannels, 0);
         const bool loadedData = Load(data);
         stbi_image_free(data);
         return loadedData;

@@ -1,16 +1,17 @@
 #include "platform_web.h"
-#include <iostream>
+
 #include <emscripten/emscripten.h>
+#include <iostream>
 
 #define GLFW_INCLUDE_NONE
 
-#include <glad/glad.h>  // E o GLAD
 #include <GLFW/glfw3.h> // Sim, o GLFW também na web!
+#include <glad/glad.h>  // E o GLAD
 
 namespace Fusion
 {
 
-    GLFWwindow *g_window = nullptr;
+    GLFWwindow* g_window = nullptr;
 
     // Construtor e Destrutor
     PlatformWeb::PlatformWeb()
@@ -26,7 +27,7 @@ namespace Fusion
         glfwTerminate();
     }
 
-    void PlatformWeb::Init(const char *title, int width, int height)
+    void PlatformWeb::Init(const char* title, int width, int height)
     {
         std::cout << "PlatformWeb: Initializing graphics..." << std::endl;
         if (!glfwInit())
@@ -90,16 +91,16 @@ namespace Fusion
 
                     switch (j)
                     {
-                        case 0: button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_FACE_DOWN; break;
-                        case 1: button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_FACE_RIGHT; break;
-                        case 2: button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_FACE_LEFT; break;
-                        case 3: button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_FACE_UP; break;
-                        case 4: button = Gamepad::Button::GAMEPAD_BUTTON_LEFT_TRIGGER_1; break;
-                        case 5: button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_TRIGGER_1; break;
-                        case 6: button = Gamepad::Button::GAMEPAD_BUTTON_LEFT_TRIGGER_2; break;
-                        case 7: button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_TRIGGER_2; break;
-                        case 8: button = Gamepad::Button::GAMEPAD_BUTTON_MIDDLE_LEFT; break;
-                        case 9: button = Gamepad::Button::GAMEPAD_BUTTON_MIDDLE_RIGHT; break;
+                        case 0 : button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_FACE_DOWN; break;
+                        case 1 : button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_FACE_RIGHT; break;
+                        case 2 : button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_FACE_LEFT; break;
+                        case 3 : button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_FACE_UP; break;
+                        case 4 : button = Gamepad::Button::GAMEPAD_BUTTON_LEFT_TRIGGER_1; break;
+                        case 5 : button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_TRIGGER_1; break;
+                        case 6 : button = Gamepad::Button::GAMEPAD_BUTTON_LEFT_TRIGGER_2; break;
+                        case 7 : button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_TRIGGER_2; break;
+                        case 8 : button = Gamepad::Button::GAMEPAD_BUTTON_MIDDLE_LEFT; break;
+                        case 9 : button = Gamepad::Button::GAMEPAD_BUTTON_MIDDLE_RIGHT; break;
                         case 10: button = Gamepad::Button::GAMEPAD_BUTTON_LEFT_THUMB; break;
                         case 11: button = Gamepad::Button::GAMEPAD_BUTTON_RIGHT_THUMB; break;
                         case 12: button = Gamepad::Button::GAMEPAD_BUTTON_LEFT_FACE_UP; break;
@@ -110,7 +111,7 @@ namespace Fusion
                     }
 
 
-                    if (button + 1 != 0)   // Check for valid button
+                    if (button + 1 != 0) // Check for valid button
                     {
                         if (gamepadState.digitalButton[j] == 1)
                         {
@@ -122,7 +123,6 @@ namespace Fusion
                     {
                         Input::GetInstance().UpdateGamePadCurrentState(i, button, false);
                     }
-
                 }
             }
             for (int j = 0; (j < gamepadState.numAxes) && (j < Gamepad::gamePadAxisCount); j++)
@@ -140,12 +140,12 @@ namespace Fusion
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
-    EM_BOOL PlatformWeb::EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent *gamepadEvent, void *userData)
+    EM_BOOL PlatformWeb::EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent, void* userData)
     {
         if (gamepadEvent->connected && (gamepadEvent->index < Gamepad::gamePadCount))
         {
             std::cout << "Controle detectado: " << gamepadEvent->id << "\n";
-            Input::GetInstance().RegisterGamePad(gamepadEvent->index,  gamepadEvent->id);
+            Input::GetInstance().RegisterGamePad(gamepadEvent->index, gamepadEvent->id);
         }
         else
         {
@@ -158,10 +158,7 @@ namespace Fusion
     void PlatformWeb::SetMainLoop(std::function<void()> loop)
     {
         m_MainLoop = loop;
-        emscripten_set_main_loop_arg([](void *arg)
-                                     {
-        // 'arg' é um ponteiro para a nossa instância de PlatformWeb
-        static_cast<PlatformWeb*>(arg)->m_MainLoop(); }, this, 0, 1);
+        emscripten_set_main_loop_arg([](void* arg) { static_cast<PlatformWeb*>(arg)->m_MainLoop(); }, this, 0, 1);
     }
 
-}
+} // namespace Fusion

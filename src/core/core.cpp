@@ -1,4 +1,5 @@
 #include "core.h"
+
 #include <iostream>
 
 namespace Fusion
@@ -6,7 +7,7 @@ namespace Fusion
 
     int Core::s_ActiveWindowCount = 0;
     bool Core::s_IsInitialized = false;
-    GLFWwindow *Core::s_sharedWindow = nullptr;
+    GLFWwindow* Core::s_sharedWindow = nullptr;
 
     void Core::Init()
     {
@@ -14,7 +15,7 @@ namespace Fusion
         if (!s_IsInitialized)
         {
 
-#if !defined(FUSION_PLATFORM_WEB) 
+#if !defined(FUSION_PLATFORM_WEB)
             if (glfwInit())
             {
                 s_IsInitialized = true;
@@ -29,7 +30,7 @@ namespace Fusion
         // Só finaliza a GLFW se ela foi inicializada
         if (s_IsInitialized)
         {
-#if !defined(FUSION_PLATFORM_WEB) 
+#if !defined(FUSION_PLATFORM_WEB)
             glfwTerminate();
 #endif
             s_IsInitialized = false;
@@ -39,7 +40,7 @@ namespace Fusion
 
     void Core::PollEvents()
     {
-#if !defined(FUSION_PLATFORM_WEB) 
+#if !defined(FUSION_PLATFORM_WEB)
         glfwPollEvents();
 #endif
     }

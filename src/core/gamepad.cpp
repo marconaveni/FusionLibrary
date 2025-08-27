@@ -1,4 +1,5 @@
 #include "gamepad.h"
+
 #include "input.h"
 
 namespace Fusion::Gamepad

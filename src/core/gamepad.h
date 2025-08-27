@@ -1,9 +1,9 @@
 #ifndef GAMEPAD_H
 #define GAMEPAD_H
 
+#include <array>
 #include <string>
 #include <string_view>
-#include <array>
 
 namespace Fusion::Gamepad
 {
@@ -73,6 +73,6 @@ namespace Fusion::Gamepad
     bool IsGamepadButtonReleased(int gamepad, int button);
     float GetGamepadAxisMovement(int gamepad, int axis);
 
-} // namespace Fusion
+} // namespace Fusion::Gamepad
 
 #endif

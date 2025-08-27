@@ -1,13 +1,14 @@
 #include "renderer.h"
-#include "stb_truetype.h"
-#include "texture.h"
-#include "font.h"
-#include "text.h"
-#include "sprite.h"
-#include "fusion_utf8.h"
 
 #include <cmath> // Necessário para sin() e cos()
 #include <iostream>
+
+#include "font.h"
+#include "fusion_utf8.h"
+#include "sprite.h"
+#include "stb_truetype.h"
+#include "text.h"
+#include "texture.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -58,10 +59,10 @@ namespace Fusion
         }
     }
 
-    void Renderer::DrawTexture(const Sprite &sprite, Shader *customShader)
+    void Renderer::DrawTexture(const Sprite& sprite, Shader* customShader)
     {
 
-        Shader *shaderToUse = customShader ? customShader : &m_TextureShader;
+        Shader* shaderToUse = customShader ? customShader : &m_TextureShader;
 
         // 1. Verifica se o shader de textura precisa ser ativado
         if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
@@ -72,7 +73,8 @@ namespace Fusion
             SetProjection(m_Projection);
         }
 
-        if ((m_VertexCount + 4) > m_MaxVertices || (sprite.GetTexture()->GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
+        if ((m_VertexCount + 4) > m_MaxVertices ||
+            (sprite.GetTexture()->GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
         {
             Flush();
         }
@@ -82,12 +84,12 @@ namespace Fusion
             m_CurrentTextureID = sprite.GetTexture()->GetId();
         }
 
-        const std::vector<Vertex> &textureVertices = sprite.GetVertices();
+        const std::vector<Vertex>& textureVertices = sprite.GetVertices();
 
         if (textureVertices.empty())
             return;
 
-        for (const auto &vertex : textureVertices)
+        for (const auto& vertex : textureVertices)
         {
             if ((m_VertexCount + 1) > m_MaxVertices)
             {
@@ -97,14 +99,14 @@ namespace Fusion
         }
     }
 
-    void Renderer::DrawText(const Text &text, Shader *customShader)
+    void Renderer::DrawText(const Text& text, Shader* customShader)
     {
 
-        const Font &font = *text.GetFont();
-        const std::string &textContent = text.GetText();
+        const Font& font = *text.GetFont();
+        const std::string& textContent = text.GetText();
         const Color color = text.GetColor();
 
-        Shader *shaderToUse = customShader ? customShader : &m_TextShader;
+        Shader* shaderToUse = customShader ? customShader : &m_TextShader;
 
         // 1. Verifica se o shader de textura precisa ser ativado
         if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
@@ -128,7 +130,7 @@ namespace Fusion
         }
 
         // O Renderer agora é simples: ele só pede os vértices prontos!
-        const std::vector<Vertex> &textVertices = text.GetVertices();
+        const std::vector<Vertex>& textVertices = text.GetVertices();
 
         if (textVertices.empty())
         {
@@ -136,7 +138,7 @@ namespace Fusion
         }
 
         // Adiciona os vértices do cache do texto ao lote do renderer
-        for (const auto &vertex : textVertices)
+        for (const auto& vertex : textVertices)
         {
             // A checagem de buffer cheio agora é feita por vértice
             if ((m_VertexCount + 1) > m_MaxVertices)
@@ -153,13 +155,14 @@ namespace Fusion
         CheckFlushShape();
 
         glm::vec4 glmColor = {color.r, color.g, color.b, color.a}; // Converte a cor da Fusion para um glm::vec4
-        glm::vec2 texCoords = {0.0f, 0.0f};                        // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
+        glm::vec2 texCoords = {0.0f, 0.0f}; // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
 
         // Adiciona os 4 vértices do retângulo ao lote
-        m_Vertices[m_VertexCount++] = {{(float)x, (float)(y + height), 0.0f}, glmColor, texCoords};           // Bottom-left
-        m_Vertices[m_VertexCount++] = {{(float)(x + width), (float)(y + height), 0.0f}, glmColor, texCoords}; // Bottom-right
-        m_Vertices[m_VertexCount++] = {{(float)(x + width), (float)y, 0.0f}, glmColor, texCoords};            // Top-right
-        m_Vertices[m_VertexCount++] = {{(float)x, (float)y, 0.0f}, glmColor, texCoords};                      // Top-left
+        m_Vertices[m_VertexCount++] = {{(float)x, (float)(y + height), 0.0f}, glmColor, texCoords}; // Bottom-left
+        m_Vertices[m_VertexCount++] = {
+            {(float)(x + width), (float)(y + height), 0.0f}, glmColor, texCoords};                 // Bottom-right
+        m_Vertices[m_VertexCount++] = {{(float)(x + width), (float)y, 0.0f}, glmColor, texCoords}; // Top-right
+        m_Vertices[m_VertexCount++] = {{(float)x, (float)y, 0.0f}, glmColor, texCoords};           // Top-left
     }
 
     void Renderer::DrawCircle(Vector2f center, float radius, Color color)
@@ -248,7 +251,7 @@ namespace Fusion
         CheckFlushShape();
 
         glm::vec4 glmColor = {color.r, color.g, color.b, color.a}; // Converte a cor da Fusion para um glm::vec4
-        glm::vec2 texCoords = {0.0f, 0.0f};                        // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
+        glm::vec2 texCoords = {0.0f, 0.0f}; // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
 
         // Adiciona os 4 vértices do retângulo ao lote
         m_Vertices[m_VertexCount++] = {{v1.x, v1.y, 0.0f}, glmColor, texCoords}; // p1
@@ -262,7 +265,7 @@ namespace Fusion
         CheckFlushShape();
 
         glm::vec4 glmColor = {color.r, color.g, color.b, color.a}; // Converte a cor da Fusion para um glm::vec4
-        glm::vec2 texCoords = {0.0f, 0.0f};                        // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
+        glm::vec2 texCoords = {0.0f, 0.0f}; // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
 
         // Converte os vetores da Fusion para vetores glm para facilitar a matemática
         glm::vec2 start = {startPos.x, startPos.y};
@@ -326,19 +329,19 @@ namespace Fusion
 
         switch (mode)
         {
-        case BLEND_ADDITIVE:
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-            glBlendEquation(GL_FUNC_ADD);
-            break;
-        case BLEND_MULTIPLIED:
-            glBlendFunc(GL_DST_COLOR, GL_ZERO);
-            glBlendEquation(GL_FUNC_ADD);
-            break;
-        case BLEND_ALPHA:
-        default:
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Modo padrão
-            glBlendEquation(GL_FUNC_ADD);
-            break;
+            case BLEND_ADDITIVE:
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+                glBlendEquation(GL_FUNC_ADD);
+                break;
+            case BLEND_MULTIPLIED:
+                glBlendFunc(GL_DST_COLOR, GL_ZERO);
+                glBlendEquation(GL_FUNC_ADD);
+                break;
+            case BLEND_ALPHA:
+            default:
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Modo padrão
+                glBlendEquation(GL_FUNC_ADD);
+                break;
         }
     }
 
@@ -369,7 +372,7 @@ namespace Fusion
         m_Projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f); // tela 800x600
     }
 
-    void Renderer::SetProjection(const glm::mat4 &projection)
+    void Renderer::SetProjection(const glm::mat4& projection)
     {
         m_Projection = projection;
 
@@ -414,13 +417,13 @@ namespace Fusion
         // Configura os atributos do vértice
         // Posição
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
         // cores
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, color));
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
         // Coordenadas de Textura
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texCoords));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
 
         glBindVertexArray(0);
     }
@@ -473,12 +476,13 @@ namespace Fusion
 
         // Reseta o contador para o próximo lote
         m_VertexCount = 0;
-        //m_Vertices.clear();  // tem custo 
+        //m_Vertices.clear();  // tem custo
     }
 
     void Renderer::CheckFlushShape()
     {
-        if (m_CurrentTextureID != m_DefaultTextureID) // Se o lote atual estiver usando uma textura diferente, desenha o lote antigo.
+        if (m_CurrentTextureID !=
+            m_DefaultTextureID) // Se o lote atual estiver usando uma textura diferente, desenha o lote antigo.
         {
             Flush();
         }

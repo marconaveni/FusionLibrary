@@ -1,6 +1,7 @@
-#include <cstring> // Para memset
-#include <cmath>   // para fabs
 #include "input.h"
+
+#include <cmath>   // para fabs
+#include <cstring> // Para memset
 
 namespace Fusion
 {
@@ -13,7 +14,7 @@ namespace Fusion
     {
     }
 
-    Input &Input::GetInstance()
+    Input& Input::GetInstance()
     {
         static Input instance;
         return instance;
@@ -31,7 +32,8 @@ namespace Fusion
 
     bool Input::IsGamepadButtonPressed(int gamepad, int button) const
     {
-        return IsGamepadAvailable(gamepad) && m_gamePads[gamepad].currentState[button] && !m_gamePads[gamepad].previousState[button];
+        return IsGamepadAvailable(gamepad) && m_gamePads[gamepad].currentState[button] &&
+               !m_gamePads[gamepad].previousState[button];
     }
 
     bool Input::IsGamepadButtonDown(int gamepad, int button) const
@@ -41,7 +43,8 @@ namespace Fusion
 
     bool Input::IsGamepadButtonReleased(int gamepad, int button) const
     {
-        return IsGamepadAvailable(gamepad) && !m_gamePads[gamepad].currentState[button] && m_gamePads[gamepad].previousState[button];
+        return IsGamepadAvailable(gamepad) && !m_gamePads[gamepad].currentState[button] &&
+               m_gamePads[gamepad].previousState[button];
     }
 
     float Input::GetGamepadAxisMovement(int gamepad, int axis) const

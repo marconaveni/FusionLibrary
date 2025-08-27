@@ -1,14 +1,15 @@
-#ifndef FUSION_CAMERA2D_H
-#define FUSION_CAMERA2D_H
+#ifndef CAMERA2D_H
+#define CAMERA2D_H
 
 #include "fusion_math.h"
 #include "glm/glm.hpp"
 
-namespace Fusion 
+namespace Fusion
 {
-    class Camera2D 
+    class Camera2D
     {
     public:
+
         Camera2D();
 
         // O ponto no mundo para onde a câmera aponta (o centro da visão)
@@ -27,6 +28,6 @@ namespace Fusion
         // Calcula e retorna a matriz de transformação da câmera (View Matrix)
         glm::mat4 GetViewMatrix() const;
     };
-}
+} // namespace Fusion
 
 #endif

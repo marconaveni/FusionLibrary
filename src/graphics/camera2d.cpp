@@ -1,13 +1,11 @@
 #include "camera2d.h"
+
 #include "glm/gtc/matrix_transform.hpp"
 
-namespace Fusion 
+namespace Fusion
 {
     Camera2D::Camera2D()
-        : target({0.0f, 0.0f}),
-          offset({0.0f, 0.0f}),
-          rotation(0.0f),
-          zoom(1.0f)
+        : target({0.0f, 0.0f}), offset({0.0f, 0.0f}), rotation(0.0f), zoom(1.0f)
     {
     }
 
@@ -29,4 +27,4 @@ namespace Fusion
 
         return view;
     }
-}
+} // namespace Fusion

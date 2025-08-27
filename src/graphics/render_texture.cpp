@@ -1,8 +1,9 @@
 #include "render_texture.h"
+
 #include <glad/glad.h>
 #include <iostream>
 
-namespace Fusion 
+namespace Fusion
 {
     // Precisaremos de um novo construtor na classe Texture para criar uma textura vazia
     // Vamos assumir que ele existe por enquanto.
@@ -23,7 +24,8 @@ namespace Fusion
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RboId);
 
         // 4. Verifica se o FBO está completo
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        {
             std::cerr << "ERRO::FRAMEBUFFER:: Framebuffer não está completo!" << std::endl;
         }
 
@@ -37,4 +39,4 @@ namespace Fusion
         glDeleteRenderbuffers(1, &m_RboId);
         // O m_Texture é liberado automaticamente pelo unique_ptr
     }
-}
+} // namespace Fusion

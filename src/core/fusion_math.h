@@ -49,6 +49,6 @@ namespace Fusion
         BLEND_ADDITIVE,   // Mesclagem aditiva, clareia a imagem
         BLEND_MULTIPLIED, // Mesclagem multiplicada, escurece a imagem
     };
-}
+} // namespace Fusion
 
 #endif

@@ -1,4 +1,5 @@
 #include "keyboard.h"
+
 #include "input.h"
 
 namespace Fusion::Keyboard

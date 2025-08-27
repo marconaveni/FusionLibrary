@@ -3,8 +3,9 @@
 #define TEXT_H
 
 #include <string>
-#include "transformable.h"
+
 #include "font.h"
+#include "transformable.h"
 #include "vertex.h"
 
 namespace Fusion
@@ -14,11 +15,12 @@ namespace Fusion
     {
 
     public:
+
         friend class Window;
 
         Text();
-        explicit Text(const Font &font);
-        void SetFont(const Font &font);
+        explicit Text(const Font& font);
+        void SetFont(const Font& font);
         void SetText(std::string text);
         void SetScale(float scale);
         void SetSpacing(float spacing);
@@ -28,11 +30,12 @@ namespace Fusion
         void SetColor(Color color) { m_Color = color; }
         float GetSpacing() const { return m_Spacing; }
         float GetScale() const;
-        const Font *GetFont() const { return m_Font; }
+        const Font* GetFont() const { return m_Font; }
 
     private:
+
         virtual void UpdateGeometry() const override;
-        const Font *m_Font;
+        const Font* m_Font;
         std::string m_Text;
         float m_Spacing;
         Color m_Color;
@@ -40,6 +43,6 @@ namespace Fusion
         Vector2f m_MeasuredText;
     };
 
-}
+} // namespace Fusion
 
 #endif

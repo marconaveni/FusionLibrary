@@ -6,16 +6,17 @@
 #include "platform_desktop_glfw.h"
 #endif
 
+#include <cmath>
+#include <iostream>
+
+#include "camera2d.h"
+#include "core.h"
+#include "font_data.h"
+#include "input.h"
+#include "render_texture.h"
 #include "renderer.h"
 #include "sprite.h"
 #include "text.h"
-#include "render_texture.h"
-#include "camera2d.h"
-#include "font_data.h"
-#include "core.h"
-#include "input.h"
-#include <cmath>
-#include <iostream>
 
 namespace Fusion
 {
@@ -29,7 +30,7 @@ namespace Fusion
         Close();
     }
 
-    void Window::InitWindow(const char *title, int width, int height)
+    void Window::InitWindow(const char* title, int width, int height)
     {
         Core::Init();
         Core::RegisterWindow();
@@ -91,19 +92,20 @@ namespace Fusion
         if (IsWindowResize())
         {
             Sizei newSize = m_Platform->GetWindowSize();
-            glm::mat4 newProjection = glm::ortho(0.0f, static_cast<float>(newSize.width), static_cast<float>(newSize.height), 0.0f);
+            glm::mat4 newProjection =
+                glm::ortho(0.0f, static_cast<float>(newSize.width), static_cast<float>(newSize.height), 0.0f);
             m_Render->SetProjection(newProjection);
             m_DefaultProjection = newProjection;
         }
         m_Render->BeginRender();
     }
 
-    void Window::Draw(const Sprite &sprite, Shader *customShader)
+    void Window::Draw(const Sprite& sprite, Shader* customShader)
     {
         m_Render->DrawTexture(sprite, customShader);
     }
 
-    void Window::Draw(Text &text, Shader *customShader)
+    void Window::Draw(Text& text, Shader* customShader)
     {
         m_Render->DrawText(text, customShader);
     }
@@ -173,7 +175,7 @@ namespace Fusion
         m_Render->EndScissorMode();
     }
 
-    void Window::BeginTextureMode(const RenderTexture &target)
+    void Window::BeginTextureMode(const RenderTexture& target)
     {
         m_Render->EndRender(); // Flush antes de mudar o alvo
 
@@ -202,7 +204,7 @@ namespace Fusion
         m_Render->SetProjection(m_DefaultProjection); // Restaura a projeção da janela
     }
 
-    void Window::BeginMode2D(const Camera2D &camera)
+    void Window::BeginMode2D(const Camera2D& camera)
     {
         m_Render->EndRender(); // Desenha qualquer coisa pendente no modo padrão
         m_Render->SetViewMatrix(camera.GetViewMatrix());
@@ -244,7 +246,7 @@ namespace Fusion
         m_Platform->SetTargetFPS(fps);
     }
 
-    Font &Window::GetDefaultFont()
+    Font& Window::GetDefaultFont()
     {
         return m_defaultFont;
     }
@@ -256,4 +258,4 @@ namespace Fusion
         m_Platform->SetMainLoop(std::move(loop));
     }
 
-}
+} // namespace Fusion

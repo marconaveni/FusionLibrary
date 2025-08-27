@@ -2,6 +2,7 @@
 #define MOUSE_H
 
 #include <array>
+
 #include "fusion_math.h"
 
 namespace Fusion::Mouse
@@ -24,6 +25,6 @@ namespace Fusion::Mouse
     Vector2i GetMousePosition();
     float GetMouseWheelMove();
 
-} // namespace Fusion
+} // namespace Fusion::Mouse
 
 #endif

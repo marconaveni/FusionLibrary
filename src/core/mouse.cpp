@@ -1,4 +1,5 @@
 #include "mouse.h"
+
 #include "input.h"
 
 namespace Fusion::Mouse

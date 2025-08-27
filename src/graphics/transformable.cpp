@@ -2,8 +2,7 @@
 
 namespace Fusion
 {
-    Transformable::Transformable()
-        : m_Source(Rectangle{0, 0, 0, 0}), m_Position(Rectangle{0, 0, 1, 1}), m_Origin(Vector2f{0}), m_Rotation(0)
+    Transformable::Transformable() : m_Source(Rectangle{0, 0, 0, 0}), m_Position(Rectangle{0, 0, 1, 1}), m_Origin(Vector2f{0}), m_Rotation(0)
     {
     }
 
@@ -59,7 +58,7 @@ namespace Fusion
         return Sizef(m_Position.width, m_Position.height);
     }
 
-    const std::vector<Vertex> &Transformable::GetVertices() const
+    const std::vector<Vertex>& Transformable::GetVertices() const
     {
         if (m_IsNeedTransform)
         {

@@ -1,10 +1,10 @@
 #include "shader.h"
-#include <glad/glad.h> // include glad to get all the required OpenGL headers
 
-#include <string>
 #include <fstream>
-#include <sstream>
+#include <glad/glad.h> // include glad to get all the required OpenGL headers
 #include <iostream>
+#include <sstream>
+#include <string>
 
 namespace Fusion
 {
@@ -19,14 +19,13 @@ namespace Fusion
         Unload();
     }
 
-    void Shader::LoadShader(const std::string &vertexPath, const std::string &fragmentPath)
+    void Shader::LoadShader(const std::string& vertexPath, const std::string& fragmentPath)
     {
-
 
 
 #if !defined(FUSION_PLATFORM_WEB)
 
-        const char *fsDefaultShader = R"(       
+        const char* fsDefaultShader = R"(       
     #version 330 core
     
     in vec4 ourColor;       // Cor recebida do Vertex Shader
@@ -43,7 +42,7 @@ namespace Fusion
     }
 )";
 
-        const char *vsDefaultShader = R"(
+        const char* vsDefaultShader = R"(
     #version 330 core
     layout (location = 0) in vec3 aPos;         // Posição já em coordenadas de mundo
     layout (location = 1) in vec4 aColor;       // Cor do vértice (RGBA)
@@ -63,7 +62,7 @@ namespace Fusion
     }
 )";
 
-        const char *fsDefaultTextShader = R"(
+        const char* fsDefaultTextShader = R"(
     #version 330 core
     in vec2 TexCoord;
 
@@ -79,7 +78,7 @@ namespace Fusion
     }
 )";
 
-        const char *vsDefaultTextShader = R"(
+        const char* vsDefaultTextShader = R"(
     #version 330 core
 
     layout (location = 0) in vec3 aPos;      // Posição do vértice
@@ -100,7 +99,7 @@ namespace Fusion
 
 #else
 
-        const char *fsDefaultShader = R"(#version 300 es
+        const char* fsDefaultShader = R"(#version 300 es
     precision mediump float;
     
     in vec4 ourColor;       // Cor recebida do Vertex Shader
@@ -117,7 +116,7 @@ namespace Fusion
     }
 )";
 
-        const char *vsDefaultShader = R"(#version 300 es
+        const char* vsDefaultShader = R"(#version 300 es
     precision mediump float;
     layout (location = 0) in vec3 aPos;         // Posição já em coordenadas de mundo
     layout (location = 1) in vec4 aColor;       // Cor do vértice (RGBA)
@@ -137,7 +136,7 @@ namespace Fusion
     }
 )";
 
-        const char *fsDefaultTextShader = R"(#version 300 es
+        const char* fsDefaultTextShader = R"(#version 300 es
     precision mediump float;
     in vec2 TexCoord;
 
@@ -153,7 +152,7 @@ namespace Fusion
     }
 )";
 
-        const char *vsDefaultTextShader = R"(#version 300 es
+        const char* vsDefaultTextShader = R"(#version 300 es
     precision mediump float;
 
     layout (location = 0) in vec3 aPos;      // Posição do vértice
@@ -205,8 +204,7 @@ namespace Fusion
                 vShaderStream << vShaderFile.rdbuf();
                 vShaderFile.close();
                 vertexCode = vShaderStream.str();
-            }
-            catch (std::ifstream::failure &e)
+            } catch (std::ifstream::failure& e)
             {
                 std::cout << "ERRO::SHADER::ARQUIVO_DE_VERTICE_NAO_LIDO: " << e.what() << std::endl;
             }
@@ -227,8 +225,7 @@ namespace Fusion
                 fShaderStream << fShaderFile.rdbuf();
                 fShaderFile.close();
                 fragmentCode = fShaderStream.str();
-            }
-            catch (std::ifstream::failure &e)
+            } catch (std::ifstream::failure& e)
             {
                 std::cout << "ERRO::SHADER::ARQUIVO_DE_FRAGMENTO_NAO_LIDO: " << e.what() << std::endl;
             }
@@ -239,8 +236,8 @@ namespace Fusion
             std::cout << "INFO::SHADER:: Usando Fragment Shader padrao." << std::endl;
         }
 
-        const char *vShaderCode = vertexCode.c_str();
-        const char *fShaderCode = fragmentCode.c_str();
+        const char* vShaderCode = vertexCode.c_str();
+        const char* fShaderCode = fragmentCode.c_str();
         // 2. compile shaders
         unsigned int vertex, fragment;
         // vertex shader
@@ -269,37 +266,37 @@ namespace Fusion
         glUseProgram(ID);
     }
 
-    void Shader::SetBool(const std::string &name, bool value) const
+    void Shader::SetBool(const std::string& name, bool value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
     }
 
-    void Shader::SetInt(const std::string &name, int value) const
+    void Shader::SetInt(const std::string& name, int value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
 
-    void Shader::SetFloat(const std::string &name, float value) const
+    void Shader::SetFloat(const std::string& name, float value) const
     {
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
 
-    void Shader::SetVec2(const std::string &name, float v1, float v2) const
+    void Shader::SetVec2(const std::string& name, float v1, float v2) const
     {
         glUniform2f(glGetUniformLocation(ID, name.c_str()), v1, v2);
     }
 
-    void Shader::SetVec3(const std::string &name, float v1, float v2, float v3) const
+    void Shader::SetVec3(const std::string& name, float v1, float v2, float v3) const
     {
         glUniform3f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3);
     }
 
-    void Shader::SetVec4(const std::string &name, float v1, float v2, float v3, float v4) const
+    void Shader::SetVec4(const std::string& name, float v1, float v2, float v3, float v4) const
     {
         glUniform4f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3, v4);
     }
 
-    int Shader::getUniformLocation(const std::string &name)
+    int Shader::getUniformLocation(const std::string& name)
     {
         if (uniformCache.find(name) != uniformCache.end())
             return uniformCache[name];
@@ -309,7 +306,7 @@ namespace Fusion
         return location;
     }
 
-    void Shader::getUniformMatrix4(const std::string &name, glm::mat4 &ptr)
+    void Shader::getUniformMatrix4(const std::string& name, glm::mat4& ptr)
     {
         glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(ptr));
     }
@@ -348,4 +345,4 @@ namespace Fusion
             ID = 0;
         }
     }
-}
+} // namespace Fusion

@@ -1,11 +1,13 @@
-build
-build_web
+.idea
 .vscode
 .github
 .cache
+build
+build_web
 chat.py
 cpp.txt
 fusion.txt
 file.txt
 scripts.txt
 config.ini
+

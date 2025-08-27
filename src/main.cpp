@@ -1,4 +1,6 @@
 // Em main.cpp
+#include <format>
+
 #include "core.h"
 #include "font.h"
 #include "gamepad.h"
@@ -7,10 +9,10 @@
 #include "text.h"
 #include "window.h"
 
-#include <format>
 
 #if defined(FUSION_PLATFORM_WEB)
 #include <emscripten/emscripten.h>
+
 #include "platform.h"
 #endif
 
@@ -22,7 +24,7 @@ float x = 5;
 float y = 5;
 
 // Função que representa um único frame do nosso jogo
-void UpdateAndDrawFrame(Fusion::Window &window)
+void UpdateAndDrawFrame(Fusion::Window& window)
 {
     Fusion::Vector2f pos = player.GetPosition();
     if (pos.x > 700 || pos.x < 0)
@@ -38,8 +40,8 @@ void UpdateAndDrawFrame(Fusion::Window &window)
 
     window.BeginDrawing();
     // Por enquanto, vamos limpar a tela com uma cor
-    window.Clear({ 0.5f, 0.1f, 0.1f, 1.0f });
-    window.DrawCircle({ 100, 100 }, 50, { 1.0f, 0.1f, 0.1f, 1.0f });
+    window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
+    window.DrawCircle({100, 100}, 50, {1.0f, 0.1f, 0.1f, 1.0f});
 
     window.Draw(player);
     text.SetText("teste");
@@ -62,10 +64,10 @@ int main()
     texture.LoadFromFile("../assets/test2.png");
     player.SetTexture(texture);
     player2.SetTexture(texture);
-    player.SetPosition({ 350, 250 });
-    player2.SetPosition({ 350, 250 });
-    player.SetSize({ 100, 100 });
-    player2.SetSize({ 100, 100 });
+    player.SetPosition({350, 250});
+    player2.SetPosition({350, 250});
+    player.SetSize({100, 100});
+    player2.SetSize({100, 100});
 
 #if defined(FUSION_PLATFORM_WEB)
 
@@ -75,7 +77,7 @@ int main()
 
     window.SetTargetFPS(60);
 
-    float speed = 5.0f;  // pixels por segundo
+    float speed = 5.0f; // pixels por segundo
 
     while (!window.WindowShouldClose())
     {
@@ -106,7 +108,7 @@ int main()
 
         // --- DESENHO ---
         window.BeginDrawing();
-        window.Clear({ 0.1f, 0.1f, 0.1f, 1.0f });
+        window.Clear({0.1f, 0.1f, 0.1f, 1.0f});
 
         window.Draw(player);
 

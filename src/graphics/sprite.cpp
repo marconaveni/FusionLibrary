@@ -1,4 +1,5 @@
 #include "sprite.h"
+
 #include <algorithm>
 
 namespace Fusion
@@ -8,13 +9,13 @@ namespace Fusion
     {
     }
 
-    Sprite::Sprite(const Texture &texture)
+    Sprite::Sprite(const Texture& texture)
         : Transformable(), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f})
     {
         SetTexture(texture);
     }
 
-    void Sprite::SetTexture(const Texture &texture)
+    void Sprite::SetTexture(const Texture& texture)
     {
         m_Texture = &texture;
         m_Source.width = texture.GetSize().width;
@@ -31,7 +32,7 @@ namespace Fusion
         glm::mat4 model = glm::mat4(1.0f);
         // A ordem importa: primeiro movemos para a posição final, depois rotacionamos em torno da origem
         model = glm::translate(model, glm::vec3(m_Position.x, m_Position.y, 0.0f));
-        model = glm::translate(model, glm::vec3(m_Origin.x, m_Origin.y, 0.0f));            // Move o pivô de rotação para a origem do objeto
+        model = glm::translate(model, glm::vec3(m_Origin.x, m_Origin.y, 0.0f)); // Move o pivô rotação(origem do objeto)
         model = glm::rotate(model, glm::radians(m_Rotation), glm::vec3(0.0f, 0.0f, 1.0f)); // Rotaciona
         model = glm::translate(model, glm::vec3(-m_Origin.x, -m_Origin.y, 0.0f));          // Move o pivô de volta
         model = glm::scale(model, glm::vec3(m_Position.width, m_Position.height, 1.0f));   // Aplica a escala (tamanho)
@@ -81,4 +82,4 @@ namespace Fusion
         m_Vertices.push_back({glm::vec3(positions[1]), glmColor, uvTopRight});    // Vértice 2: Top-right
         m_Vertices.push_back({glm::vec3(positions[0]), glmColor, uvTopLeft});
     }
-}
+} // namespace Fusion

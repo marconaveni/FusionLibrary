@@ -1,11 +1,12 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include <string>
+
 #include "fusion_math.h"
 #include "gamepad.h"
 #include "keyboard.h"
 #include "mouse.h"
-#include <string>
 
 namespace Fusion
 {
@@ -15,10 +16,10 @@ namespace Fusion
 
     public:
 
-        Input(const Input &) = delete;
-        Input &operator=(const Input &) = delete; // Deleted copy assignment
-        static Input& GetInstance(); // Singleton inputs não precisam ter varias instancias
-        
+        Input(const Input&) = delete;
+        Input& operator=(const Input&) = delete; // Deleted copy assignment
+        static Input& GetInstance();             // Singleton inputs não precisam ter varias instancias
+
 
         bool IsGamepadAvailable(int gamepad) const;
         std::string GetGamepadName(int gamepad) const;
