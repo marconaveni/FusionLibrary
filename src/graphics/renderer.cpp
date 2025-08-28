@@ -5,6 +5,7 @@
 
 #include "font.h"
 #include "fusion_utf8.h"
+#include "shader_code.h"
 #include "sprite.h"
 #include "stb_truetype.h"
 #include "text.h"
@@ -17,7 +18,7 @@
 namespace Fusion
 {
     Renderer::Renderer()
-        : m_TextureShader(DEFAULT_SHADER), m_TextShader(TEXT_DEFAULT_SHADER)
+        : m_TextureShader(), m_TextShader()
     {
         m_MaxQuads = 1000;
         m_MaxVertices = m_MaxQuads * 4;
@@ -117,7 +118,7 @@ namespace Fusion
 
             m_CurrentShader = shaderToUse;
             SetProjection(m_Projection);
-            glUniform4f(m_CurrentShader->getUniformLocation("textColor"), color.r, color.g, color.b, color.a);
+            glUniform4f(m_CurrentShader->GetUniformLocation("textColor"), color.r, color.g, color.b, color.a);
         }
 
         // A lógica de flush por mudança de textura ou shader permanece a mesma
@@ -367,8 +368,8 @@ namespace Fusion
         // ==================================================
 
         // ====== Start Shader program ======
-        m_TextureShader.LoadShader();
-        m_TextShader.LoadShader();
+        m_TextureShader.LoadShader(GetDefaultVertexShader(),GetDefaultFragmentShader());
+        m_TextShader.LoadShader(GetDefaultTextVertexShader(),GetDefaultTextFragmentShader());
         // ==================================================
 
         m_Projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f); // tela 800x600
@@ -381,8 +382,8 @@ namespace Fusion
         // Se um shader estiver ativo, atualiza seu uniforme de projeção imediatamente
         if (m_CurrentShader)
         {
-            m_CurrentShader->use();
-            m_CurrentShader->getUniformMatrix4("projection", m_Projection);
+            m_CurrentShader->Use();
+            m_CurrentShader->GetUniformMatrix4("projection", m_Projection);
         }
     }
 
@@ -458,9 +459,9 @@ namespace Fusion
 
         if (m_CurrentShader)
         {
-            m_CurrentShader->use();
-            m_CurrentShader->getUniformMatrix4("projection", m_Projection);
-            m_CurrentShader->getUniformMatrix4("view", m_View); // ENVIA A MATRIZ DE VISTA PARA O SHADER
+            m_CurrentShader->Use();
+            m_CurrentShader->GetUniformMatrix4("projection", m_Projection);
+            m_CurrentShader->GetUniformMatrix4("view", m_View); // ENVIA A MATRIZ DE VISTA PARA O SHADER
         }
 
         glBindVertexArray(m_BatchVAO);

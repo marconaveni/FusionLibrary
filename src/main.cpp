@@ -113,6 +113,7 @@ int main()
         window.Draw(player);
 
         std::string fps = std::format("{} fps Ç", window.GetFPS());
+        fps.shrink_to_fit();
         text.SetText(fps);
         // std::println("{}",fps);
         window.Draw(text);

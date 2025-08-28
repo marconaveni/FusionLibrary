@@ -11,12 +11,6 @@
 namespace Fusion
 {
 
-    enum DefaultShader
-    {
-        DEFAULT_SHADER,
-        TEXT_DEFAULT_SHADER
-    };
-
     class Shader
     {
     public:
@@ -24,17 +18,18 @@ namespace Fusion
         unsigned int ID; // the program ID
         std::unordered_map<std::string, int> uniformCache;
 
-        Shader(DefaultShader typeShader = DEFAULT_SHADER);
+        Shader();
 
         ~Shader();
 
-        void LoadShader(const std::string& vertexPath = "", const std::string& fragmentPath = "");
+        void LoadShader(const std::string& vertexCode, const std::string& fragmentCode);
+        bool LoadShaderFromFile(const std::string& vertexPath, const std::string& fragmentPath);
 
         // use/activate the shader
-        void use();
+        void Use();
 
-        int getUniformLocation(const std::string& name);
-        void getUniformMatrix4(const std::string& name, glm::mat4& projection);
+        int GetUniformLocation(const std::string& name);
+        void GetUniformMatrix4(const std::string& name, glm::mat4& projection);
 
         // utility uniform functions
         void SetBool(const std::string& name, bool value) const;
@@ -48,8 +43,7 @@ namespace Fusion
     private:
 
         // utility function for checking shader compilation/linking errors.
-        void checkCompileErrors(unsigned int shader, std::string type);
-        DefaultShader m_TypeShader;
+        void CheckCompileErrors(unsigned int shader, std::string type);
     };
 
 } // namespace Fusion

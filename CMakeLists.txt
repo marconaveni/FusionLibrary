@@ -110,7 +110,7 @@ else()
         set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
         add_subdirectory("${FUSION_GLFW_DIR}")
     else()
-        message(FATAL "[FusionLibrary]: GLFW submodule not found. try run comand "git submodule update --init --recursive"")
+        message(FATAL "[FusionLibrary]: GLFW submodule not found. try run comand \"git submodule update --init --recursive\"")
     endif()
 
     set(FUSION_PLATFORM_LIBS glfw)
