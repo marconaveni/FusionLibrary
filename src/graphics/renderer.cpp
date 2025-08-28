@@ -87,7 +87,9 @@ namespace Fusion
         const std::vector<Vertex>& textureVertices = sprite.GetVertices();
 
         if (textureVertices.empty())
+        {
             return;
+        }
 
         for (const auto& vertex : textureVertices)
         {

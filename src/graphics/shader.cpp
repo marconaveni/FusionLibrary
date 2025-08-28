@@ -299,7 +299,9 @@ namespace Fusion
     int Shader::getUniformLocation(const std::string& name)
     {
         if (uniformCache.find(name) != uniformCache.end())
+        {
             return uniformCache[name];
+        }
 
         int location = glGetUniformLocation(ID, name.c_str());
         uniformCache[name] = location;
