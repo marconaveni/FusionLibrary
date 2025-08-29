@@ -48,6 +48,7 @@ namespace Fusion
         }
 
         glfwMakeContextCurrent(m_window);
+        glfwSetWindowUserPointer(m_window, this); // guarda um ponteiro da classe no glfw
 
         // Agora, o passo crucial: inicializar o GLAD
         if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress))
@@ -57,6 +58,10 @@ namespace Fusion
         }
 
         std::cout << "PlatformWeb: Graphics initialized successfully!" << std::endl;
+
+
+        // Registra as funções de callback no GLFW
+        glfwSetKeyCallback(m_window, KeyCallback);
 
         emscripten_set_gamepadconnected_callback(NULL, 1, EmscriptenGamepadCallback);
         emscripten_set_gamepaddisconnected_callback(NULL, 1, EmscriptenGamepadCallback);
@@ -135,6 +140,21 @@ namespace Fusion
     {
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    void PlatformWeb::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+    {
+        if (key >= 0 && key < Keyboard::keyCount)
+        {
+            if (action == GLFW_PRESS)
+            {
+                Input::GetInstance().UpdateKeyboardCurrentState(key, true);
+            }
+            else if (action == GLFW_RELEASE)
+            {
+                Input::GetInstance().UpdateKeyboardCurrentState(key, false);
+            }
+        }
     }
 
     EM_BOOL PlatformWeb::EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent,

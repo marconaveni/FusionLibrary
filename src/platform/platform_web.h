@@ -37,7 +37,7 @@ namespace Fusion
         virtual int GetFPS() const override { return 0; }
         virtual void SetTargetFPS(int fps) override {}
 
-
+        static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
         static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent,
                                                  void* userData);
 

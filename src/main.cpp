@@ -27,35 +27,44 @@ float x = 5;
 float y = 5;
 float speed = 5.0f; // pixels por segundo
 
-// Função que representa um único frame do nosso jogo
-void UpdateAndDrawFrame(Fusion::Window& window)
+
+void GetPosition(Fusion::Vector2f& pos)
 {
-    Fusion::Vector2f pos = player.GetPosition();
-    if (Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP) ||
-        Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) < -0.1f)
+
+    pos.y += Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) * speed;
+    pos.x += Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) * speed;
+
+    if (Fusion::Keyboard::IsKeyDown(Fusion::Keyboard::W) ||
+        Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP))
     {
         pos.y -= speed;
-        window.GetDefaultFont().SetSmooth(true);
     }
-    if (Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_DOWN) ||
-        Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) > 0.1f)
+    if (Fusion::Keyboard::IsKeyDown(Fusion::Keyboard::S) ||
+        Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_DOWN))
     {
         pos.y += speed;
-        window.GetDefaultFont().SetSmooth(false);
     }
-    if (Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_LEFT) ||
-        Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) < -0.1f)
+    if (Fusion::Keyboard::IsKeyDown(Fusion::Keyboard::A) ||
+        Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_LEFT))
     {
         pos.x -= speed;
     }
 
-    if (Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_RIGHT) ||
-        Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) > 0.1f)
+    if (Fusion::Keyboard::IsKeyDown(Fusion::Keyboard::D) ||
+        Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_RIGHT))
     {
         pos.x += speed;
     }
+}
 
+
+// Função que representa um único frame do nosso jogo
+void UpdateAndDrawFrame(Fusion::Window& window)
+{
+    Fusion::Vector2f pos = player.GetPosition();
+    GetPosition(pos);
     player.SetPosition(pos);
+
 
     window.BeginDrawing();
     // Por enquanto, vamos limpar a tela com uma cor
@@ -102,36 +111,8 @@ int main()
 
     while (!window.WindowShouldClose())
     {
-        // float frameTime = window.GetFrameTime();
         Fusion::Vector2f pos = player.GetPosition();
-
-        pos.y += Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) * speed;
-        pos.x += Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) * speed; 
-
-        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_W) ||
-            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP))
-        {
-            pos.y -= speed;
-            window.GetDefaultFont().SetSmooth(true);
-        }
-        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_S) ||
-            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_DOWN))
-        {
-            pos.y += speed;
-            window.GetDefaultFont().SetSmooth(false);
-        }
-        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_A) ||
-            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_LEFT))
-        {
-            pos.x -= speed;
-        }
-
-        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_D) ||
-            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_RIGHT))
-        {
-            pos.x += speed;
-        }
-
+        GetPosition(pos);
         player.SetPosition(pos);
 
 

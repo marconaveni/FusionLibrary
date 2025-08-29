@@ -56,7 +56,7 @@ namespace Fusion
         glfwSwapInterval(1); // enable v-sync
 
         glfwMakeContextCurrent(m_Window);
-        glfwSetWindowUserPointer(m_Window, this);
+        glfwSetWindowUserPointer(m_Window, this); // guarda um ponteiro da classe no glfw
 
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         {
@@ -123,8 +123,8 @@ namespace Fusion
                 if (sleepSeconds > 0.0)
                 {
                     // std::cout << sleepSeconds << "\n";
-                    std::this_thread::sleep_for(std::chrono::duration<double>(
-                        sleepSeconds)); // comentando esse bloco if o limitador de quadros funcionou bem
+                    // comentando esse bloco if o limitador de quadros funcionou bem
+                    std::this_thread::sleep_for(std::chrono::duration<double>(sleepSeconds));
                 }
 
                 // Espera ocupada (busy-wait) para o tempo restante, garantindo precisão
@@ -323,8 +323,7 @@ namespace Fusion
 
     void PlatformDesktopGLFW::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
     {
-        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
-        if (platform && key >= 0 && key < Keyboard::keyCount)
+        if (key >= 0 && key < Keyboard::keyCount)
         {
             if (action == GLFW_PRESS)
             {
@@ -339,40 +338,28 @@ namespace Fusion
 
     void PlatformDesktopGLFW::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     {
-        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
-        if (platform && button >= 0 && button < Mouse::mouseButtonsCount)
+        if (button >= 0 && button < Mouse::mouseButtonsCount)
         {
             if (action == GLFW_PRESS)
             {
                 Input::GetInstance().UpdateMouseCurrentState(button, true);
-                // platform->m_mouseCurrentState[button] = true;
             }
             else if (action == GLFW_RELEASE)
             {
                 Input::GetInstance().UpdateMouseCurrentState(button, false);
-                // platform->m_mouseCurrentState[button] = false;
             }
         }
     }
 
     void PlatformDesktopGLFW::MouseCursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     {
-        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
-        if (platform)
-        {
-            Vector2i position{static_cast<int>(xpos), static_cast<int>(ypos)};
-
-            Input::GetInstance().UpdateMousePosition(position);
-        }
+        Vector2i position{static_cast<int>(xpos), static_cast<int>(ypos)};
+        Input::GetInstance().UpdateMousePosition(position);
     }
 
     void PlatformDesktopGLFW::MouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     {
-        PlatformDesktopGLFW* platform = static_cast<PlatformDesktopGLFW*>(glfwGetWindowUserPointer(window));
-        if (platform)
-        {
-            Input::GetInstance().UpdateMouseWhellMove(static_cast<float>(yoffset));
-        }
+        Input::GetInstance().UpdateMouseWhellMove(static_cast<float>(yoffset));
     }
 
     void PlatformDesktopGLFW::OnFramebufferResize(int width, int height)
