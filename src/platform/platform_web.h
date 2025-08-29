@@ -7,6 +7,8 @@
 #include "input.h"
 #include "platform.h" // Inclui a interface base
 
+struct GLFWwindow;
+
 namespace Fusion
 {
     // A nossa implementação da plataforma para a Web
@@ -36,10 +38,12 @@ namespace Fusion
         virtual void SetTargetFPS(int fps) override {}
 
 
-        static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent, void* userData);
+        static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent,
+                                                 void* userData);
 
     private:
 
+        GLFWwindow* m_window = nullptr;
         std::function<void()> m_MainLoop;
     };
 } // namespace Fusion

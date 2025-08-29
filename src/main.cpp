@@ -1,5 +1,6 @@
 // Em main.cpp
 #include <format>
+#include <iostream>
 
 #include "core.h"
 #include "font.h"
@@ -22,25 +23,41 @@ Fusion::Sprite player;
 Fusion::Sprite player2;
 float x = 5;
 float y = 5;
+float speed = 5.0f; // pixels por segundo
 
 // Função que representa um único frame do nosso jogo
 void UpdateAndDrawFrame(Fusion::Window& window)
 {
     Fusion::Vector2f pos = player.GetPosition();
-    if (pos.x > 700 || pos.x < 0)
+    if (Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP) ||
+        Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) < -0.1f)
     {
-        x = x * -1;
+        pos.y -= speed;
+        window.GetDefaultFont().SetSmooth(true);
     }
-    if (pos.y > 500 || pos.y < 0)
+    if (Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_DOWN) ||
+        Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) > 0.1f)
     {
-        y = y * -1;
+        pos.y += speed;
+        window.GetDefaultFont().SetSmooth(false);
+    }
+    if (Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_LEFT) ||
+        Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) < -0.1f)
+    {
+        pos.x -= speed;
     }
 
-    player.SetPosition(pos.x + x, pos.y + y);
+    if (Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_RIGHT) ||
+        Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) > 0.1f)
+    {
+        pos.x += speed;
+    }
+
+    player.SetPosition(pos);
 
     window.BeginDrawing();
     // Por enquanto, vamos limpar a tela com uma cor
-    window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
+    window.Clear({0.5f, 0.8f, 0.1f, 1.0f});
     window.DrawCircle({100, 100}, 50, {1.0f, 0.1f, 0.1f, 1.0f});
 
     window.Draw(player);
@@ -77,29 +94,36 @@ int main()
 
     window.SetTargetFPS(60);
 
-    float speed = 5.0f; // pixels por segundo
 
     while (!window.WindowShouldClose())
     {
         // float frameTime = window.GetFrameTime();
         Fusion::Vector2f pos = player.GetPosition();
 
-        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_W) || Fusion::Gamepad::IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_UP))
+        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_W) ||
+            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP) ||
+            Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) < -0.1f)
         {
             pos.y -= speed;
             window.GetDefaultFont().SetSmooth(true);
         }
-        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_S) || Fusion::Gamepad::IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_DOWN))
+        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_S) ||
+            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_DOWN) ||
+            Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) > 0.1f)
         {
             pos.y += speed;
             window.GetDefaultFont().SetSmooth(false);
         }
-        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_A) || Fusion::Gamepad::IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_LEFT))
+        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_A) ||
+            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_LEFT) ||
+            Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) < -0.1f)
         {
             pos.x -= speed;
         }
 
-        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_D) || Fusion::Gamepad::IsGamepadButtonDown(0, GLFW_GAMEPAD_BUTTON_DPAD_RIGHT))
+        if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_D) ||
+            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_RIGHT) ||
+            Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) > 0.1f)
         {
             pos.x += speed;
         }
@@ -112,10 +136,10 @@ int main()
 
         window.Draw(player);
 
-        std::string fps = std::format("{} fps Ç", window.GetFPS());
+        std::string fps = std::format("{} fps ", window.GetFPS());
         fps.shrink_to_fit();
         text.SetText(fps);
-        // std::println("{}",fps);
+
         window.Draw(text);
 
         window.EndDrawing();

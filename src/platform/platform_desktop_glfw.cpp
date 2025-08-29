@@ -123,7 +123,8 @@ namespace Fusion
                 if (sleepSeconds > 0.0)
                 {
                     // std::cout << sleepSeconds << "\n";
-                    std::this_thread::sleep_for(std::chrono::duration<double>(sleepSeconds)); // comentando esse bloco if o limitador de quadros funcionou bem
+                    std::this_thread::sleep_for(std::chrono::duration<double>(
+                        sleepSeconds)); // comentando esse bloco if o limitador de quadros funcionou bem
                 }
 
                 // Espera ocupada (busy-wait) para o tempo restante, garantindo precisão
@@ -179,13 +180,59 @@ namespace Fusion
                 // Atualiza o estado dos botões
                 for (int j = 0; j < Gamepad::gamePadButtonCount; j++)
                 {
-                    Input::GetInstance().UpdateGamePadCurrentState(i, j, (state.buttons[j] == GLFW_PRESS));
+                    int button = -1;
+
+                    //10  e 12 GLFW não os considera como botões, mas sim como eixos
+                    switch (j)
+                    {
+                        case GLFW_GAMEPAD_BUTTON_DPAD_UP: button = Gamepad::Button::LEFT_FACE_UP; break;
+                        case GLFW_GAMEPAD_BUTTON_DPAD_RIGHT: button = Gamepad::Button::LEFT_FACE_RIGHT; break;
+                        case GLFW_GAMEPAD_BUTTON_DPAD_DOWN: button = Gamepad::Button::LEFT_FACE_DOWN; break;
+                        case GLFW_GAMEPAD_BUTTON_DPAD_LEFT: button = Gamepad::Button::LEFT_FACE_LEFT; break;
+                        case GLFW_GAMEPAD_BUTTON_Y: button = Gamepad::Button::RIGHT_FACE_UP; break;
+                        case GLFW_GAMEPAD_BUTTON_B: button = Gamepad::Button::RIGHT_FACE_RIGHT; break;
+                        case GLFW_GAMEPAD_BUTTON_A: button = Gamepad::Button::RIGHT_FACE_DOWN; break;
+                        case GLFW_GAMEPAD_BUTTON_X: button = Gamepad::Button::RIGHT_FACE_LEFT; break;
+                        case GLFW_GAMEPAD_BUTTON_LEFT_BUMPER: button = Gamepad::Button::LEFT_SHOULDER; break;
+                        case GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER: button = Gamepad::Button::RIGHT_SHOULDER; break;
+                        case GLFW_GAMEPAD_BUTTON_BACK: button = Gamepad::Button::MIDDLE_LEFT; break;
+                        case GLFW_GAMEPAD_BUTTON_GUIDE: button = Gamepad::Button::MIDDLE; break;
+                        case GLFW_GAMEPAD_BUTTON_START: button = Gamepad::Button::MIDDLE_RIGHT; break;
+                        case GLFW_GAMEPAD_BUTTON_LEFT_THUMB: button = Gamepad::Button::LEFT_THUMB_STICK; break;
+                        case GLFW_GAMEPAD_BUTTON_RIGHT_THUMB: button = Gamepad::Button::RIGHT_THUMB_STICK; break;
+                        default: break;
+                    }
+
+                    if (button != -1) // Check for valid button
+                    {
+                        if ((state.buttons[j] == GLFW_PRESS))
+                        {
+                            //std::cout << "button values: " << button << " | j values: " << j << "\n";
+                            Input::GetInstance().UpdateGamePadCurrentState(i, button, true);
+                        }
+                        else
+                        {
+                            //std::cout << j << "\n";
+                            Input::GetInstance().UpdateGamePadCurrentState(i, button, false);
+                        }
+                    }
                 }
                 // Atualiza o estado dos eixos
                 for (int j = 0; j < Gamepad::gamePadAxisCount; j++)
                 {
                     Input::GetInstance().UpdateGamePadCurrentStateAxis(i, j, state.axes[j]);
                 }
+
+                // porque o GLFW não os considera como botões, mas sim como eixos
+
+                constexpr int left = Gamepad::Axis::AXIS_RIGHT_TRIGGER;
+                constexpr int right = Gamepad::Axis::AXIS_RIGHT_TRIGGER;
+
+                const bool isLeftTrigger = (Input::GetInstance().GetGamepadAxisMovement(i, left) > 0.1);
+                const bool isRightTrigger = (Input::GetInstance().GetGamepadAxisMovement(i, right) > 0.1);
+
+                Input::GetInstance().UpdateGamePadCurrentState(i, Gamepad::Button::LEFT_TRIGGER, isLeftTrigger);
+                Input::GetInstance().UpdateGamePadCurrentState(i, Gamepad::Button::RIGHT_TRIGGER, isRightTrigger);
             }
         }
     }

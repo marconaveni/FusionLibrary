@@ -52,10 +52,10 @@ AllowShortFunctionsOnASingleLine: InlineOnly
 
 AllowShortCaseExpressionOnASingleLine: true
 AlignConsecutiveShortCaseStatements:
-  Enabled: true
+  Enabled: false
   AcrossEmptyLines: true
   AcrossComments: true
-  AlignCaseColons: true
+  AlignCaseColons: false
 
 # Namespaces
 CompactNamespaces: false
