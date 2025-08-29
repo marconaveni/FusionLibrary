@@ -5,6 +5,7 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "core.h"
 
 namespace Fusion
 {
@@ -134,7 +135,7 @@ namespace Fusion
 
     void Texture::Unload()
     {
-        if (m_Id != 0)
+        if (m_Id != 0 && Core::HasWindowActive())
         {
             glDeleteTextures(1, &m_Id);
             m_Id = 0; // Evita dupla liberação

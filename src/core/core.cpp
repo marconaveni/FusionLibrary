@@ -9,6 +9,7 @@ namespace Fusion
     bool Core::s_IsInitialized = false;
     GLFWwindow* Core::s_sharedWindow = nullptr;
 
+
     void Core::Init()
     {
         // Só inicializa a GLFW uma vez

@@ -87,7 +87,7 @@ int main()
     player2.SetPosition({350, 250});
     player.SetSize({100, 100});
     player2.SetSize({100, 100});
-   
+
 
 #if defined(FUSION_PLATFORM_WEB)
 
@@ -96,39 +96,38 @@ int main()
 #else
 
     window.SetTargetFPS(60);
-    Fusion::RenderTexture target(300, 300);
+    Fusion::RenderTexture target(100, 100);
     render.SetTexture(*target.GetTexture());
-    render.SetSize({300, 300});
+    render.SetSize({400, 400});
 
     while (!window.WindowShouldClose())
     {
         // float frameTime = window.GetFrameTime();
         Fusion::Vector2f pos = player.GetPosition();
 
+        pos.y += Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) * speed;
+        pos.x += Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) * speed; 
+
         if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_W) ||
-            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP) ||
-            Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) < -0.1f)
+            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP))
         {
             pos.y -= speed;
             window.GetDefaultFont().SetSmooth(true);
         }
         if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_S) ||
-            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_DOWN) ||
-            Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) > 0.1f)
+            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_DOWN))
         {
             pos.y += speed;
             window.GetDefaultFont().SetSmooth(false);
         }
         if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_A) ||
-            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_LEFT) ||
-            Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) < -0.1f)
+            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_LEFT))
         {
             pos.x -= speed;
         }
 
         if (Fusion::Keyboard::IsKeyDown(GLFW_KEY_D) ||
-            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_RIGHT) ||
-            Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) > 0.1f)
+            Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_RIGHT))
         {
             pos.x += speed;
         }
@@ -138,11 +137,10 @@ int main()
 
         window.BeginTextureMode(target);
         window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
-        
+
         window.Draw(player);
 
         window.EndTextureMode();
-
 
 
         // --- DESENHO ---
@@ -160,8 +158,8 @@ int main()
         window.EndDrawing();
     }
 
-    texture.Unload();
-    window.Close();
+    //texture.Unload();
+    //window.Close();
 #endif
     return 0;
 }

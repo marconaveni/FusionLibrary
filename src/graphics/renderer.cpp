@@ -65,14 +65,17 @@ namespace Fusion
 
         Shader* shaderToUse = customShader ? customShader : &m_TextureShader;
 
-        // 1. Verifica se o shader de textura precisa ser ativado
-        if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
-        {
-            Flush(); // Desenha qualquer lote antigo (como texto) com o shader antigo
 
-            m_CurrentShader = shaderToUse;
-            SetProjection(m_Projection);
-        }
+        if (sprite.GetTexture())
+
+            // 1. Verifica se o shader de textura precisa ser ativado
+            if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
+            {
+                Flush(); // Desenha qualquer lote antigo (como texto) com o shader antigo
+
+                m_CurrentShader = shaderToUse;
+                SetProjection(m_Projection);
+            }
 
         if ((m_VertexCount + 4) > m_MaxVertices ||
             (sprite.GetTexture()->GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
@@ -368,8 +371,8 @@ namespace Fusion
         // ==================================================
 
         // ====== Start Shader program ======
-        m_TextureShader.LoadShader(GetDefaultVertexShader(),GetDefaultFragmentShader());
-        m_TextShader.LoadShader(GetDefaultTextVertexShader(),GetDefaultTextFragmentShader());
+        m_TextureShader.LoadShader(GetDefaultVertexShader(), GetDefaultFragmentShader());
+        m_TextShader.LoadShader(GetDefaultTextVertexShader(), GetDefaultTextFragmentShader());
         // ==================================================
 
         m_Projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f); // tela 800x600
@@ -484,8 +487,8 @@ namespace Fusion
 
     void Renderer::CheckFlushShape()
     {
-        if (m_CurrentTextureID !=
-            m_DefaultTextureID) // Se o lote atual estiver usando uma textura diferente, desenha o lote antigo.
+        // Se o lote atual estiver usando uma textura diferente, desenha o lote antigo.
+        if (m_CurrentTextureID != m_DefaultTextureID) 
         {
             Flush();
         }

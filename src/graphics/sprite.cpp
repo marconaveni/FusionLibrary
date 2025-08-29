@@ -28,6 +28,11 @@ namespace Fusion
     {
         m_Vertices.clear(); // Limpa o cache antigo
 
+        if (!m_Texture)
+        {
+            return;
+        }
+        
         // 1. Construir a matriz 'model'
         glm::mat4 model = glm::mat4(1.0f);
         // A ordem importa: primeiro movemos para a posição final, depois rotacionamos em torno da origem

@@ -20,7 +20,7 @@ namespace Fusion
     public:
 
         // Não permitir instanciar esta classe
-        Core() = delete;
+        Core() = delete;    
 
         // Chamado pela primeira janela para inicializar a GLFW
         static void Init();
@@ -30,6 +30,8 @@ namespace Fusion
 
         // Processa eventos para todas as janelas. Deve ser chamado no loop principal.
         static void PollEvents();
+        
+        static bool HasWindowActive() { return  s_IsInitialized; };
 
         static GLFWwindow* s_sharedWindow;
 

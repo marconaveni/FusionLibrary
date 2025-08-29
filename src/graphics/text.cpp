@@ -120,6 +120,12 @@ namespace Fusion
     {
         m_Vertices.clear(); // Limpa o cache antigo
 
+        if (!m_Font)
+        {
+            return;
+        }
+        
+
         glm::vec3 pivot = glm::vec3(m_Position.x + m_Origin.x, m_Position.y + m_Origin.y, 0.0f);
 
         // 2. Cria a matriz de rotação que gira em torno do pivô

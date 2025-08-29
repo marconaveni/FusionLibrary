@@ -25,7 +25,7 @@ namespace Fusion
     private:
 
         virtual void UpdateGeometry() const override;
-        const Texture* m_Texture;
+        const Texture* m_Texture = nullptr;
         Color m_Color;
     };
 

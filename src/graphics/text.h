@@ -35,7 +35,7 @@ namespace Fusion
     private:
 
         virtual void UpdateGeometry() const override;
-        const Font* m_Font;
+        const Font* m_Font = nullptr;
         std::string m_Text;
         float m_Spacing;
         Color m_Color;
