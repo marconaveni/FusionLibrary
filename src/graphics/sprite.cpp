@@ -51,18 +51,18 @@ namespace Fusion
             positions[i] = model * positions[i];
         }
 
+
+        const float texW = static_cast<float>(m_Texture->GetSize().width);
+        const float texH = static_cast<float>(m_Texture->GetSize().height);
+
         // 1. Calcula as coordenadas U (horizontal)
-        const float leftU = m_Source.x / m_Texture->GetSize().width;
-        const float rightU = (m_Source.x + m_Source.width) / m_Texture->GetSize().width;
+        const float leftU = m_Source.x / texW;
+        const float rightU = (m_Source.x + m_Source.width) / texW;
 
-        // 2. Calcula as coordenadas V (vertical)
-        float topV = m_Source.y / m_Texture->GetSize().height;
-        float bottomV = (m_Source.y + m_Source.height) / m_Texture->GetSize().height;
+        const bool flipV = m_Texture->IsFboTexture();
 
-        if (m_Texture->IsFboTexture())
-        {
-            std::swap(topV, bottomV); // não exibe adicionando esse bloco
-        }
+        const float topV = (m_Source.y + (flipV ? m_Source.height : 0.0f)) / texH;
+        const float bottomV = (m_Source.y + (flipV ? 0.0f : m_Source.height)) / texH;
 
         // 4. Monta os vetores de UV finais
         glm::vec2 uvTopLeft = {leftU, topV};

@@ -6,6 +6,7 @@
 #include "font.h"
 #include "gamepad.h"
 #include "keyboard.h"
+#include "render_texture.h"
 #include "sprite.h"
 #include "text.h"
 #include "window.h"
@@ -21,6 +22,7 @@ Fusion::Text text;
 Fusion::Texture texture;
 Fusion::Sprite player;
 Fusion::Sprite player2;
+Fusion::Sprite render;
 float x = 5;
 float y = 5;
 float speed = 5.0f; // pixels por segundo
@@ -78,13 +80,14 @@ int main()
     text.SetPosition(10, 10);
     text.SetScale(4);
 
-    texture.LoadFromFile("../assets/test2.png");
+    texture.LoadFromFile("../../assets/test2.png");
     player.SetTexture(texture);
     player2.SetTexture(texture);
     player.SetPosition({350, 250});
     player2.SetPosition({350, 250});
     player.SetSize({100, 100});
     player2.SetSize({100, 100});
+   
 
 #if defined(FUSION_PLATFORM_WEB)
 
@@ -93,7 +96,9 @@ int main()
 #else
 
     window.SetTargetFPS(60);
-
+    Fusion::RenderTexture target(300, 300);
+    render.SetTexture(*target.GetTexture());
+    render.SetSize({300, 300});
 
     while (!window.WindowShouldClose())
     {
@@ -130,11 +135,21 @@ int main()
 
         player.SetPosition(pos);
 
+
+        window.BeginTextureMode(target);
+        window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
+        
+        window.Draw(player);
+
+        window.EndTextureMode();
+
+
+
         // --- DESENHO ---
         window.BeginDrawing();
         window.Clear({0.1f, 0.1f, 0.1f, 1.0f});
 
-        window.Draw(player);
+        window.Draw(render);
 
         std::string fps = std::format("{} fps ", window.GetFPS());
         fps.shrink_to_fit();

@@ -14,7 +14,7 @@ namespace Fusion
         glBindFramebuffer(GL_FRAMEBUFFER, m_FboId);
 
         // 2. Cria a textura de cor vazia e a anexa ao FBO
-        m_Texture = std::make_unique<Texture>(width, height); // Novo construtor necessário!
+        m_Texture = std::make_unique<Texture>(width, height); 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Texture->GetId(), 0);
 
         // 3. Cria o Renderbuffer Object para profundidade e estêncil
