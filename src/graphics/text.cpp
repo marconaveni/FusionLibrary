@@ -79,8 +79,8 @@ namespace Fusion
                 {
                     currentLineWidth -= m_Spacing;
                 }
-                maxWidth = std::max(maxWidth,
-                                    currentLineWidth);  // Compara a largura da linha que acabamos de medir com a máxima
+                // Compara a largura da linha que acabamos de medir com a máxima
+                maxWidth = std::max(maxWidth, currentLineWidth);
                 currentLineWidth = 0.0f;                // Reseta a largura para a próxima linha
                 totalHeight += m_Font->GetLineHeight(); // Adiciona a altura de mais uma linha
                 continue;
@@ -105,8 +105,8 @@ namespace Fusion
         {
             currentLineWidth -= m_Spacing; // remove o ultimo espaçamento
         }
-        maxWidth = std::max(maxWidth,
-                            currentLineWidth); // Após o loop, faz uma última verificação para a última linha do texto
+        // Após o loop, faz uma última verificação para a última linha do texto
+        maxWidth = std::max(maxWidth, currentLineWidth);
 
         // Aplica a escala final ao resultado
         const float scale = GetScale();

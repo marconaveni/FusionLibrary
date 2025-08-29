@@ -51,15 +51,13 @@ namespace Fusion
             positions[i] = model * positions[i];
         }
 
-        float invertV = (m_Texture->IsFboTexture()) ? 1 : 1;
-
         // 1. Calcula as coordenadas U (horizontal)
         const float leftU = m_Source.x / m_Texture->GetSize().width;
         const float rightU = (m_Source.x + m_Source.width) / m_Texture->GetSize().width;
 
         // 2. Calcula as coordenadas V (vertical)
         float topV = m_Source.y / m_Texture->GetSize().height;
-        float bottomV = (m_Source.y + m_Source.height * invertV) / m_Texture->GetSize().height;
+        float bottomV = (m_Source.y + m_Source.height) / m_Texture->GetSize().height;
 
         if (m_Texture->IsFboTexture())
         {
