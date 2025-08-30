@@ -66,21 +66,27 @@ namespace Fusion
 
     private:
 
-        std::unique_ptr<Renderer> m_Render;
-        std::unique_ptr<Platform> m_Platform;
-        glm::mat4 m_DefaultProjection; // Salvar a projeção da janela
+        std::unique_ptr<Renderer> m_renderer;
+        std::unique_ptr<Platform> m_platform;
+        glm::mat4 m_defaultProjection; // Salvar a projeção da janela
         Font m_defaultFont;
 
         void WaitTime(double seconds);
-        
-        double m_CurrentTime = 0.0;
-        double m_PreviousTime = 0.0;
-        double m_FrameTime = 0.0;
-        double m_target = 0.0;
-        double draw = 0;
-        double update = 0;
-        unsigned int frameCounter = 0;
-        int m_Fps = 0;
+
+
+        struct Time
+        {
+            double current = 0.0;
+            double previous = 0.0;
+            double frame = 0.0;
+            double target = 0.0;
+            double draw = 0;
+            double update = 0;
+            unsigned int frameCounter = 0;
+            int fps = 0;
+        };
+
+        Time m_time;
     };
 
 } // namespace Fusion
