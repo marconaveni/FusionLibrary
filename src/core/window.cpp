@@ -55,7 +55,7 @@ namespace Fusion
 
 #if defined(FUSION_PLATFORM_WEB)
         // Se estivermos compilando para a web, usa a PlatformWeb
-        m_Platform = std::make_unique<PlatformWeb>();
+        m_platform = std::make_unique<PlatformWeb>();
 #else
         // Senão, usa a plataforma de desktop padrão
         m_platform = std::make_unique<PlatformDesktopGLFW>();

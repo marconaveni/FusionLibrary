@@ -27,17 +27,17 @@ namespace Fusion
         const std::map<int, stbtt_packedchar>& GetCharData() const { return m_CharData; }
         float GetTopToBaseline() const;
         float GetLineHeight() const;
-        Sizei GetAtlasSize() const { return m_AtlasSize; }
+        Sizei GetAtlasSize() const { return m_atlasSize; }
         void Unload();
 
     private:
 
         std::map<int, stbtt_packedchar> m_CharData; // Mapeia codepoint para dados do glifo
-        unsigned int m_FontTextureID = 0;
-        stbtt_fontinfo m_FontInfo;
-        float m_TopToBaseline = 0.0f;
-        float m_LineHeight = 0.0f;
-        Sizei m_AtlasSize = {0, 0}; // Tamanho do atlas de textura
+        unsigned int m_fontTextureID = 0;
+        stbtt_fontinfo m_fontInfo;
+        float m_topToBaseline = 0.0f;
+        float m_lineHeight = 0.0f;
+        Sizei m_atlasSize = {}; // Tamanho do atlas de textura
         bool Load(std::vector<unsigned char>& ttf_buffer, float fontSize, int charCount = 95);
     };
 

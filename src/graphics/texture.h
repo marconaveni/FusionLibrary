@@ -29,11 +29,11 @@ namespace Fusion
 
     private:
 
-        unsigned int m_Id = 0;
-        int m_Width = 0;
-        int m_Height = 0;
-        int m_NrChannels = 0;
-        bool m_IsFboTexture = false;
+        unsigned int m_id = 0;
+        int m_width = 0;
+        int m_height = 0;
+        int m_nrChannels = 0;
+        bool m_isFboTexture = false;
         bool Load(unsigned char* data);
     };
 

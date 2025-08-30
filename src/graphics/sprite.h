@@ -19,14 +19,14 @@ namespace Fusion
         explicit Sprite(const Texture&& texture) = delete;
         void SetTexture(const Texture& texture);
         void SetTexture(const Texture&& texture) = delete;
-        const Texture* GetTexture() const { return m_Texture; }
-        void SetColor(Color color) { m_Color = color; }
+        const Texture* GetTexture() const { return m_texture; }
+        void SetColor(Color color) { m_color = color; }
 
     private:
 
         virtual void UpdateGeometry() const override;
-        const Texture* m_Texture = nullptr;
-        Color m_Color;
+        const Texture* m_texture = nullptr;
+        Color m_color;
     };
 
 } // namespace Fusion

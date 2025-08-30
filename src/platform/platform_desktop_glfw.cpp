@@ -29,13 +29,13 @@ namespace Fusion
             shareWindow = Core::s_sharedWindow;
         }
 
-        m_Window = glfwCreateWindow(width, height, title, NULL, shareWindow);
-        m_ViewPortWidth = width;
-        m_ViewPortHeight = height;
+        m_window = glfwCreateWindow(width, height, title, NULL, shareWindow);
+        m_viewPortWidth = width;
+        m_viewPortHeight = height;
 
-        Core::s_sharedWindow = m_Window;
+        Core::s_sharedWindow = m_window;
 
-        if (!m_Window)
+        if (!m_window)
         {
             std::cerr << "Erro ao criar janela\n";
             glfwTerminate();
@@ -44,8 +44,8 @@ namespace Fusion
 
         glfwSwapInterval(1); // enable v-sync
 
-        glfwMakeContextCurrent(m_Window);
-        glfwSetWindowUserPointer(m_Window, this); // guarda um ponteiro da classe no glfw
+        glfwMakeContextCurrent(m_window);
+        glfwSetWindowUserPointer(m_window, this); // guarda um ponteiro da classe no glfw
 
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         {
@@ -54,11 +54,11 @@ namespace Fusion
         }
 
         // Registra as funções de callback no GLFW
-        glfwSetKeyCallback(m_Window, KeyCallback);
-        glfwSetMouseButtonCallback(m_Window, MouseButtonCallback);
-        glfwSetCursorPosCallback(m_Window, MouseCursorPosCallback);
-        glfwSetScrollCallback(m_Window, MouseScrollCallback);
-        glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
+        glfwSetKeyCallback(m_window, KeyCallback);
+        glfwSetMouseButtonCallback(m_window, MouseButtonCallback);
+        glfwSetCursorPosCallback(m_window, MouseCursorPosCallback);
+        glfwSetScrollCallback(m_window, MouseScrollCallback);
+        glfwSetFramebufferSizeCallback(m_window, FramebufferSizeCallback);
         glfwSetJoystickCallback(JoystickCallback); // Registra o callback de conexão do joystick
 
         // Verifica quais gamepads já estão conectados no início
@@ -76,20 +76,20 @@ namespace Fusion
 
     bool PlatformDesktopGLFW::IsWindowActive()
     {
-        return m_Window != nullptr;
+        return m_window != nullptr;
     }
 
     void PlatformDesktopGLFW::MakeContextCurrent()
     {
-        if(glfwGetCurrentContext() != m_Window) // só troca o contexto se for diferente 
+        if(glfwGetCurrentContext() != m_window) // só troca o contexto se for diferente 
         {
-            glfwMakeContextCurrent(m_Window);  
+            glfwMakeContextCurrent(m_window);  
         }       
     }
 
     bool PlatformDesktopGLFW::WindowShouldClose()
     {
-        return glfwWindowShouldClose(m_Window);
+        return glfwWindowShouldClose(m_window);
     }
 
     void PlatformDesktopGLFW::PollEventsAndUpdate()
@@ -98,7 +98,7 @@ namespace Fusion
 
 
         // Troca os buffers APÓS a espera
-        glfwSwapBuffers(m_Window);
+        glfwSwapBuffers(m_window);
 
         // Atualiza o estado do input para o próximo quadro
         InputEvents();
@@ -195,11 +195,11 @@ namespace Fusion
 
     void PlatformDesktopGLFW::Shutdown()
     {
-        if (m_Window != nullptr)
+        if (m_window != nullptr)
         {
-            glfwDestroyWindow(m_Window);
+            glfwDestroyWindow(m_window);
             // glfwTerminate();
-            m_Window = nullptr;
+            m_window = nullptr;
             std::cout << "Close Window\n";
         }
     }
@@ -212,7 +212,7 @@ namespace Fusion
 
     Sizei PlatformDesktopGLFW::GetWindowSize() const
     {
-        return Sizei(m_ViewPortWidth, m_ViewPortHeight);
+        return Sizei(m_viewPortWidth, m_viewPortHeight);
     }
 
     bool PlatformDesktopGLFW::IsWindowResized()
@@ -285,8 +285,8 @@ namespace Fusion
     void PlatformDesktopGLFW::OnFramebufferResize(int width, int height)
     {
         glViewport(0, 0, width, height);
-        m_ViewPortWidth = width;
-        m_ViewPortHeight = height;
+        m_viewPortWidth = width;
+        m_viewPortHeight = height;
         m_isResized = true;
     }
 

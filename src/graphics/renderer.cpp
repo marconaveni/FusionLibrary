@@ -18,43 +18,43 @@
 namespace Fusion
 {
     Renderer::Renderer()
-        : m_TextureShader(), m_TextShader()
+        : m_textureShader(), m_textShader()
     {
-        m_MaxQuads = 1000;
-        m_MaxVertices = m_MaxQuads * 4;
-        m_MaxIndices = m_MaxQuads * 6;
-        m_Vertices.resize(m_MaxVertices);
+        m_maxQuads = 1000;
+        m_maxVertices = m_maxQuads * 4;
+        m_maxIndices = m_maxQuads * 6;
+        m_vertices.resize(m_maxVertices);
 
-        m_View = glm::mat4(1.0f);
+        m_view = glm::mat4(1.0f);
     }
 
     void Renderer::Shutdown()
     {
-        m_TextureShader.Unload();
-        m_TextShader.Unload();
+        m_textureShader.Unload();
+        m_textShader.Unload();
 
-        glDeleteTextures(1, &m_DefaultTextureID);
+        glDeleteTextures(1, &m_defaultTextureID);
 
-        glDeleteVertexArrays(1, &m_BatchVAO);
-        glDeleteBuffers(1, &m_BatchVBO);
-        glDeleteBuffers(1, &m_BatchEBO);
+        glDeleteVertexArrays(1, &m_batchVAO);
+        glDeleteBuffers(1, &m_batchVBO);
+        glDeleteBuffers(1, &m_batchEBO);
 
-        m_BatchVAO = 0;
-        m_BatchVBO = 0;
-        m_BatchEBO = 0;
-        m_DefaultTextureID = 0;
+        m_batchVAO = 0;
+        m_batchVBO = 0;
+        m_batchEBO = 0;
+        m_defaultTextureID = 0;
     }
 
     void Renderer::BeginRender()
     {
-        m_VertexCount = 0;
-        m_CurrentTextureID = 0;
-        m_CurrentShader = nullptr;
+        m_vertexCount = 0;
+        m_currentTextureID = 0;
+        m_currentShader = nullptr;
     }
 
     void Renderer::EndRender()
     {
-        if (m_VertexCount > 0)
+        if (m_vertexCount > 0)
         {
             Flush();
         }
@@ -68,25 +68,25 @@ namespace Fusion
             return;
         }
 
-        Shader* shaderToUse = customShader ? customShader : &m_TextureShader;
+        Shader* shaderToUse = customShader ? customShader : &m_textureShader;
 
         // 1. Verifica se o shader de textura precisa ser ativado
-        if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
+        if (m_currentShader == nullptr || shaderToUse->m_id != m_currentShader->m_id)
         {
             Flush(); // Desenha qualquer lote antigo (como texto) com o shader antigo
 
-            m_CurrentShader = shaderToUse;
-            SetProjection(m_Projection);
+            m_currentShader = shaderToUse;
+            SetProjection(m_projection);
         }
 
-        if ((m_VertexCount + 4) > m_MaxVertices || (sprite.GetTexture()->GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
+        if ((m_vertexCount + 4) > m_maxVertices || (sprite.GetTexture()->GetId() != m_currentTextureID && m_currentTextureID != 0))
         {
             Flush();
         }
 
-        if (m_VertexCount == 0)
+        if (m_vertexCount == 0)
         {
-            m_CurrentTextureID = sprite.GetTexture()->GetId();
+            m_currentTextureID = sprite.GetTexture()->GetId();
         }
 
         const std::vector<Vertex>& textureVertices = sprite.GetVertices();
@@ -98,11 +98,11 @@ namespace Fusion
 
         for (const auto& vertex : textureVertices)
         {
-            if ((m_VertexCount + 1) > m_MaxVertices)
+            if ((m_vertexCount + 1) > m_maxVertices)
             {
                 Flush();
             }
-            m_Vertices[m_VertexCount++] = vertex;
+            m_vertices[m_vertexCount++] = vertex;
         }
     }
 
@@ -113,27 +113,27 @@ namespace Fusion
         const std::string& textContent = text.GetText();
         const Color color = text.GetColor();
 
-        Shader* shaderToUse = customShader ? customShader : &m_TextShader;
+        Shader* shaderToUse = customShader ? customShader : &m_textShader;
 
         // 1. Verifica se o shader de textura precisa ser ativado
-        if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
+        if (m_currentShader == nullptr || shaderToUse->m_id != m_currentShader->m_id)
         {
             Flush(); // Desenha qualquer lote antigo com o shader antigo
 
-            m_CurrentShader = shaderToUse;
-            SetProjection(m_Projection);
-            glUniform4f(m_CurrentShader->GetUniformLocation("textColor"), color.r, color.g, color.b, color.a);
+            m_currentShader = shaderToUse;
+            SetProjection(m_projection);
+            glUniform4f(m_currentShader->GetUniformLocation("textColor"), color.r, color.g, color.b, color.a);
         }
 
         // A lógica de flush por mudança de textura ou shader permanece a mesma
-        if ((m_VertexCount + 4) > m_MaxVertices || (font.GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
+        if ((m_vertexCount + 4) > m_maxVertices || (font.GetId() != m_currentTextureID && m_currentTextureID != 0))
         {
             Flush();
         }
 
-        if (m_VertexCount == 0)
+        if (m_vertexCount == 0)
         {
-            m_CurrentTextureID = font.GetId();
+            m_currentTextureID = font.GetId();
         }
 
         // O Renderer agora é simples: ele só pede os vértices prontos!
@@ -148,11 +148,11 @@ namespace Fusion
         for (const auto& vertex : textVertices)
         {
             // A checagem de buffer cheio agora é feita por vértice
-            if ((m_VertexCount + 1) > m_MaxVertices)
+            if ((m_vertexCount + 1) > m_maxVertices)
             {
                 Flush();
             }
-            m_Vertices[m_VertexCount++] = vertex;
+            m_vertices[m_vertexCount++] = vertex;
         }
     }
 
@@ -165,10 +165,10 @@ namespace Fusion
         glm::vec2 texCoords = {0.0f, 0.0f}; // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
 
         // Adiciona os 4 vértices do retângulo ao lote
-        m_Vertices[m_VertexCount++] = {{(float)x, (float)(y + height), 0.0f}, glmColor, texCoords};           // Bottom-left
-        m_Vertices[m_VertexCount++] = {{(float)(x + width), (float)(y + height), 0.0f}, glmColor, texCoords}; // Bottom-right
-        m_Vertices[m_VertexCount++] = {{(float)(x + width), (float)y, 0.0f}, glmColor, texCoords};            // Top-right
-        m_Vertices[m_VertexCount++] = {{(float)x, (float)y, 0.0f}, glmColor, texCoords};                      // Top-left
+        m_vertices[m_vertexCount++] = {{(float)x, (float)(y + height), 0.0f}, glmColor, texCoords};           // Bottom-left
+        m_vertices[m_vertexCount++] = {{(float)(x + width), (float)(y + height), 0.0f}, glmColor, texCoords}; // Bottom-right
+        m_vertices[m_vertexCount++] = {{(float)(x + width), (float)y, 0.0f}, glmColor, texCoords};            // Top-right
+        m_vertices[m_vertexCount++] = {{(float)x, (float)y, 0.0f}, glmColor, texCoords};                      // Top-left
     }
 
     void Renderer::DrawCircle(Vector2f center, float radius, Color color)
@@ -187,7 +187,7 @@ namespace Fusion
         {
             // Verifica se o buffer está cheio antes de adicionar um novo triângulo (3 vértices)
             // Para manter o batch de quads, adicionamos 4 vértices, mas o último é uma cópia.
-            if ((m_VertexCount + 4) > m_MaxVertices)
+            if ((m_vertexCount + 4) > m_maxVertices)
             {
                 Flush();
             }
@@ -203,10 +203,10 @@ namespace Fusion
             // Adiciona os vértices do triângulo (fatia da pizza) ao lote
             // Para manter a estrutura de quads, o último vértice é uma cópia,
             // criando um triângulo degenerado que a GPU ignora.
-            m_Vertices[m_VertexCount++] = {centerVertex, glmColor, texCoords};
-            m_Vertices[m_VertexCount++] = {p1, glmColor, texCoords};
-            m_Vertices[m_VertexCount++] = {p2, glmColor, texCoords};
-            m_Vertices[m_VertexCount++] = {p2, glmColor, texCoords}; // Vértice duplicado
+            m_vertices[m_vertexCount++] = {centerVertex, glmColor, texCoords};
+            m_vertices[m_vertexCount++] = {p1, glmColor, texCoords};
+            m_vertices[m_vertexCount++] = {p2, glmColor, texCoords};
+            m_vertices[m_vertexCount++] = {p2, glmColor, texCoords}; // Vértice duplicado
         }
     }
 
@@ -224,7 +224,7 @@ namespace Fusion
         {
             // Verifica se o buffer está cheio antes de adicionar um novo triângulo (3 vértices)
             // Para manter o batch de quads, adicionamos 4 vértices, mas o último é uma cópia.
-            if ((m_VertexCount + 4) > m_MaxVertices)
+            if ((m_vertexCount + 4) > m_maxVertices)
             {
                 Flush();
             }
@@ -245,10 +245,10 @@ namespace Fusion
             glm::vec3 p3 = {endPos.x - offset.x, endPos.y - offset.y, 0.0f};
             glm::vec3 p4 = {endPos.x + offset.x, endPos.y + offset.y, 0.0f};
 
-            m_Vertices[m_VertexCount++] = {p2, glmColor, texCoords}; // Bottom-left
-            m_Vertices[m_VertexCount++] = {p3, glmColor, texCoords}; // Bottom-right
-            m_Vertices[m_VertexCount++] = {p4, glmColor, texCoords}; // Top-right
-            m_Vertices[m_VertexCount++] = {p1, glmColor, texCoords}; // Top-left
+            m_vertices[m_vertexCount++] = {p2, glmColor, texCoords}; // Bottom-left
+            m_vertices[m_vertexCount++] = {p3, glmColor, texCoords}; // Bottom-right
+            m_vertices[m_vertexCount++] = {p4, glmColor, texCoords}; // Top-right
+            m_vertices[m_vertexCount++] = {p1, glmColor, texCoords}; // Top-left
         }
     }
 
@@ -260,10 +260,10 @@ namespace Fusion
         glm::vec2 texCoords = {0.0f, 0.0f}; // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
 
         // Adiciona os 4 vértices do retângulo ao lote
-        m_Vertices[m_VertexCount++] = {{v1.x, v1.y, 0.0f}, glmColor, texCoords}; // p1
-        m_Vertices[m_VertexCount++] = {{v2.x, v2.y, 0.0f}, glmColor, texCoords}; // p2
-        m_Vertices[m_VertexCount++] = {{v3.x, v3.y, 0.0f}, glmColor, texCoords}; // p3
-        m_Vertices[m_VertexCount++] = {{v3.x, v3.y, 0.0f}, glmColor, texCoords}; // p3 Vértice duplicado
+        m_vertices[m_vertexCount++] = {{v1.x, v1.y, 0.0f}, glmColor, texCoords}; // p1
+        m_vertices[m_vertexCount++] = {{v2.x, v2.y, 0.0f}, glmColor, texCoords}; // p2
+        m_vertices[m_vertexCount++] = {{v3.x, v3.y, 0.0f}, glmColor, texCoords}; // p3
+        m_vertices[m_vertexCount++] = {{v3.x, v3.y, 0.0f}, glmColor, texCoords}; // p3 Vértice duplicado
     }
 
     void Renderer::DrawLine(Vector2f startPos, Vector2f endPos, float thick, Color color)
@@ -292,10 +292,10 @@ namespace Fusion
         glm::vec3 p4 = {end.x + offset.x, end.y + offset.y, 0.0f};     // Canto superior direito
 
         // 4. Adiciona os vértices ao lote na ordem correta para o index buffer
-        m_Vertices[m_VertexCount++] = {p2, glmColor, texCoords}; // Bottom-left
-        m_Vertices[m_VertexCount++] = {p3, glmColor, texCoords}; // Bottom-right
-        m_Vertices[m_VertexCount++] = {p4, glmColor, texCoords}; // Top-right
-        m_Vertices[m_VertexCount++] = {p1, glmColor, texCoords}; // Top-left
+        m_vertices[m_vertexCount++] = {p2, glmColor, texCoords}; // Bottom-left
+        m_vertices[m_vertexCount++] = {p3, glmColor, texCoords}; // Bottom-right
+        m_vertices[m_vertexCount++] = {p4, glmColor, texCoords}; // Top-right
+        m_vertices[m_vertexCount++] = {p1, glmColor, texCoords}; // Top-left
     }
 
     void Renderer::DrawRectangleLines(int x, int y, int width, int height, float thick, Color color)
@@ -371,38 +371,38 @@ namespace Fusion
         // ==================================================
 
         // ====== Start Shader program ======
-        m_TextureShader.LoadShader(GetDefaultVertexShader(), GetDefaultFragmentShader());
-        m_TextShader.LoadShader(GetDefaultTextVertexShader(), GetDefaultTextFragmentShader());
+        m_textureShader.LoadShader(GetDefaultVertexShader(), GetDefaultFragmentShader());
+        m_textShader.LoadShader(GetDefaultTextVertexShader(), GetDefaultTextFragmentShader());
         // ==================================================
 
-        m_Projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f); // tela 800x600
+        m_projection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f); // tela 800x600
     }
 
     void Renderer::SetProjection(const glm::mat4& projection)
     {
-        m_Projection = projection;
+        m_projection = projection;
 
         // Se um shader estiver ativo, atualiza seu uniforme de projeção imediatamente
-        if (m_CurrentShader)
+        if (m_currentShader)
         {
-            m_CurrentShader->Use();
-            m_CurrentShader->GetUniformMatrix4("projection", m_Projection);
+            m_currentShader->Use();
+            m_currentShader->GetUniformMatrix4("projection", m_projection);
         }
     }
 
     void Renderer::InitBatch()
     {
-        glGenVertexArrays(1, &m_BatchVAO);
-        glBindVertexArray(m_BatchVAO);
+        glGenVertexArrays(1, &m_batchVAO);
+        glBindVertexArray(m_batchVAO);
 
         // VBO (Vertex Buffer Object) - Para os dados dos vértices
-        glGenBuffers(1, &m_BatchVBO);
-        glBindBuffer(GL_ARRAY_BUFFER, m_BatchVBO);
-        glBufferData(GL_ARRAY_BUFFER, m_MaxVertices * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW);
+        glGenBuffers(1, &m_batchVBO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_batchVBO);
+        glBufferData(GL_ARRAY_BUFFER, m_maxVertices * sizeof(Vertex), nullptr, GL_DYNAMIC_DRAW);
 
         // Gerar os índices para todos os quads possíveis. O padrão é 0,1,2, 2,3,0 -> 4,5,6, 6,7,4, etc.
         std::vector<GLuint> indices;
-        indices.resize(m_MaxIndices);
+        indices.resize(m_maxIndices);
         uint32_t offset = 0;
         for (size_t i = 0; i < indices.size(); i += 6)
         {
@@ -416,8 +416,8 @@ namespace Fusion
         }
 
         // EBO (Element Buffer Object) - Para os índices
-        glGenBuffers(1, &m_BatchEBO);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_BatchEBO);
+        glGenBuffers(1, &m_batchEBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_batchEBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint), indices.data(), GL_STATIC_DRAW);
 
         // Configura os atributos do vértice
@@ -436,8 +436,8 @@ namespace Fusion
 
     void Renderer::CreateDefaultTexture()
     {
-        glGenTextures(1, &m_DefaultTextureID);
-        glBindTexture(GL_TEXTURE_2D, m_DefaultTextureID);
+        glGenTextures(1, &m_defaultTextureID);
+        glBindTexture(GL_TEXTURE_2D, m_defaultTextureID);
 
         // Define os parâmetros da textura
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -455,53 +455,53 @@ namespace Fusion
 
     void Renderer::Flush()
     {
-        if (m_VertexCount == 0)
+        if (m_vertexCount == 0)
         {
             return;
         }
 
-        if (m_CurrentShader)
+        if (m_currentShader)
         {
-            m_CurrentShader->Use();
-            m_CurrentShader->GetUniformMatrix4("projection", m_Projection);
-            m_CurrentShader->GetUniformMatrix4("view", m_View); // ENVIA A MATRIZ DE VISTA PARA O SHADER
+            m_currentShader->Use();
+            m_currentShader->GetUniformMatrix4("projection", m_projection);
+            m_currentShader->GetUniformMatrix4("view", m_view); // ENVIA A MATRIZ DE VISTA PARA O SHADER
         }
 
-        glBindVertexArray(m_BatchVAO);
-        glBindTexture(GL_TEXTURE_2D, m_CurrentTextureID);
+        glBindVertexArray(m_batchVAO);
+        glBindTexture(GL_TEXTURE_2D, m_currentTextureID);
 
         // Envia os dados acumulados para o VBO na GPU
-        glBindBuffer(GL_ARRAY_BUFFER, m_BatchVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, m_VertexCount * sizeof(Vertex), m_Vertices.data());
+        glBindBuffer(GL_ARRAY_BUFFER, m_batchVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, m_vertexCount * sizeof(Vertex), m_vertices.data());
 
         // Desenha tudo de uma vez!
         // O número de índices é (vertexCount / 4) * 6
-        glDrawElements(GL_TRIANGLES, (m_VertexCount / 4) * 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, (m_vertexCount / 4) * 6, GL_UNSIGNED_INT, 0);
 
         glBindVertexArray(0);
 
         // Reseta o contador para o próximo lote
-        m_VertexCount = 0;
+        m_vertexCount = 0;
         //m_Vertices.clear();  // tem custo
     }
 
     void Renderer::CheckFlushShape()
     {
         // Se o lote atual estiver usando uma textura diferente, desenha o lote antigo.
-        if (m_CurrentTextureID != m_DefaultTextureID)
+        if (m_currentTextureID != m_defaultTextureID)
         {
             Flush();
         }
 
-        if (m_CurrentShader != &m_TextureShader) // Garante que o shader de textura padrão esteja ativo
+        if (m_currentShader != &m_textureShader) // Garante que o shader de textura padrão esteja ativo
         {
             Flush();
-            m_CurrentShader = &m_TextureShader;
+            m_currentShader = &m_textureShader;
         }
 
-        m_CurrentTextureID = m_DefaultTextureID; // Define a textura atual como a nossa textura branca
+        m_currentTextureID = m_defaultTextureID; // Define a textura atual como a nossa textura branca
 
-        if ((m_VertexCount + 4) > m_MaxVertices) // Verifica se o buffer de vértices está cheio
+        if ((m_vertexCount + 4) > m_maxVertices) // Verifica se o buffer de vértices está cheio
         {
             Flush();
         }

@@ -2,14 +2,14 @@
 
 namespace Fusion
 {
-    Transformable::Transformable() : m_Source(Rectangle{0, 0, 0, 0}), m_Position(Rectangle{0, 0, 1, 1}), m_Origin(Vector2f{0}), m_Rotation(0)
+    Transformable::Transformable() : m_source(Rectangle{0, 0, 0, 0}), m_position(Rectangle{0, 0, 1, 1}), m_origin(Vector2f{0}), m_rotation(0)
     {
     }
 
     void Transformable::SetSource(Rectangle source)
     {
-        m_Source = source;
-        m_IsNeedTransform = true;
+        m_source = source;
+        m_isNeedTransform = true;
     }
 
     void Transformable::SetPosition(Vector2f position)
@@ -19,9 +19,9 @@ namespace Fusion
 
     void Transformable::SetPosition(float x, float y)
     {
-        m_Position.x = x;
-        m_Position.y = y;
-        m_IsNeedTransform = true;
+        m_position.x = x;
+        m_position.y = y;
+        m_isNeedTransform = true;
     }
 
     void Transformable::SetSize(Sizef size)
@@ -31,41 +31,41 @@ namespace Fusion
 
     void Transformable::SetSize(float width, float height)
     {
-        m_Position.width = width;
-        m_Position.height = height;
-        m_IsNeedTransform = true;
+        m_position.width = width;
+        m_position.height = height;
+        m_isNeedTransform = true;
     }
 
     void Transformable::SetOrigin(Vector2f origin)
     {
-        m_Origin = origin;
-        m_IsNeedTransform = true;
+        m_origin = origin;
+        m_isNeedTransform = true;
     }
 
     void Transformable::SetRotation(float rotation)
     {
-        m_Rotation = rotation;
-        m_IsNeedTransform = true;
+        m_rotation = rotation;
+        m_isNeedTransform = true;
     }
 
     Vector2f Transformable::GetPosition() const
     {
-        return Vector2f(m_Position.x, m_Position.y);
+        return Vector2f(m_position.x, m_position.y);
     }
 
     Sizef Transformable::GetSize() const
     {
-        return Sizef(m_Position.width, m_Position.height);
+        return Sizef(m_position.width, m_position.height);
     }
 
     const std::vector<Vertex>& Transformable::GetVertices() const
     {
-        if (m_IsNeedTransform)
+        if (m_isNeedTransform)
         {
             UpdateGeometry();
-            m_IsNeedTransform = false;
+            m_isNeedTransform = false;
         }
-        return m_Vertices;
+        return m_vertices;
     }
 
 } // namespace Fusion

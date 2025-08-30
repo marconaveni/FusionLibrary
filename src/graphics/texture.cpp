@@ -20,13 +20,13 @@ namespace Fusion
     }
 
     Texture::Texture(int width, int height)
-        : m_Width(width), m_Height(height), m_NrChannels(4)
+        : m_width(width), m_height(height), m_nrChannels(4)
     {
 
-        m_IsFboTexture = true;
+        m_isFboTexture = true;
 
-        glGenTextures(1, &m_Id);
-        glBindTexture(GL_TEXTURE_2D, m_Id);
+        glGenTextures(1, &m_id);
+        glBindTexture(GL_TEXTURE_2D, m_id);
 
         // Aloca memória na GPU para a textura, mas não envia dados (passa NULL)
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -51,7 +51,7 @@ namespace Fusion
 
     void Texture::SetSmooth(bool enable)
     {
-        glBindTexture(GL_TEXTURE_2D, m_Id);
+        glBindTexture(GL_TEXTURE_2D, m_id);
 
         // set texture filtering parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (enable) ? GL_LINEAR : GL_NEAREST);
@@ -62,9 +62,9 @@ namespace Fusion
 
     bool Texture::Load(unsigned char* data)
     {
-        glDeleteTextures(1, &m_Id);
-        glGenTextures(1, &m_Id);
-        glBindTexture(GL_TEXTURE_2D, m_Id);
+        glDeleteTextures(1, &m_id);
+        glGenTextures(1, &m_id);
+        glBindTexture(GL_TEXTURE_2D, m_id);
 
         // Evita problemas de alinhamento em RGB
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -80,8 +80,8 @@ namespace Fusion
 
         if (data)
         {
-            GLenum format = (m_NrChannels == 4) ? GL_RGBA : GL_RGB;
-            glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, data);
+            GLenum format = (m_nrChannels == 4) ? GL_RGBA : GL_RGB;
+            glTexImage2D(GL_TEXTURE_2D, 0, format, m_width, m_height, 0, format, GL_UNSIGNED_BYTE, data);
         }
         else
         {
@@ -94,12 +94,12 @@ namespace Fusion
 
     bool Texture::LoadFromFile(const char* path)
     {
-        if (m_IsFboTexture)
+        if (m_isFboTexture)
         {
             std::cout << "Failed to load texture this is FBO Texture\n";
             return false;
         }
-        unsigned char* data = stbi_load(path, &m_Width, &m_Height, &m_NrChannels, 0);
+        unsigned char* data = stbi_load(path, &m_width, &m_height, &m_nrChannels, 0);
         const bool loadedData = Load(data);
         stbi_image_free(data);
         return loadedData;
@@ -107,12 +107,12 @@ namespace Fusion
 
     bool Texture::LoadFromMemory(unsigned char* buffer, size_t len)
     {
-        if (m_IsFboTexture)
+        if (m_isFboTexture)
         {
             std::cout << "Failed to load texture this is FBO Texture\n";
             return false;
         }
-        unsigned char* data = stbi_load_from_memory(buffer, len, &m_Width, &m_Height, &m_NrChannels, 0);
+        unsigned char* data = stbi_load_from_memory(buffer, len, &m_width, &m_height, &m_nrChannels, 0);
         const bool loadedData = Load(data);
         stbi_image_free(data);
         return loadedData;
@@ -120,25 +120,25 @@ namespace Fusion
 
     Sizei Texture::GetSize() const
     {
-        return Sizei{m_Width, m_Height};
+        return Sizei{m_width, m_height};
     }
 
     unsigned int Texture::GetId() const
     {
-        return m_Id;
+        return m_id;
     }
 
     bool Texture::IsFboTexture() const
     {
-        return m_IsFboTexture;
+        return m_isFboTexture;
     }
 
     void Texture::Unload()
     {
-        if (m_Id != 0 && Core::HasWindowActive())
+        if (m_id != 0 && Core::HasWindowActive())
         {
-            glDeleteTextures(1, &m_Id);
-            m_Id = 0; // Evita dupla liberação
+            glDeleteTextures(1, &m_id);
+            m_id = 0; // Evita dupla liberação
         }
     }
 

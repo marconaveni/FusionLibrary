@@ -17,12 +17,12 @@ namespace Fusion
         void Load(int width, int height);
         ~RenderTexture();
 
-        unsigned int GetFboId() const { return m_FboId; }
+        unsigned int GetFboId() const { return m_fboId; }
         const Texture* GetTexture() const { return m_Texture.get(); }
 
     private:
-        unsigned int m_FboId = 0; // ID do Framebuffer Object
-        unsigned int m_RboId = 0; // ID do Renderbuffer Object (para profundidade)
+        unsigned int m_fboId = 0; // ID do Framebuffer Object
+        unsigned int m_rboId = 0; // ID do Renderbuffer Object (para profundidade)
         std::unique_ptr<Texture> m_Texture;
     };
 }

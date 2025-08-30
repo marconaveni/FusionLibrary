@@ -10,7 +10,7 @@
 namespace Fusion
 {
     Font::Font(const char* path, const float fontSize, int charCount)
-        : m_FontInfo()
+        : m_fontInfo()
     {
         LoadFromFile(path, fontSize, charCount);
     }
@@ -27,7 +27,7 @@ namespace Fusion
     void Font::SetSmooth(bool enable)
     {
 
-        glBindTexture(GL_TEXTURE_2D, m_FontTextureID);
+        glBindTexture(GL_TEXTURE_2D, m_fontTextureID);
 
         // set texture filtering parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (enable) ? GL_LINEAR : GL_NEAREST);
@@ -72,7 +72,7 @@ namespace Fusion
 
     bool Font::Load(std::vector<unsigned char>& ttf_buffer, float fontSize, int charCount)
     {
-        if (!stbtt_InitFont(&m_FontInfo, ttf_buffer.data(), 0))
+        if (!stbtt_InitFont(&m_fontInfo, ttf_buffer.data(), 0))
         {
             std::cerr << "Erro ao inicializar informações da fonte stbtt." << std::endl;
             return false;
@@ -81,12 +81,12 @@ namespace Fusion
         // o tamanho do atlas está sendo definido com um tamanho fixo e isso
         // precisa ser corrigido no futuro calculando o tamanho dinamicamente
         // baseado no tamanho da fonte fontSize definido pelo usuário.
-        m_AtlasSize.width = 1024;
-        m_AtlasSize.height = 1024;
-        std::vector<unsigned char> bitmap(m_AtlasSize.width * m_AtlasSize.height);
+        m_atlasSize.width = 1024;
+        m_atlasSize.height = 1024;
+        std::vector<unsigned char> bitmap(m_atlasSize.width * m_atlasSize.height);
         stbtt_pack_context pack_context;
 
-        if (!stbtt_PackBegin(&pack_context, bitmap.data(), m_AtlasSize.width, m_AtlasSize.height, 0, 1, nullptr))
+        if (!stbtt_PackBegin(&pack_context, bitmap.data(), m_atlasSize.width, m_atlasSize.height, 0, 1, nullptr))
         {
             std::cerr << "Erro ao inicializar o stb_truetype pack context." << std::endl;
             return false;
@@ -105,19 +105,19 @@ namespace Fusion
             m_CharData[32 + i] = packedCharData[i];
         }
 
-        float scale = stbtt_ScaleForPixelHeight(&m_FontInfo, fontSize);
+        float scale = stbtt_ScaleForPixelHeight(&m_fontInfo, fontSize);
         int ascent, descent, lineGap;
-        stbtt_GetFontVMetrics(&m_FontInfo, &ascent, &descent, &lineGap);
+        stbtt_GetFontVMetrics(&m_fontInfo, &ascent, &descent, &lineGap);
 
-        m_TopToBaseline = ascent * scale;
-        m_LineHeight = (ascent - descent + lineGap) * scale;
+        m_topToBaseline = ascent * scale;
+        m_lineHeight = (ascent - descent + lineGap) * scale;
 
         stbtt_PackEnd(&pack_context); // Boa prática chamar PackEnd.
 
         // --- PARTE 4: CRIAR A TEXTURA OPENGL ---
-        glDeleteTextures(1, &m_FontTextureID); // deleta se já houver outra textura carregada
-        glGenTextures(1, &m_FontTextureID);
-        glBindTexture(GL_TEXTURE_2D, m_FontTextureID);
+        glDeleteTextures(1, &m_fontTextureID); // deleta se já houver outra textura carregada
+        glGenTextures(1, &m_fontTextureID);
+        glBindTexture(GL_TEXTURE_2D, m_fontTextureID);
 
 
 #if defined(FUSION_PLATFORM_WEB)
@@ -129,7 +129,7 @@ namespace Fusion
 
 #endif
 
-        glTexImage2D(GL_TEXTURE_2D, 0, CHANNEL, m_AtlasSize.width, m_AtlasSize.height, 0, GL_RED, GL_UNSIGNED_BYTE,
+        glTexImage2D(GL_TEXTURE_2D, 0, CHANNEL, m_atlasSize.width, m_atlasSize.height, 0, GL_RED, GL_UNSIGNED_BYTE,
                      bitmap.data());
 
         // set texture filtering parameters
@@ -147,25 +147,25 @@ namespace Fusion
 
     unsigned int Font::GetId() const
     {
-        return m_FontTextureID;
+        return m_fontTextureID;
     }
 
     float Font::GetTopToBaseline() const
     {
-        return m_TopToBaseline;
+        return m_topToBaseline;
     }
 
     float Font::GetLineHeight() const
     {
-        return m_LineHeight;
+        return m_lineHeight;
     }
 
     void Font::Unload()
     {
-        if (m_FontTextureID != 0)
+        if (m_fontTextureID != 0)
         {
-            glDeleteTextures(1, &m_FontTextureID);
-            m_FontTextureID = 0; // Evita dupla liberação
+            glDeleteTextures(1, &m_fontTextureID);
+            m_fontTextureID = 0; // Evita dupla liberação
         }
     }
 

@@ -7,65 +7,65 @@
 namespace Fusion
 {
     Text::Text()
-        : m_Spacing(0), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_IsNeedMensured(true), m_MeasuredText({0.0f, 0.0f})
+        : m_spacing(0), m_color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_isNeedMensured(true), m_measuredText({0.0f, 0.0f})
     {
     }
 
     Text::Text(const Font& font)
-        : m_Spacing(0), m_Color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_IsNeedMensured(true), m_MeasuredText({0.0f, 0.0f})
+        : m_spacing(0), m_color(Color{1.0f, 1.0f, 1.0f, 1.0f}), m_isNeedMensured(true), m_measuredText({0.0f, 0.0f})
     {
         SetFont(font);
     }
 
     void Text::SetFont(const Font& font)
     {
-        m_Font = &font;
-        m_IsNeedMensured = true;
-        m_IsNeedTransform = true;
+        m_font = &font;
+        m_isNeedMensured = true;
+        m_isNeedTransform = true;
     }
 
     void Text::SetText(std::string text)
     {
-        m_Text = text;
-        m_IsNeedMensured = true;
-        m_IsNeedTransform = true;
+        m_text = text;
+        m_isNeedMensured = true;
+        m_isNeedTransform = true;
     }
     void Text::SetScale(float scale)
     {
-        m_Position.width = scale;
-        m_Position.height = scale;
-        m_IsNeedMensured = true;
-        m_IsNeedTransform = true;
+        m_position.width = scale;
+        m_position.height = scale;
+        m_isNeedMensured = true;
+        m_isNeedTransform = true;
     }
     void Text::SetSpacing(float spacing)
     {
-        m_Spacing = spacing;
-        m_IsNeedMensured = true;
-        m_IsNeedTransform = true;
+        m_spacing = spacing;
+        m_isNeedMensured = true;
+        m_isNeedTransform = true;
     }
     Vector2f Text::MeasureText()
     {
-        if (!m_IsNeedMensured)
+        if (!m_isNeedMensured)
         {
-            return m_MeasuredText;
+            return m_measuredText;
         }
 
-        m_IsNeedMensured = false;
+        m_isNeedMensured = false;
 
-        if (m_Text.empty() || m_Font == nullptr)
+        if (m_text.empty() || m_font == nullptr)
         {
-            m_MeasuredText = {0.0f, 0.0f};
-            return m_MeasuredText;
+            m_measuredText = {0.0f, 0.0f};
+            return m_measuredText;
         }
 
         float maxWidth = 0.0f;                       // Armazena a largura da linha mais longa
         float currentLineWidth = 0.0f;               // Largura da linha que estamos medindo
-        float totalHeight = m_Font->GetLineHeight(); // Começa com a altura de uma linha
+        float totalHeight = m_font->GetLineHeight(); // Começa com a altura de uma linha
 
         size_t i = 0;
-        while (i < m_Text.length())
+        while (i < m_text.length())
         {
-            int32_t codepoint = Fusion::Utf8::DecodeNext(m_Text, i);
+            int32_t codepoint = Fusion::Utf8::DecodeNext(m_text, i);
             if (codepoint == 0)
             {
                 break;
@@ -77,74 +77,74 @@ namespace Fusion
                 // Remove o espaçamento extra do final da última linha
                 if (currentLineWidth > 0)
                 {
-                    currentLineWidth -= m_Spacing;
+                    currentLineWidth -= m_spacing;
                 }
                 // Compara a largura da linha que acabamos de medir com a máxima
                 maxWidth = std::max(maxWidth, currentLineWidth);
                 currentLineWidth = 0.0f;                // Reseta a largura para a próxima linha
-                totalHeight += m_Font->GetLineHeight(); // Adiciona a altura de mais uma linha
+                totalHeight += m_font->GetLineHeight(); // Adiciona a altura de mais uma linha
                 continue;
             }
 
-            auto itGlyph = m_Font->GetCharData().find(codepoint);
-            if (itGlyph == m_Font->GetCharData().end())
+            auto itGlyph = m_font->GetCharData().find(codepoint);
+            if (itGlyph == m_font->GetCharData().end())
             {
                 codepoint = '?';
-                itGlyph = m_Font->GetCharData().find(codepoint);
-                if (itGlyph == m_Font->GetCharData().end())
+                itGlyph = m_font->GetCharData().find(codepoint);
+                if (itGlyph == m_font->GetCharData().end())
                     continue;
             }
 
             stbtt_packedchar pc = itGlyph->second;
 
             // Adiciona o avanço do caractere e o espaçamento à largura da linha atual
-            currentLineWidth += pc.xadvance + m_Spacing;
+            currentLineWidth += pc.xadvance + m_spacing;
         }
 
         if (currentLineWidth > 0)
         {
-            currentLineWidth -= m_Spacing; // remove o ultimo espaçamento
+            currentLineWidth -= m_spacing; // remove o ultimo espaçamento
         }
         // Após o loop, faz uma última verificação para a última linha do texto
         maxWidth = std::max(maxWidth, currentLineWidth);
 
         // Aplica a escala final ao resultado
         const float scale = GetScale();
-        m_MeasuredText.x = maxWidth * scale;
-        m_MeasuredText.y = totalHeight * scale;
+        m_measuredText.x = maxWidth * scale;
+        m_measuredText.y = totalHeight * scale;
 
-        return m_MeasuredText;
+        return m_measuredText;
     }
 
     void Text::UpdateGeometry() const
     {
-        m_Vertices.clear(); // Limpa o cache antigo
+        m_vertices.clear(); // Limpa o cache antigo
 
-        if (!m_Font)
+        if (!m_font)
         {
             return;
         }
         
 
-        glm::vec3 pivot = glm::vec3(m_Position.x + m_Origin.x, m_Position.y + m_Origin.y, 0.0f);
+        glm::vec3 pivot = glm::vec3(m_position.x + m_origin.x, m_position.y + m_origin.y, 0.0f);
 
         // 2. Cria a matriz de rotação que gira em torno do pivô
         glm::mat4 transform = glm::mat4(1.0f);
         transform = glm::translate(transform, pivot);
-        transform = glm::rotate(transform, glm::radians(m_Rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+        transform = glm::rotate(transform, glm::radians(m_rotation), glm::vec3(0.0f, 0.0f, 1.0f));
         transform = glm::translate(transform, -pivot);
 
         // Converte a cor da engine para glm::vec4
-        glm::vec4 glmColor = {m_Color.r, m_Color.g, m_Color.b, m_Color.a};
+        glm::vec4 glmColor = {m_color.r, m_color.g, m_color.b, m_color.a};
 
-        float xpos = m_Position.x;
-        float ypos = m_Position.y + m_Font->GetTopToBaseline();
+        float xpos = m_position.x;
+        float ypos = m_position.y + m_font->GetTopToBaseline();
 
         size_t i = 0;
-        while (i < m_Text.length())
+        while (i < m_text.length())
         {
 
-            int32_t codepoint = Fusion::Utf8::DecodeNext(m_Text, i);
+            int32_t codepoint = Fusion::Utf8::DecodeNext(m_text, i);
             if (codepoint == 0)
             {
                 break;
@@ -152,17 +152,17 @@ namespace Fusion
 
             if (codepoint == '\n')
             {
-                ypos += m_Font->GetLineHeight(); // Avança para a próxima linha
-                xpos = m_Position.x;             // Reseta para o início da linha
+                ypos += m_font->GetLineHeight(); // Avança para a próxima linha
+                xpos = m_position.x;             // Reseta para o início da linha
                 continue;                        // Pula para a próxima iteração
             }
 
-            auto itGlyph = m_Font->GetCharData().find(codepoint);
-            if (itGlyph == m_Font->GetCharData().end())
+            auto itGlyph = m_font->GetCharData().find(codepoint);
+            if (itGlyph == m_font->GetCharData().end())
             {
                 codepoint = '?';
-                itGlyph = m_Font->GetCharData().find(codepoint);
-                if (itGlyph == m_Font->GetCharData().end())
+                itGlyph = m_font->GetCharData().find(codepoint);
+                if (itGlyph == m_font->GetCharData().end())
                 {
                     continue;
                 }
@@ -173,11 +173,11 @@ namespace Fusion
             stbtt_aligned_quad q;
             float temp_x = xpos;
             float temp_y = ypos;
-            stbtt_GetPackedQuad(&pc, m_Font->GetAtlasSize().width, m_Font->GetAtlasSize().height, 0, &temp_x, &temp_y,
+            stbtt_GetPackedQuad(&pc, m_font->GetAtlasSize().width, m_font->GetAtlasSize().height, 0, &temp_x, &temp_y,
                                 &q, 0);
 
             xpos = temp_x;
-            xpos += m_Spacing; // gera espaçamento adicionar parametro depois
+            xpos += m_spacing; // gera espaçamento adicionar parametro depois
 
             glm::vec4 p1 = {q.x0, q.y0, 0.0f, 1.0f}; // Top-left
             glm::vec4 p2 = {q.x1, q.y0, 0.0f, 1.0f}; // Top-right
@@ -185,7 +185,7 @@ namespace Fusion
             glm::vec4 p4 = {q.x0, q.y1, 0.0f, 1.0f}; // Bottom-left
 
             const float scale = GetScale();
-            glm::vec3 scale_pivot = glm::vec3(m_Position.x, m_Position.y, 0.0f);
+            glm::vec3 scale_pivot = glm::vec3(m_position.x, m_position.y, 0.0f);
             p1 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) *
                  glm::translate(glm::mat4(1.0f), -scale_pivot) * p1;
             p2 = glm::translate(glm::mat4(1.0f), scale_pivot) * glm::scale(glm::mat4(1.0f), {scale, scale, 1.0f}) *
@@ -205,15 +205,15 @@ namespace Fusion
             glm::vec2 uv3 = {q.s1, q.t1}; // UV Bottom-right
             glm::vec2 uv4 = {q.s0, q.t1}; // UV Bottom-left
 
-            m_Vertices.push_back({glm::vec3(p4), glmColor, uv4}); // Vértice 0: Bottom-left
-            m_Vertices.push_back({glm::vec3(p3), glmColor, uv3}); // Vértice 1: Bottom-right
-            m_Vertices.push_back({glm::vec3(p2), glmColor, uv2}); // Vértice 2: Top-right
-            m_Vertices.push_back({glm::vec3(p1), glmColor, uv1}); // Vértice 3: Top-left
+            m_vertices.push_back({glm::vec3(p4), glmColor, uv4}); // Vértice 0: Bottom-left
+            m_vertices.push_back({glm::vec3(p3), glmColor, uv3}); // Vértice 1: Bottom-right
+            m_vertices.push_back({glm::vec3(p2), glmColor, uv2}); // Vértice 2: Top-right
+            m_vertices.push_back({glm::vec3(p1), glmColor, uv1}); // Vértice 3: Top-left
         }
     }
 
     float Text::GetScale() const
     {
-        return std::max(m_Position.width, m_Position.height);
+        return std::max(m_position.width, m_position.height);
     }
 } // namespace Fusion

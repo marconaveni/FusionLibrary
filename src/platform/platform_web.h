@@ -29,7 +29,7 @@ namespace Fusion
         virtual void InputEvents() override;
         virtual void Shutdown() override {}
         virtual void Clear(Color color) override;
-        virtual Sizei GetWindowSize() const override { return Sizei{m_ViewPortWidth, m_ViewPortHeight}; }
+        virtual Sizei GetWindowSize() const override;
         virtual bool IsWindowResized() override { return false; }
         virtual double GetTime() const override;
 
@@ -39,10 +39,10 @@ namespace Fusion
     private:
 
         GLFWwindow* m_window = nullptr;
-        std::function<void()> m_MainLoop;
+        std::function<void()> m_mainLoop;
 
-        int m_ViewPortWidth = 0;
-        int m_ViewPortHeight = 0;
+        int m_viewPortWidth = 0;
+        int m_viewPortHeight = 0;
     };
 } // namespace Fusion
 

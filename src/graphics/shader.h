@@ -15,8 +15,8 @@ namespace Fusion
     {
     public:
 
-        unsigned int ID; // the program ID
-        std::unordered_map<std::string, int> uniformCache;
+        unsigned int m_id; // the program ID
+        std::unordered_map<std::string, int> m_uniformCache;
 
         Shader();
 

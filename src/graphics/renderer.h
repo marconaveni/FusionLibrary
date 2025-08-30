@@ -49,8 +49,8 @@ namespace Fusion
         void Init(int width, int height);
         void SetProjection(const glm::mat4& projection);
 
-        void SetViewMatrix(const glm::mat4& view) { m_View = view; }
-        void ResetViewMatrix() { m_View = glm::mat4(1.0f); }
+        void SetViewMatrix(const glm::mat4& view) { m_view = view; }
+        void ResetViewMatrix() { m_view = glm::mat4(1.0f); }
 
     private:
 
@@ -60,27 +60,27 @@ namespace Fusion
         void CheckFlushShape();
 
         // Todo o estado do batch renderer vai para cá
-        GLuint m_BatchVAO = 0;
-        GLuint m_BatchVBO = 0;
-        GLuint m_BatchEBO = 0;
+        GLuint m_batchVAO = 0;
+        GLuint m_batchVBO = 0;
+        GLuint m_batchEBO = 0;
 
-        std::vector<Vertex> m_Vertices;
-        uint32_t m_VertexCount = 0;
+        std::vector<Vertex> m_vertices;
+        uint32_t m_vertexCount = 0;
 
-        GLuint m_DefaultTextureID = 0;
-        GLuint m_CurrentTextureID = 0;
-        Shader* m_CurrentShader = nullptr;
+        GLuint m_defaultTextureID = 0;
+        GLuint m_currentTextureID = 0;
+        Shader* m_currentShader = nullptr;
 
-        Shader m_TextureShader;
-        Shader m_TextShader;
+        Shader m_textureShader;
+        Shader m_textShader;
 
-        glm::mat4 m_Projection;
-        glm::mat4 m_View;
-        bool m_IsCameraActive = false;
+        glm::mat4 m_projection;
+        glm::mat4 m_view;
+        bool m_isCameraActive = false;
 
-        size_t m_MaxQuads;
-        size_t m_MaxVertices;
-        size_t m_MaxIndices;
+        size_t m_maxQuads;
+        size_t m_maxVertices;
+        size_t m_maxIndices;
     };
 
 } // namespace Fusion

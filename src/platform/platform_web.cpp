@@ -40,8 +40,8 @@ namespace Fusion
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
         m_window = glfwCreateWindow(width, height, title, NULL, NULL);
-        m_ViewPortWidth = width;
-        m_ViewPortHeight = height;
+        m_viewPortWidth = width;
+        m_viewPortHeight = height;
         
         if (!m_window)
         {
@@ -145,6 +145,11 @@ namespace Fusion
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
+    Sizei PlatformWeb::GetWindowSize() const
+    {
+        return Sizei(m_viewPortWidth, m_viewPortHeight);
+    }
+
     double PlatformWeb::GetTime() const
     {
         return glfwGetTime();
@@ -183,8 +188,8 @@ namespace Fusion
 
     void PlatformWeb::SetMainLoop(std::function<void()> loop)
     {
-        m_MainLoop = loop;
-        emscripten_set_main_loop_arg([](void* arg) { static_cast<PlatformWeb*>(arg)->m_MainLoop(); }, this, 0, 1);
+        m_mainLoop = loop;
+        emscripten_set_main_loop_arg([](void* arg) { static_cast<PlatformWeb*>(arg)->m_mainLoop(); }, this, 0, 1);
     }
 
 } // namespace Fusion

@@ -1,7 +1,6 @@
 #include "input.h"
 
 #include <cmath>   // para fabs
-#include <cstring> // Para memset
 
 namespace Fusion
 {

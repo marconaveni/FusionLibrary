@@ -10,7 +10,7 @@ namespace Fusion
 {
 
     Shader::Shader()
-        : ID(0)
+        : m_id(0)
     {
     }
 
@@ -37,11 +37,11 @@ namespace Fusion
         glCompileShader(fragment);
         CheckCompileErrors(fragment, "FRAGMENT");
         // shader Program
-        ID = glCreateProgram();
-        glAttachShader(ID, vertex);
-        glAttachShader(ID, fragment);
-        glLinkProgram(ID);
-        CheckCompileErrors(ID, "PROGRAM");
+        m_id = glCreateProgram();
+        glAttachShader(m_id, vertex);
+        glAttachShader(m_id, fragment);
+        glLinkProgram(m_id);
+        CheckCompileErrors(m_id, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer necessary
         glDeleteShader(vertex);
         glDeleteShader(fragment);
@@ -91,48 +91,48 @@ namespace Fusion
 
     void Shader::Use()
     {
-        glUseProgram(ID);
+        glUseProgram(m_id);
     }
 
     void Shader::SetBool(const std::string& name, bool value) const
     {
-        glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+        glUniform1i(glGetUniformLocation(m_id, name.c_str()), (int)value);
     }
 
     void Shader::SetInt(const std::string& name, int value) const
     {
-        glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+        glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
     }
 
     void Shader::SetFloat(const std::string& name, float value) const
     {
-        glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+        glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
     }
 
     void Shader::SetVec2(const std::string& name, float v1, float v2) const
     {
-        glUniform2f(glGetUniformLocation(ID, name.c_str()), v1, v2);
+        glUniform2f(glGetUniformLocation(m_id, name.c_str()), v1, v2);
     }
 
     void Shader::SetVec3(const std::string& name, float v1, float v2, float v3) const
     {
-        glUniform3f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3);
+        glUniform3f(glGetUniformLocation(m_id, name.c_str()), v1, v2, v3);
     }
 
     void Shader::SetVec4(const std::string& name, float v1, float v2, float v3, float v4) const
     {
-        glUniform4f(glGetUniformLocation(ID, name.c_str()), v1, v2, v3, v4);
+        glUniform4f(glGetUniformLocation(m_id, name.c_str()), v1, v2, v3, v4);
     }
 
     int Shader::GetUniformLocation(const std::string& name)
     {
-        if (uniformCache.find(name) != uniformCache.end())
+        if (m_uniformCache.find(name) != m_uniformCache.end())
         {
-            return uniformCache[name];
+            return m_uniformCache[name];
         }
 
-        int location = glGetUniformLocation(ID, name.c_str());
-        uniformCache[name] = location;
+        int location = glGetUniformLocation(m_id, name.c_str());
+        m_uniformCache[name] = location;
         return location;
     }
 
@@ -169,10 +169,10 @@ namespace Fusion
 
     void Shader::Unload()
     {
-        if (ID != 0)
+        if (m_id != 0)
         {
-            glDeleteProgram(ID);
-            ID = 0;
+            glDeleteProgram(m_id);
+            m_id = 0;
         }
     }
 } // namespace Fusion

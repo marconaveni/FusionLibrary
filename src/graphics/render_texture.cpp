@@ -12,18 +12,18 @@ namespace Fusion
     void RenderTexture::Load(int width, int height)
     {
         // 1. Cria o Framebuffer Object
-        glGenFramebuffers(1, &m_FboId);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_FboId);
+        glGenFramebuffers(1, &m_fboId);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_fboId);
 
         // 2. Cria a textura de cor vazia e a anexa ao FBO
         m_Texture = std::make_unique<Texture>(width, height);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_Texture->GetId(), 0);
 
         // 3. Cria o Renderbuffer Object para profundidade e estêncil
-        glGenRenderbuffers(1, &m_RboId);
-        glBindRenderbuffer(GL_RENDERBUFFER, m_RboId);
+        glGenRenderbuffers(1, &m_rboId);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_rboId);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RboId);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboId);
 
         // 4. Verifica se o FBO está completo
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -39,8 +39,8 @@ namespace Fusion
     {
         if (Core::HasWindowActive())
         {
-            glDeleteFramebuffers(1, &m_FboId);
-            glDeleteRenderbuffers(1, &m_RboId);
+            glDeleteFramebuffers(1, &m_fboId);
+            glDeleteRenderbuffers(1, &m_rboId);
             // O m_Texture é liberado automaticamente pelo unique_ptr
         }
     }

@@ -25,9 +25,9 @@ namespace Fusion
 
     private:
 
-        GLFWwindow* m_Window = nullptr;
-        int m_ViewPortWidth = 0;
-        int m_ViewPortHeight = 0;
+        GLFWwindow* m_window = nullptr;
+        int m_viewPortWidth = 0;
+        int m_viewPortHeight = 0;
         bool m_isResized = false;
 
         // GLFW callback
