@@ -21,6 +21,16 @@
 #include "sprite.h"
 #include "text.h"
 
+// note que isso é usado para evitar chamar bibliotecas do windows que podem causar muitos conflitos
+#if defined(_WIN32)
+extern "C"
+{
+    __declspec(dllimport) unsigned int __stdcall timeBeginPeriod(unsigned int uPeriod);
+    __declspec(dllimport) unsigned int __stdcall timeEndPeriod(unsigned int uPeriod);
+}
+#endif
+
+
 namespace Fusion
 {
 
@@ -35,6 +45,9 @@ namespace Fusion
 
     void Window::InitWindow(const char* title, int width, int height)
     {
+#if defined(_WIN32)
+        timeBeginPeriod(1);
+#endif
         Core::Init();
         Core::RegisterWindow();
 
@@ -51,12 +64,10 @@ namespace Fusion
         m_Platform->Init(title, width, height);
         m_Render->Init(width, height);
 
-
         m_DefaultProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
-
         m_defaultFont.LoadFromMemory(DefaultFont::NataSansRegular, DefaultFont::NataSansRegularLen, 32, 255);
-
         m_PreviousTime = GetTime();
+        frameCounter = 0;
     }
 
     void Window::Close()
@@ -69,6 +80,9 @@ namespace Fusion
             m_Platform->Shutdown();
             Core::UnregisterWindow();
         }
+#if defined(_WIN32)
+        timeEndPeriod(1);
+#endif
     }
 
     bool Window::WindowShouldClose()
@@ -93,12 +107,25 @@ namespace Fusion
 
     void Window::BeginDrawing()
     {
-        m_Platform->MakeContextCurrent();
+
+        // todo time
+
+        m_CurrentTime = GetTime();
+        update = m_CurrentTime - m_PreviousTime;
+        m_PreviousTime = m_CurrentTime; // Prepara para o próximo quadro
+
+        // Calcula o FPS com base no tempo final e real do quadro
+        if (m_FrameTime > 0.0)
+        {
+            m_Fps = static_cast<int>(1.0 / m_FrameTime);
+        }
+
+
+        m_Platform->MakeContextCurrent(); 
         if (IsWindowResize())
         {
             Sizei newSize = m_Platform->GetWindowSize();
-            glm::mat4 newProjection =
-                glm::ortho(0.0f, static_cast<float>(newSize.width), static_cast<float>(newSize.height), 0.0f);
+            glm::mat4 newProjection = glm::ortho(0.0f, static_cast<float>(newSize.width), static_cast<float>(newSize.height), 0.0f);
             m_Render->SetProjection(newProjection);
             m_DefaultProjection = newProjection;
         }
@@ -155,59 +182,50 @@ namespace Fusion
         m_Render->DrawRectangleLines(x, y, width, height, thick, color);
     }
 
+    void Window::WaitTime(double seconds)
+    {
+
+        if (seconds < 0)
+        {
+            return; // checagem de segurança
+        }
+
+        double destinationTime = GetTime() + seconds;
+
+        double sleepSeconds = seconds - seconds * 0.05;
+        std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(sleepSeconds * 1000)));
+
+        while (GetTime() < destinationTime)
+        {
+            std::this_thread::yield(); // cede CPU pra não fritar
+        }
+    }
+
     void Window::EndDrawing()
     {
         m_Render->EndRender();
 
-        // todo time
-
-
-        // Mede o tempo gasto na lógica do jogo e no desenho do quadro anterior
         m_CurrentTime = GetTime();
-        double workTime = m_CurrentTime - m_PreviousTime;
+        draw = m_CurrentTime - m_PreviousTime;
+        m_PreviousTime = m_CurrentTime;
 
-        // Se um FPS alvo está definido e o quadro foi rápido demais...
-        if (m_targetFrameTime > 0.0 && workTime < m_targetFrameTime)
+        m_FrameTime = update + draw;
+
+        if (m_FrameTime < m_target)
         {
-            double waitTime = m_targetFrameTime - workTime;
 
-            // Ponto no tempo que queremos atingir
-            double destinationTime = m_PreviousTime + m_targetFrameTime;
+            WaitTime(m_target - m_FrameTime);
 
-            // Espera híbrida (sleep + busy-wait) para alta precisão
-            if (waitTime > 0.0)
-            {
-                // Tenta dormir pela maior parte do tempo, deixando ~1ms para a espera ocupada
-                double sleepSeconds = waitTime - 0.001;
-                if (sleepSeconds > 0.0)
-                {
-                    // std::cout << sleepSeconds << "\n";
-                    // comentando esse bloco if o limitador de quadros funcionou bem
-                    std::this_thread::sleep_for(std::chrono::duration<double>(sleepSeconds));
-                }
+            m_CurrentTime = GetTime();
+            double waitTime = m_CurrentTime - m_PreviousTime;
+            m_PreviousTime = m_CurrentTime;
 
-#if !defined(FUSION_PLATFORM_WEB)
-                // Espera ocupada (busy-wait) para o tempo restante, garantindo precisão
-                while (GetTime() < destinationTime) {}
-#endif
-            }
+            m_FrameTime += waitTime;
         }
-
 
         m_Platform->PollEventsAndUpdate();
 
-        // todo time
-
-        // Mede o tempo final do quadro, incluindo a espera
-        m_CurrentTime = GetTime();
-        m_FrameTime = m_CurrentTime - m_PreviousTime;
-        m_PreviousTime = m_CurrentTime; // Prepara para o próximo quadro
-
-        // Calcula o FPS com base no tempo final e real do quadro
-        if (m_FrameTime > 0.0)
-        {
-            m_Fps = static_cast<int>(std::round(1.0 / m_FrameTime));
-        }
+        frameCounter++;
     }
 
     void Window::BeginScissorMode(int x, int y, int width, int height)
@@ -235,10 +253,10 @@ namespace Fusion
 
         glBindFramebuffer(GL_FRAMEBUFFER, target.GetFboId());
 
-        
+
         const auto size = target.GetTexture()->GetSize();
         glViewport(0, 0, size.width, size.height);
-        
+
         //std::cout << size.width << " x " << size.height << "\n";
 
         // Define uma nova projeção ortográfica para o tamanho da textura
@@ -283,14 +301,56 @@ namespace Fusion
         m_Render->EndBlendMode();
     }
 
-    float Window::GetFrameTime() const
+    double Window::GetFrameTime() const
     {
         return m_FrameTime;
     }
 
-    int Window::GetFPS() const
+    int Window::GetFPS()
     {
-        return m_Fps;
+        // using same code average fps used in raylib 
+        int fps = 0;
+
+        constexpr int fpsCaptureFramesCount = 30;   // 30 captures;
+        constexpr float fpsAverageTimeSeconds = 0.5f; // 500 milliseconds;
+        constexpr float fpsStep = (fpsAverageTimeSeconds / fpsCaptureFramesCount);
+
+        static int index = 0;
+        static float history[fpsCaptureFramesCount] = {};
+        static float average = 0; 
+        static float last = 0;
+        float fpsFrame = GetFrameTime();
+
+        // if we reset the window, reset the FPS info
+        if (frameCounter == 0)
+        {
+            average = 0;
+            last = 0;
+            index = 0;
+
+            for (int i = 0; i < fpsCaptureFramesCount; i++)
+            {
+                history[i] = 0;
+            }
+        }
+
+        if (fpsFrame == 0)
+        {
+            return 0;
+        }
+
+        if ((GetTime() - last) > fpsStep)
+        {
+            last = (float)GetTime();
+            index = (index + 1) % fpsCaptureFramesCount;
+            average -= history[index];
+            history[index] = fpsFrame / fpsCaptureFramesCount;
+            average += history[index];
+        }
+
+        fps = (int)roundf(1.0f / average);
+
+        return fps;
     }
 
     double Window::GetTime() const
@@ -302,11 +362,11 @@ namespace Fusion
     {
         if (fps > 0)
         {
-            m_targetFrameTime = 1.0 / static_cast<double>(fps);
+            m_target = 1.0 / static_cast<double>(fps);
         }
         else
         {
-            m_targetFrameTime = 0.0;
+            m_target = 0.0;
         }
     }
 

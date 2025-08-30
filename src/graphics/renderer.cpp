@@ -79,8 +79,7 @@ namespace Fusion
             SetProjection(m_Projection);
         }
 
-        if ((m_VertexCount + 4) > m_MaxVertices ||
-            (sprite.GetTexture()->GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
+        if ((m_VertexCount + 4) > m_MaxVertices || (sprite.GetTexture()->GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
         {
             Flush();
         }
@@ -166,11 +165,10 @@ namespace Fusion
         glm::vec2 texCoords = {0.0f, 0.0f}; // Coordenadas de textura podem ser qualquer coisa, já que a textura é 1x1
 
         // Adiciona os 4 vértices do retângulo ao lote
-        m_Vertices[m_VertexCount++] = {{(float)x, (float)(y + height), 0.0f}, glmColor, texCoords}; // Bottom-left
-        m_Vertices[m_VertexCount++] = {
-            {(float)(x + width), (float)(y + height), 0.0f}, glmColor, texCoords};                 // Bottom-right
-        m_Vertices[m_VertexCount++] = {{(float)(x + width), (float)y, 0.0f}, glmColor, texCoords}; // Top-right
-        m_Vertices[m_VertexCount++] = {{(float)x, (float)y, 0.0f}, glmColor, texCoords};           // Top-left
+        m_Vertices[m_VertexCount++] = {{(float)x, (float)(y + height), 0.0f}, glmColor, texCoords};           // Bottom-left
+        m_Vertices[m_VertexCount++] = {{(float)(x + width), (float)(y + height), 0.0f}, glmColor, texCoords}; // Bottom-right
+        m_Vertices[m_VertexCount++] = {{(float)(x + width), (float)y, 0.0f}, glmColor, texCoords};            // Top-right
+        m_Vertices[m_VertexCount++] = {{(float)x, (float)y, 0.0f}, glmColor, texCoords};                      // Top-left
     }
 
     void Renderer::DrawCircle(Vector2f center, float radius, Color color)

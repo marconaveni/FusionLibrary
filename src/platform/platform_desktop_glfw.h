@@ -21,7 +21,7 @@ namespace Fusion
         virtual void Clear(Color color) override;
         virtual Sizei GetWindowSize() const override;
         virtual bool IsWindowResized() override;
-        virtual float GetTime() const override;
+        virtual double GetTime() const override;
 
     private:
 
@@ -29,9 +29,6 @@ namespace Fusion
         int m_ViewPortWidth = 0;
         int m_ViewPortHeight = 0;
         bool m_isResized = false;
-
-
-        // Input m_input;
 
         // GLFW callback
         static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);

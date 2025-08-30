@@ -26,7 +26,7 @@ namespace Fusion
         virtual void Clear(Color color) = 0;
         virtual Sizei GetWindowSize() const = 0;
         virtual bool IsWindowResized() = 0;
-        virtual float GetTime() const = 0;
+        virtual double GetTime() const = 0;
 
 
         virtual void SetMainLoop(std::function<void()> loop) {};

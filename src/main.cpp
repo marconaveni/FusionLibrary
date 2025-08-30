@@ -34,8 +34,7 @@ void GetPosition(Fusion::Vector2f& pos)
     pos.y += Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_Y) * speed;
     pos.x += Fusion::Gamepad::GetGamepadAxisMovement(0, Fusion::Gamepad::Axis::AXIS_LEFT_X) * speed;
 
-    if (Fusion::Keyboard::IsKeyDown(Fusion::Keyboard::W) ||
-        Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP))
+    if (Fusion::Keyboard::IsKeyDown(Fusion::Keyboard::W) || Fusion::Gamepad::IsGamepadButtonDown(0, Fusion::Gamepad::Button::LEFT_FACE_UP))
     {
         pos.y -= speed;
     }
@@ -61,32 +60,32 @@ void GetPosition(Fusion::Vector2f& pos)
 // Função que representa um único frame do nosso jogo
 void UpdateAndDrawFrame(Fusion::Window& window)
 {
-        Fusion::Vector2f pos = player.GetPosition();
-        GetPosition(pos);
-        player.SetPosition(pos);
+    Fusion::Vector2f pos = player.GetPosition();
+    GetPosition(pos);
+    player.SetPosition(pos);
 
 
-        window.BeginTextureMode(target);
-        window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
-        window.Draw(player);
-        window.EndTextureMode();
+    window.BeginTextureMode(target);
+    window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
+    window.Draw(player);
+    window.EndTextureMode();
 
 
-        // --- DESENHO ---
-        window.BeginDrawing();
-        window.Clear({0.1f, 0.1f, 0.5f, 1.0f});
+    // --- DESENHO ---
+    window.BeginDrawing();
+    window.Clear({0.1f, 0.1f, 0.5f, 1.0f});
 
-        window.Draw(render);
+    window.Draw(render);
 
-        std::string fps = std::format("{} fps ", window.GetFPS());
-        fps.shrink_to_fit();
-        text.SetText(fps);
+    std::string fps = std::format("{} fps ", window.GetFPS());
+    fps.shrink_to_fit();
+    text.SetText(fps);
 
-        window.Draw(text);
-        window.Draw(player);
-        //window.DrawCircle({100, 100}, 50, {1.0f, 0.1f, 0.1f, 1.0f});
+    window.Draw(text);
+    window.Draw(player);
+    //window.DrawCircle({100, 100}, 50, {1.0f, 0.1f, 0.1f, 1.0f});
 
-        window.EndDrawing();
+    window.EndDrawing();
 }
 
 int main()
@@ -107,8 +106,8 @@ int main()
     player.SetSize({100, 100});
     player2.SetSize({100, 100});
 
-    window.SetTargetFPS(120);
-    
+    window.SetTargetFPS(60);
+
     target.Load(400, 400);
     render.SetTexture(*target.GetTexture());
     render.SetSize({400, 400});

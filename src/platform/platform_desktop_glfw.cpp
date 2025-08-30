@@ -9,24 +9,13 @@
 #include "fusion_math.h"
 #include "input.h"
 
-// note que isso é usado para evitar chamar bibliotecas do windows que podem causar muitos conflitos
-#if defined(_WIN32)
-extern "C"
-{
-    __declspec(dllimport) unsigned int __stdcall timeBeginPeriod(unsigned int uPeriod);
-    __declspec(dllimport) unsigned int __stdcall timeEndPeriod(unsigned int uPeriod);
-}
-#endif
+
 
 namespace Fusion
 {
 
     void PlatformDesktopGLFW::Init(const char* title, int width, int height)
     {
-#if defined(_WIN32)
-        timeBeginPeriod(1);
-#endif
-
         // glfwInit();
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -92,7 +81,10 @@ namespace Fusion
 
     void PlatformDesktopGLFW::MakeContextCurrent()
     {
-        glfwMakeContextCurrent(m_Window);
+        if(glfwGetCurrentContext() != m_Window) // só troca o contexto se for diferente 
+        {
+            glfwMakeContextCurrent(m_Window);  
+        }       
     }
 
     bool PlatformDesktopGLFW::WindowShouldClose()
@@ -203,10 +195,6 @@ namespace Fusion
 
     void PlatformDesktopGLFW::Shutdown()
     {
-#if defined(_WIN32)
-        timeEndPeriod(1);
-#endif
-
         if (m_Window != nullptr)
         {
             glfwDestroyWindow(m_Window);
@@ -237,7 +225,7 @@ namespace Fusion
         return false;
     }
 
-    float PlatformDesktopGLFW::GetTime() const
+    double PlatformDesktopGLFW::GetTime() const
     {
         return glfwGetTime();
     }

@@ -31,11 +31,10 @@ namespace Fusion
         virtual void Clear(Color color) override;
         virtual Sizei GetWindowSize() const override { return Sizei{m_ViewPortWidth, m_ViewPortHeight}; }
         virtual bool IsWindowResized() override { return false; }
-        virtual float GetTime() const override;
+        virtual double GetTime() const override;
 
         static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-        static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent,
-                                                 void* userData);
+        static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent, void* userData);
 
     private:
 

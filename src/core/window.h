@@ -55,8 +55,8 @@ namespace Fusion
         void EndBlendMode();
 
         // Timer
-        float GetFrameTime() const;
-        int GetFPS() const;
+        double GetFrameTime() const;
+        int GetFPS();
         double GetTime() const;
         void SetTargetFPS(int fps);
 
@@ -71,12 +71,16 @@ namespace Fusion
         glm::mat4 m_DefaultProjection; // Salvar a projeção da janela
         Font m_defaultFont;
 
+        void WaitTime(double seconds);
+        
         double m_CurrentTime = 0.0;
         double m_PreviousTime = 0.0;
         double m_FrameTime = 0.0;
-        double m_targetFrameTime = 0.0;
+        double m_target = 0.0;
+        double draw = 0;
+        double update = 0;
+        unsigned int frameCounter = 0;
         int m_Fps = 0;
-
     };
 
 } // namespace Fusion
