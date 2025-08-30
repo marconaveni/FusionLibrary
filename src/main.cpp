@@ -26,7 +26,7 @@ Fusion::Sprite render;
 float x = 5;
 float y = 5;
 float speed = 5.0f; // pixels por segundo
-
+Fusion::RenderTexture target;
 
 void GetPosition(Fusion::Vector2f& pos)
 {
@@ -61,22 +61,32 @@ void GetPosition(Fusion::Vector2f& pos)
 // Função que representa um único frame do nosso jogo
 void UpdateAndDrawFrame(Fusion::Window& window)
 {
-    Fusion::Vector2f pos = player.GetPosition();
-    GetPosition(pos);
-    player.SetPosition(pos);
+        Fusion::Vector2f pos = player.GetPosition();
+        GetPosition(pos);
+        player.SetPosition(pos);
 
 
-    window.BeginDrawing();
-    // Por enquanto, vamos limpar a tela com uma cor
-    window.Clear({0.5f, 0.8f, 0.1f, 1.0f});
-    window.DrawCircle({100, 100}, 50, {1.0f, 0.1f, 0.1f, 1.0f});
+        window.BeginTextureMode(target);
+        window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
+        window.Draw(player);
+        window.EndTextureMode();
 
-    window.Draw(player);
-    text.SetText("teste");
-    window.Draw(text);
 
-    // Futuramente, as chamadas de desenho virão aqui
-    window.EndDrawing();
+        // --- DESENHO ---
+        window.BeginDrawing();
+        window.Clear({0.1f, 0.1f, 0.5f, 1.0f});
+
+        window.Draw(render);
+
+        std::string fps = std::format("{} fps ", window.GetFPS());
+        fps.shrink_to_fit();
+        text.SetText(fps);
+
+        window.Draw(text);
+        window.Draw(player);
+        //window.DrawCircle({100, 100}, 50, {1.0f, 0.1f, 0.1f, 1.0f});
+
+        window.EndDrawing();
 }
 
 int main()
@@ -97,6 +107,11 @@ int main()
     player.SetSize({100, 100});
     player2.SetSize({100, 100});
 
+    window.SetTargetFPS(120);
+    
+    target.Load(400, 400);
+    render.SetTexture(*target.GetTexture());
+    render.SetSize({400, 400});
 
 #if defined(FUSION_PLATFORM_WEB)
 
@@ -104,39 +119,10 @@ int main()
 
 #else
 
-    window.SetTargetFPS(60);
-    Fusion::RenderTexture target(100, 100);
-    render.SetTexture(*target.GetTexture());
-    render.SetSize({400, 400});
 
     while (!window.WindowShouldClose())
     {
-        Fusion::Vector2f pos = player.GetPosition();
-        GetPosition(pos);
-        player.SetPosition(pos);
-
-
-        window.BeginTextureMode(target);
-        window.Clear({0.5f, 0.1f, 0.1f, 1.0f});
-
-        window.Draw(player);
-
-        window.EndTextureMode();
-
-
-        // --- DESENHO ---
-        window.BeginDrawing();
-        window.Clear({0.1f, 0.1f, 0.1f, 1.0f});
-
-        window.Draw(render);
-
-        std::string fps = std::format("{} fps ", window.GetFPS());
-        fps.shrink_to_fit();
-        text.SetText(fps);
-
-        window.Draw(text);
-
-        window.EndDrawing();
+        UpdateAndDrawFrame(window);
     }
 
     //texture.Unload();

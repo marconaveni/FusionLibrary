@@ -29,13 +29,9 @@ namespace Fusion
         virtual void InputEvents() override;
         virtual void Shutdown() override {}
         virtual void Clear(Color color) override;
-        virtual Sizei GetWindowSize() const override { return Sizei(); }
+        virtual Sizei GetWindowSize() const override { return Sizei{m_ViewPortWidth, m_ViewPortHeight}; }
         virtual bool IsWindowResized() override { return false; }
-        virtual void UpdateTime() override {}
-        virtual float GetFrameTime() const override { return 0.0f; }
-        virtual float GetTime() const override { return 0.0f; }
-        virtual int GetFPS() const override { return 0; }
-        virtual void SetTargetFPS(int fps) override {}
+        virtual float GetTime() const override;
 
         static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
         static EM_BOOL EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent,
@@ -45,6 +41,9 @@ namespace Fusion
 
         GLFWwindow* m_window = nullptr;
         std::function<void()> m_MainLoop;
+
+        int m_ViewPortWidth = 0;
+        int m_ViewPortHeight = 0;
     };
 } // namespace Fusion
 

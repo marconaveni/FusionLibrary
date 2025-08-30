@@ -63,19 +63,21 @@ namespace Fusion
     void Renderer::DrawTexture(const Sprite& sprite, Shader* customShader)
     {
 
+        if (sprite.GetTexture() == nullptr)
+        {
+            return;
+        }
+
         Shader* shaderToUse = customShader ? customShader : &m_TextureShader;
 
+        // 1. Verifica se o shader de textura precisa ser ativado
+        if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
+        {
+            Flush(); // Desenha qualquer lote antigo (como texto) com o shader antigo
 
-        if (sprite.GetTexture())
-
-            // 1. Verifica se o shader de textura precisa ser ativado
-            if (m_CurrentShader == nullptr || shaderToUse->ID != m_CurrentShader->ID)
-            {
-                Flush(); // Desenha qualquer lote antigo (como texto) com o shader antigo
-
-                m_CurrentShader = shaderToUse;
-                SetProjection(m_Projection);
-            }
+            m_CurrentShader = shaderToUse;
+            SetProjection(m_Projection);
+        }
 
         if ((m_VertexCount + 4) > m_MaxVertices ||
             (sprite.GetTexture()->GetId() != m_CurrentTextureID && m_CurrentTextureID != 0))
@@ -488,7 +490,7 @@ namespace Fusion
     void Renderer::CheckFlushShape()
     {
         // Se o lote atual estiver usando uma textura diferente, desenha o lote antigo.
-        if (m_CurrentTextureID != m_DefaultTextureID) 
+        if (m_CurrentTextureID != m_DefaultTextureID)
         {
             Flush();
         }

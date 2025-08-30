@@ -70,6 +70,13 @@ namespace Fusion
         std::unique_ptr<Platform> m_Platform;
         glm::mat4 m_DefaultProjection; // Salvar a projeção da janela
         Font m_defaultFont;
+
+        double m_CurrentTime = 0.0;
+        double m_PreviousTime = 0.0;
+        double m_FrameTime = 0.0;
+        double m_targetFrameTime = 0.0;
+        int m_Fps = 0;
+
     };
 
 } // namespace Fusion

@@ -6,8 +6,11 @@
 #include "platform_desktop_glfw.h"
 #endif
 
+
+#include <chrono> // Para std::chrono::duration
 #include <cmath>
 #include <iostream>
+#include <thread> // Para std::this_thread::sleep_for
 
 #include "camera2d.h"
 #include "core.h"
@@ -52,6 +55,8 @@ namespace Fusion
         m_DefaultProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
 
         m_defaultFont.LoadFromMemory(DefaultFont::NataSansRegular, DefaultFont::NataSansRegularLen, 32, 255);
+
+        m_PreviousTime = GetTime();
     }
 
     void Window::Close()
@@ -153,7 +158,56 @@ namespace Fusion
     void Window::EndDrawing()
     {
         m_Render->EndRender();
+
+        // todo time
+
+
+        // Mede o tempo gasto na lógica do jogo e no desenho do quadro anterior
+        m_CurrentTime = GetTime();
+        double workTime = m_CurrentTime - m_PreviousTime;
+
+        // Se um FPS alvo está definido e o quadro foi rápido demais...
+        if (m_targetFrameTime > 0.0 && workTime < m_targetFrameTime)
+        {
+            double waitTime = m_targetFrameTime - workTime;
+
+            // Ponto no tempo que queremos atingir
+            double destinationTime = m_PreviousTime + m_targetFrameTime;
+
+            // Espera híbrida (sleep + busy-wait) para alta precisão
+            if (waitTime > 0.0)
+            {
+                // Tenta dormir pela maior parte do tempo, deixando ~1ms para a espera ocupada
+                double sleepSeconds = waitTime - 0.001;
+                if (sleepSeconds > 0.0)
+                {
+                    // std::cout << sleepSeconds << "\n";
+                    // comentando esse bloco if o limitador de quadros funcionou bem
+                    std::this_thread::sleep_for(std::chrono::duration<double>(sleepSeconds));
+                }
+
+#if !defined(FUSION_PLATFORM_WEB)
+                // Espera ocupada (busy-wait) para o tempo restante, garantindo precisão
+                while (GetTime() < destinationTime) {}
+#endif
+            }
+        }
+
+
         m_Platform->PollEventsAndUpdate();
+
+        // todo time
+
+        // Mede o tempo final do quadro, incluindo a espera
+        m_CurrentTime = GetTime();
+        m_FrameTime = m_CurrentTime - m_PreviousTime;
+        m_PreviousTime = m_CurrentTime; // Prepara para o próximo quadro
+
+        // Calcula o FPS com base no tempo final e real do quadro
+        if (m_FrameTime > 0.0)
+        {
+            m_Fps = static_cast<int>(std::round(1.0 / m_FrameTime));
+        }
     }
 
     void Window::BeginScissorMode(int x, int y, int width, int height)
@@ -181,8 +235,11 @@ namespace Fusion
 
         glBindFramebuffer(GL_FRAMEBUFFER, target.GetFboId());
 
+        
         const auto size = target.GetTexture()->GetSize();
         glViewport(0, 0, size.width, size.height);
+        
+        //std::cout << size.width << " x " << size.height << "\n";
 
         // Define uma nova projeção ortográfica para o tamanho da textura
         glm::mat4 textureProjection = glm::ortho(0.0f, (float)size.width, (float)size.height, 0.0f);
@@ -228,12 +285,12 @@ namespace Fusion
 
     float Window::GetFrameTime() const
     {
-        return m_Platform->GetFrameTime();
+        return m_FrameTime;
     }
 
     int Window::GetFPS() const
     {
-        return m_Platform->GetFPS();
+        return m_Fps;
     }
 
     double Window::GetTime() const
@@ -243,7 +300,14 @@ namespace Fusion
 
     void Window::SetTargetFPS(int fps)
     {
-        m_Platform->SetTargetFPS(fps);
+        if (fps > 0)
+        {
+            m_targetFrameTime = 1.0 / static_cast<double>(fps);
+        }
+        else
+        {
+            m_targetFrameTime = 0.0;
+        }
     }
 
     Font& Window::GetDefaultFont()

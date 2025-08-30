@@ -9,7 +9,7 @@ namespace Fusion
 {
     // Precisaremos de um novo construtor na classe Texture para criar uma textura vazia
     // Vamos assumir que ele existe por enquanto.
-    RenderTexture::RenderTexture(int width, int height)
+    void RenderTexture::Load(int width, int height)
     {
         // 1. Cria o Framebuffer Object
         glGenFramebuffers(1, &m_FboId);

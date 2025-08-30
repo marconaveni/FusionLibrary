@@ -26,11 +26,8 @@ namespace Fusion
         virtual void Clear(Color color) = 0;
         virtual Sizei GetWindowSize() const = 0;
         virtual bool IsWindowResized() = 0;
-        virtual void UpdateTime() = 0;
-        virtual float GetFrameTime() const = 0;
         virtual float GetTime() const = 0;
-        virtual int GetFPS() const = 0;
-        virtual void SetTargetFPS(int fps) = 0;
+
 
         virtual void SetMainLoop(std::function<void()> loop) {};
     };

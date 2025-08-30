@@ -4,8 +4,8 @@
 #include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "core.h"
+#include "stb_image.h"
 
 namespace Fusion
 {
@@ -70,8 +70,8 @@ namespace Fusion
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
         // set the texture wrapping parameters
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                        GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        // set texture wrapping to GL_REPEAT (default wrapping method)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
         // set texture filtering parameters

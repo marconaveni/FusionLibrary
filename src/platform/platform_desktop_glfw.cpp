@@ -1,9 +1,9 @@
 #include "platform_desktop_glfw.h"
 
-#include <chrono> // Para std::chrono::duration
+// #include <chrono> // Para std::chrono::duration
 #include <cmath>
 #include <iostream>
-#include <thread> // Para std::this_thread::sleep_for
+// #include <thread> // Para std::this_thread::sleep_for
 
 #include "core.h"
 #include "fusion_math.h"
@@ -82,7 +82,7 @@ namespace Fusion
             }
         }
 
-        m_PreviousTime = glfwGetTime();
+        glfwSwapInterval(0);  // Desativa o VSync para usar nosso controle manual
     }
 
     bool PlatformDesktopGLFW::IsWindowActive()
@@ -103,34 +103,7 @@ namespace Fusion
     void PlatformDesktopGLFW::PollEventsAndUpdate()
     {
 
-        // Mede o tempo gasto na lógica do jogo e no desenho do quadro anterior
-        m_CurrentTime = glfwGetTime();
-        double workTime = m_CurrentTime - m_PreviousTime;
 
-        // Se um FPS alvo está definido e o quadro foi rápido demais...
-        if (m_targetFrameTime > 0.0 && workTime < m_targetFrameTime)
-        {
-            double waitTime = m_targetFrameTime - workTime;
-
-            // Ponto no tempo que queremos atingir
-            double destinationTime = m_PreviousTime + m_targetFrameTime;
-
-            // Espera híbrida (sleep + busy-wait) para alta precisão
-            if (waitTime > 0.0)
-            {
-                // Tenta dormir pela maior parte do tempo, deixando ~1ms para a espera ocupada
-                double sleepSeconds = waitTime - 0.001;
-                if (sleepSeconds > 0.0)
-                {
-                    // std::cout << sleepSeconds << "\n";
-                    // comentando esse bloco if o limitador de quadros funcionou bem
-                    std::this_thread::sleep_for(std::chrono::duration<double>(sleepSeconds));
-                }
-
-                // Espera ocupada (busy-wait) para o tempo restante, garantindo precisão
-                while (glfwGetTime() < destinationTime) {}
-            }
-        }
 
         // Troca os buffers APÓS a espera
         glfwSwapBuffers(m_Window);
@@ -141,16 +114,7 @@ namespace Fusion
         // Processa os eventos de janela (como fechar)
         glfwPollEvents();
 
-        // Mede o tempo final do quadro, incluindo a espera
-        m_CurrentTime = glfwGetTime();
-        m_FrameTime = m_CurrentTime - m_PreviousTime;
-        m_PreviousTime = m_CurrentTime; // Prepara para o próximo quadro
 
-        // Calcula o FPS com base no tempo final e real do quadro
-        if (m_FrameTime > 0.0)
-        {
-            m_Fps = static_cast<int>(std::round(1.0 / m_FrameTime));
-        }
     }
 
     void PlatformDesktopGLFW::InputEvents()
@@ -273,43 +237,11 @@ namespace Fusion
         return false;
     }
 
-    void PlatformDesktopGLFW::UpdateTime()
-    {
-
-        ////////////////////////////  todo: isso deve ser removido depois
-    }
-
-    float PlatformDesktopGLFW::GetFrameTime() const
-    {
-        return m_FrameTime;
-    }
-
     float PlatformDesktopGLFW::GetTime() const
     {
         return glfwGetTime();
     }
 
-    int PlatformDesktopGLFW::GetFPS() const
-    {
-        return m_Fps;
-    }
-
-    void PlatformDesktopGLFW::SetTargetFPS(int fps)
-    {
-
-        if (fps > 0)
-        {
-            // Desativa o VSync para usar nosso controle manual
-            glfwSwapInterval(0);
-            m_targetFrameTime = 1.0 / static_cast<double>(fps);
-        }
-        else
-        {
-            // Ativa o VSync novamente
-            glfwSwapInterval(1);
-            m_targetFrameTime = 0.0;
-        }
-    }
 
     void PlatformDesktopGLFW::FramebufferSizeCallback(GLFWwindow* window, int width, int height)
     {

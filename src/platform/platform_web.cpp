@@ -40,6 +40,9 @@ namespace Fusion
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
         m_window = glfwCreateWindow(width, height, title, NULL, NULL);
+        m_ViewPortWidth = width;
+        m_ViewPortHeight = height;
+        
         if (!m_window)
         {
             std::cerr << "PlatformWeb: Failed to create GLFW window" << std::endl;
@@ -140,6 +143,11 @@ namespace Fusion
     {
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    float PlatformWeb::GetTime() const
+    {
+        return glfwGetTime();
     }
 
     void PlatformWeb::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
