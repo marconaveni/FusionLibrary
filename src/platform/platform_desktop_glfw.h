@@ -4,6 +4,8 @@
 #include "core.h"
 #include "platform.h"
 
+struct GLFWwindow;
+
 namespace Fusion
 {
 
@@ -11,9 +13,8 @@ namespace Fusion
     {
     public:
 
-        virtual void Init(const char* title, int width, int height) override;
+        virtual bool Init(const char* title, int width, int height) override;
         virtual bool IsWindowActive() override;
-        virtual void MakeContextCurrent() override;
         virtual bool WindowShouldClose() override;
         virtual void PollEventsAndUpdate() override;
         virtual void InputEvents() override;

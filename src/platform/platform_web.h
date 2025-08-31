@@ -21,13 +21,12 @@ namespace Fusion
 
         virtual void SetMainLoop(std::function<void()> loop) override;
 
-        virtual void Init(const char* title, int width, int height) override;
+        virtual bool Init(const char* title, int width, int height) override;
         virtual bool IsWindowActive() override { return false; }
-        virtual void MakeContextCurrent() override {};
         virtual bool WindowShouldClose() override { return false; }
         virtual void PollEventsAndUpdate() override;
         virtual void InputEvents() override;
-        virtual void Shutdown() override {}
+        virtual void Shutdown() override;
         virtual void Clear(Color color) override;
         virtual Sizei GetWindowSize() const override;
         virtual bool IsWindowResized() override { return false; }

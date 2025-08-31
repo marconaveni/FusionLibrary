@@ -27,7 +27,7 @@ namespace Fusion
         Window();
         ~Window();
 
-        void InitWindow(const char* title, int width, int height);
+        bool InitWindow(const char* title, int width, int height);
         void Close();
         bool WindowShouldClose();
         bool IsWindowResize();

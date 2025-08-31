@@ -88,7 +88,8 @@ void UpdateAndDrawFrame(Fusion::Window& window)
     window.EndDrawing();
 }
 
-int main()
+
+void Create()
 {
     Fusion::Window window;
     window.InitWindow("Teste de Input", 800, 600);
@@ -124,8 +125,15 @@ int main()
         UpdateAndDrawFrame(window);
     }
 
-    //texture.Unload();
-    //window.Close();
+    target.Unload();
+    texture.Unload();
+    window.Close();
 #endif
+}
+
+int main()
+{
+    Create();
+    Create();
     return 0;
 }

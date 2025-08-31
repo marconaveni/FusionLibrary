@@ -2,64 +2,61 @@
 
 #include <iostream>
 
+// note que isso é usado para evitar chamar bibliotecas do windows que podem causar muitos conflitos
+#if defined(_WIN32)
+extern "C"
+{
+    __declspec(dllimport) unsigned int __stdcall timeBeginPeriod(unsigned int uPeriod);
+    __declspec(dllimport) unsigned int __stdcall timeEndPeriod(unsigned int uPeriod);
+}
+#endif
+
+
 namespace Fusion
 {
 
-    int Core::s_ActiveWindowCount = 0;
-    bool Core::s_IsInitialized = false;
-    GLFWwindow* Core::s_sharedWindow = nullptr;
-
-
-    void Core::Init()
+    Core::Core()
     {
-        // Só inicializa a GLFW uma vez
-        if (!s_IsInitialized)
-        {
-
-#if !defined(FUSION_PLATFORM_WEB)
-            if (glfwInit())
-            {
-                s_IsInitialized = true;
-                std::cout << "INFO::CORE::GLFW inicializada.\n";
-            }
+#if defined(_WIN32)
+        timeBeginPeriod(1);
 #endif
-        }
     }
 
-    void Core::Shutdown()
+    Core::~Core()
     {
-        // Só finaliza a GLFW se ela foi inicializada
-        if (s_IsInitialized)
-        {
-#if !defined(FUSION_PLATFORM_WEB)
-            glfwTerminate();
+#if defined(_WIN32)
+        timeEndPeriod(1);
 #endif
-            s_IsInitialized = false;
-            std::cout << "INFO::CORE::GLFW finalizada.\n";
-        }
     }
 
-    void Core::PollEvents()
+    bool Core::HasWindowActive()
     {
-#if !defined(FUSION_PLATFORM_WEB)
-        glfwPollEvents();
-#endif
+        return GetInstance().m_isInitialized;
     }
 
     void Core::RegisterWindow()
     {
-        s_ActiveWindowCount++;
+        if (!m_isInitialized)
+        {
+            m_isInitialized = true;
+            std::cout << "INFO::CORE::GLFW(WEB) inicializada.\n";
+        }
     }
 
     void Core::UnregisterWindow()
     {
-        s_ActiveWindowCount--;
-
-        // Se for a última janela a ser fechada, desliga a GLFW
-        if (s_ActiveWindowCount == 0)
+        if (m_isInitialized)
         {
-            Shutdown();
+            m_isInitialized = false;
+            std::cout << "INFO::CORE::WINDOW finalizada.\n";
         }
     }
+
+    Core& Core::GetInstance()
+    {
+        static Core instance;
+        return instance;
+    }
+
 
 } // namespace Fusion

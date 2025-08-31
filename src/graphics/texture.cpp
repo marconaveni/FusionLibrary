@@ -42,6 +42,7 @@ namespace Fusion
 
     Texture::Texture()
     {
+        m_isFboTexture = false;
     }
 
     Texture::~Texture()
@@ -135,7 +136,7 @@ namespace Fusion
 
     void Texture::Unload()
     {
-        if (m_id != 0 && Core::HasWindowActive())
+        if (m_id != 0)
         {
             glDeleteTextures(1, &m_id);
             m_id = 0; // Evita dupla liberação

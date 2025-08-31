@@ -19,20 +19,15 @@ namespace Fusion
 
     PlatformWeb::~PlatformWeb()
     {
-        if (m_window)
-        {
-            glfwDestroyWindow(m_window);
-        }
-        glfwTerminate();
     }
 
-    void PlatformWeb::Init(const char* title, int width, int height)
+    bool PlatformWeb::Init(const char* title, int width, int height)
     {
         std::cout << "PlatformWeb: Initializing graphics..." << std::endl;
         if (!glfwInit())
         {
             std::cerr << "PlatformWeb: Failed to initialize GLFW" << std::endl;
-            return;
+            return false;
         }
 
         // Dicas para o Emscripten criar um contexto WebGL2
@@ -42,12 +37,12 @@ namespace Fusion
         m_window = glfwCreateWindow(width, height, title, NULL, NULL);
         m_viewPortWidth = width;
         m_viewPortHeight = height;
-        
+
         if (!m_window)
         {
             std::cerr << "PlatformWeb: Failed to create GLFW window" << std::endl;
             glfwTerminate();
-            return;
+            return false;
         }
 
         glfwMakeContextCurrent(m_window);
@@ -57,7 +52,7 @@ namespace Fusion
         if (!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress))
         {
             std::cerr << "PlatformWeb: Failed to initialize GLAD" << std::endl;
-            return;
+            return false;
         }
 
         std::cout << "PlatformWeb: Graphics initialized successfully!" << std::endl;
@@ -68,6 +63,8 @@ namespace Fusion
 
         emscripten_set_gamepadconnected_callback(NULL, 1, EmscriptenGamepadCallback);
         emscripten_set_gamepaddisconnected_callback(NULL, 1, EmscriptenGamepadCallback);
+
+        return true;
     }
 
     void PlatformWeb::PollEventsAndUpdate()
@@ -139,6 +136,17 @@ namespace Fusion
         }
     }
 
+    void PlatformWeb::Shutdown()
+    {
+        if (m_window)
+        {
+            glfwDestroyWindow(m_window);
+            m_window = nullptr;
+            std::cout << "Close Window\n";
+        }
+        glfwTerminate();
+    }
+
     void PlatformWeb::Clear(Color color)
     {
         glClearColor(color.r, color.g, color.b, color.a);
@@ -170,8 +178,7 @@ namespace Fusion
         }
     }
 
-    EM_BOOL PlatformWeb::EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent,
-                                                   void* userData)
+    EM_BOOL PlatformWeb::EmscriptenGamepadCallback(int eventType, const EmscriptenGamepadEvent* gamepadEvent, void* userData)
     {
         if (gamepadEvent->connected && (gamepadEvent->index < Gamepad::gamePadCount))
         {

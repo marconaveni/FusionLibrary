@@ -14,8 +14,10 @@ namespace Fusion
         RenderTexture& operator=(const RenderTexture&) = delete;
 
         RenderTexture() = default;
+        RenderTexture(int width, int height);
         void Load(int width, int height);
         ~RenderTexture();
+        void Unload();
 
         unsigned int GetFboId() const { return m_fboId; }
         const Texture* GetTexture() const { return m_Texture.get(); }

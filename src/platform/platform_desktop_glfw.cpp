@@ -1,56 +1,56 @@
 #include "platform_desktop_glfw.h"
 
-// #include <chrono> // Para std::chrono::duration
 #include <cmath>
 #include <iostream>
-// #include <thread> // Para std::this_thread::sleep_for
 
 #include "core.h"
 #include "fusion_math.h"
 #include "input.h"
 
 
+#define GLFW_INCLUDE_NONE // Disable the standard OpenGL header inclusion on GLFW3
+#include <GLFW/glfw3.h>
+#include <glad/glad.h>
+
 
 namespace Fusion
 {
 
-    void PlatformDesktopGLFW::Init(const char* title, int width, int height)
+    bool PlatformDesktopGLFW::Init(const char* title, int width, int height)
     {
-        // glfwInit();
+
+        std::cout << "INFO::CORE::GLFW Initializing graphics..." << std::endl;
+        if (!glfwInit())
+        {
+            std::cerr << "INFO::CORE::GLFW Failed to initialize" << std::endl;
+            return false;
+        }
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        GLFWwindow* shareWindow = nullptr;
-        if (Core::s_sharedWindow != nullptr)
-        {
-            // Converte o Platform* genérico para a nossa implementação específica para obter o GLFWwindow*
-            shareWindow = Core::s_sharedWindow;
-        }
 
-        m_window = glfwCreateWindow(width, height, title, NULL, shareWindow);
+        m_window = glfwCreateWindow(width, height, title, NULL, NULL);
         m_viewPortWidth = width;
         m_viewPortHeight = height;
 
-        Core::s_sharedWindow = m_window;
 
         if (!m_window)
         {
             std::cerr << "Erro ao criar janela\n";
             glfwTerminate();
-            return;
+            return false;
         }
 
-        glfwSwapInterval(1); // enable v-sync
 
-        glfwMakeContextCurrent(m_window);
+        glfwMakeContextCurrent(m_window);         // marca está janela como a atual do contexto do glfw
         glfwSetWindowUserPointer(m_window, this); // guarda um ponteiro da classe no glfw
 
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         {
             std::cerr << "Erro ao inicializar GLAD\n";
-            return;
+            return false;
         }
 
         // Registra as funções de callback no GLFW
@@ -71,20 +71,14 @@ namespace Fusion
             }
         }
 
-        glfwSwapInterval(0);  // Desativa o VSync para usar nosso controle manual
+        glfwSwapInterval(0); // Desativa o VSync para usar nosso controle manual
+
+        return true;
     }
 
     bool PlatformDesktopGLFW::IsWindowActive()
     {
         return m_window != nullptr;
-    }
-
-    void PlatformDesktopGLFW::MakeContextCurrent()
-    {
-        if(glfwGetCurrentContext() != m_window) // só troca o contexto se for diferente 
-        {
-            glfwMakeContextCurrent(m_window);  
-        }       
     }
 
     bool PlatformDesktopGLFW::WindowShouldClose()
@@ -94,19 +88,9 @@ namespace Fusion
 
     void PlatformDesktopGLFW::PollEventsAndUpdate()
     {
-
-
-
-        // Troca os buffers APÓS a espera
-        glfwSwapBuffers(m_window);
-
-        // Atualiza o estado do input para o próximo quadro
-        InputEvents();
-
-        // Processa os eventos de janela (como fechar)
-        glfwPollEvents();
-
-
+        glfwSwapBuffers(m_window); // Troca os buffers APÓS a espera
+        InputEvents();             // Atualiza o estado do input para o próximo quadro
+        glfwPollEvents();          // Processa os eventos de janela (como fechar)
     }
 
     void PlatformDesktopGLFW::InputEvents()
@@ -163,12 +147,10 @@ namespace Fusion
                     {
                         if ((state.buttons[j] == GLFW_PRESS))
                         {
-                            //std::cout << "button values: " << button << " | j values: " << j << "\n";
                             Input::GetInstance().UpdateGamePadCurrentState(i, button, true);
                         }
                         else
                         {
-                            //std::cout << j << "\n";
                             Input::GetInstance().UpdateGamePadCurrentState(i, button, false);
                         }
                     }
@@ -198,10 +180,10 @@ namespace Fusion
         if (m_window != nullptr)
         {
             glfwDestroyWindow(m_window);
-            // glfwTerminate();
             m_window = nullptr;
             std::cout << "Close Window\n";
         }
+        glfwTerminate();
     }
 
     void PlatformDesktopGLFW::Clear(Color color)

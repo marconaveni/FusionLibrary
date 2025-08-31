@@ -21,14 +21,6 @@
 #include "sprite.h"
 #include "text.h"
 
-// note que isso é usado para evitar chamar bibliotecas do windows que podem causar muitos conflitos
-#if defined(_WIN32)
-extern "C"
-{
-    __declspec(dllimport) unsigned int __stdcall timeBeginPeriod(unsigned int uPeriod);
-    __declspec(dllimport) unsigned int __stdcall timeEndPeriod(unsigned int uPeriod);
-}
-#endif
 
 
 namespace Fusion
@@ -43,14 +35,15 @@ namespace Fusion
         Close();
     }
 
-    void Window::InitWindow(const char* title, int width, int height)
-    {
-#if defined(_WIN32)
-        timeBeginPeriod(1);
-#endif
-        Core::Init();
-        Core::RegisterWindow();
-
+    bool Window::InitWindow(const char* title, int width, int height)
+    {    
+        
+        if (Core::HasWindowActive())
+        {
+            std::cout << "Não pode iniciar a uma janela ativa\n";
+            return false;
+        }
+        
         m_renderer = std::make_unique<Renderer>();
 
 #if defined(FUSION_PLATFORM_WEB)
@@ -61,13 +54,21 @@ namespace Fusion
         m_platform = std::make_unique<PlatformDesktopGLFW>();
 #endif
 
-        m_platform->Init(title, width, height);
+        
+        if(!m_platform->Init(title, width, height))
+        {
+            return false;
+        }
+        Core::GetInstance().RegisterWindow();
         m_renderer->Init(width, height);
 
         m_defaultProjection = glm::ortho(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
         m_defaultFont.LoadFromMemory(DefaultFont::NataSansRegular, DefaultFont::NataSansRegularLen, 32, 255);
         m_time.previous = GetTime();
         m_time.frameCounter = 0;
+
+        return true;
+
     }
 
     void Window::Close()
@@ -78,11 +79,8 @@ namespace Fusion
             m_defaultFont.Unload();
             m_renderer->Shutdown();
             m_platform->Shutdown();
-            Core::UnregisterWindow();
+            Core::GetInstance().UnregisterWindow();
         }
-#if defined(_WIN32)
-        timeEndPeriod(1);
-#endif
     }
 
     bool Window::WindowShouldClose()
@@ -108,20 +106,15 @@ namespace Fusion
     void Window::BeginDrawing()
     {
 
-        // todo time
-
         m_time.current = GetTime();
         m_time.update = m_time.current - m_time.previous;
-        m_time.previous = m_time.current; // Prepara para o próximo quadro
+        m_time.previous = m_time.current; 
 
-        // Calcula o FPS com base no tempo final e real do quadro
         if (m_time.frame > 0.0)
         {
             m_time.fps = static_cast<int>(1.0 / m_time.frame);
         }
 
-
-        m_platform->MakeContextCurrent(); 
         if (IsWindowResize())
         {
             Sizei newSize = m_platform->GetWindowSize();
