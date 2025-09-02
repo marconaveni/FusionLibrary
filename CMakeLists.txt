@@ -7,9 +7,11 @@ set(CMAKE_CXX_STANDARD 23)
 option(FUSION_BUILD_FOR_WEB "Set to ON to build for WebAssembly with Emscripten" OFF)
 
 
-
 file(GLOB_RECURSE FUSION_SOURCE_FILE "src/*.cpp")
 file(GLOB_RECURSE FUSION_HEADER_FILE "src/*.h")
+
+file(GLOB_RECURSE FUSION_AUDIO_SOURCE_FILE "src/audio/*.cpp")
+file(GLOB_RECURSE FUSION_AUDIO_HEADER_FILE "src/audio/*.h")
 
 file(GLOB_RECURSE FUSION_CORE_SOURCE_FILE "src/core/*.cpp")
 file(GLOB_RECURSE FUSION_CORE_HEADER_FILE "src/core/*.h")
@@ -22,6 +24,10 @@ file(GLOB_RECURSE FUSION_PLATFORM_HEADER_FILE "src/platform/*.h")
 
 file(GLOB_RECURSE FUSION_SYSTEM_SOURCE_FILE "src/system/*.cpp")
 file(GLOB_RECURSE FUSION_SYSTEM_HEADER_FILE "src/system/*.h")
+
+
+source_group("Audio" FILES ${FUSION_AUDIO_SOURCE_FILE})
+source_group("Audio" FILES ${FUSION_AUDIO_HEADER_FILE})
 
 source_group("Core" FILES ${FUSION_CORE_SOURCE_FILE})
 source_group("Core" FILES ${FUSION_CORE_HEADER_FILE})
@@ -36,7 +42,7 @@ source_group("System" FILES ${FUSION_SYSTEM_SOURCE_FILE})
 source_group("System" FILES ${FUSION_SYSTEM_HEADER_FILE})
 
 
-# message(FATAL ${FUSION_SOURCE_FILE})
+#message(FATAL ${FUSION_SOURCE_FILE})
 
 set(FUSION_COMMON_SOURCES
     src/core/core.cpp
@@ -56,15 +62,18 @@ set(FUSION_COMMON_SOURCES
     src/graphics/transformable.cpp
     src/system/fusion_utf8.cpp
     src/main.cpp
+    ${FUSION_AUDIO_SOURCE_FILE}
 )
 
 set(FUSION_COMMON_INCLUDES
     "include"
     "libs/external"
+    "libs/raudio/src"
     "src/core"
     "src/graphics"
     "src/platform"
     "src/system"
+    "src/audio"
 )
 
 # Definição do Executável (movido para cima para que possamos definir propriedades nele)
@@ -79,10 +88,13 @@ if(FUSION_BUILD_FOR_WEB)
     # Linkamos contra a biblioteca 'GL' que o Emscripten fornece.
     set(FUSION_PLATFORM_LIBS GL) 
 
-    # Adiciona a definição para que o código C++ saiba que está na web
-    target_compile_definitions(fusion PRIVATE FUSION_PLATFORM_WEB)
+    set(FUSION_COMPILE_DEFINITIONS FUSION_PLATFORM_WEB)
     
-    set_property(TARGET fusion APPEND_STRING PROPERTY LINK_FLAGS " -s FULL_ES3=1  -s USE_GLFW=3  --preload-file ../assets/ ")  # parametros estão hardcode deixar dinamico  
+    set(EM_FLAGS "-s FULL_ES3=1 -s USE_GLFW=3 -s ALLOW_MEMORY_GROWTH=1")
+    set(EM_FLAGS "${EM_FLAGS} -sEXPORTED_RUNTIME_METHODS=HEAPF32,ccall,cwrap")
+    set(EM_FLAGS "${EM_FLAGS} --preload-file ../assets/") # parametro --preload-file estão hardcode deixar dinamico  
+    set_property(TARGET fusion APPEND_STRING PROPERTY LINK_FLAGS "${EM_FLAGS}") 
+    
     set(CMAKE_EXECUTABLE_SUFFIX ".html")
 
     set(FUSION_PLATFORM_SOURCES 
@@ -126,10 +138,15 @@ else()
     )
 endif()
 
+
+file(GLOB RAUDIO_SOURCES "libs/raudio/src/*.c")
+
+
 # Adiciona todos os fontes ao executável
 target_sources(fusion PRIVATE 
     ${FUSION_COMMON_SOURCES}
     ${FUSION_PLATFORM_SOURCES}
+    ${RAUDIO_SOURCES}
 )
 
 # Inclusão de Diretórios
@@ -138,6 +155,14 @@ target_include_directories(fusion PRIVATE
     ${FUSION_INCLUDE_GLAD}
 )
 
+# adiciona as definições 
+target_compile_definitions(fusion PRIVATE 
+    ${FUSION_COMPILE_DEFINITIONS}
+    RAUDIO_STANDALONE
+    SUPPORT_MODULE_RAUDIO
+)
+    
+
 # Link de Bibliotecas
 target_link_libraries(fusion PRIVATE ${FUSION_PLATFORM_LIBS})
 
@@ -145,6 +170,6 @@ target_link_libraries(fusion PRIVATE ${FUSION_PLATFORM_LIBS})
 if(WIN32 AND NOT FUSION_BUILD_FOR_WEB)
     target_link_libraries(fusion PRIVATE winmm)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT FUSION_BUILD_FOR_WEB)
-    # Nenhuma biblioteca extra necessária.
+    target_link_libraries(fusion PRIVATE pthread dl m)
 endif()
 

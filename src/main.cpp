@@ -10,6 +10,7 @@
 #include "sprite.h"
 #include "text.h"
 #include "window.h"
+#include "sound.h"
 
 
 #if defined(FUSION_PLATFORM_WEB)
@@ -27,6 +28,7 @@ float x = 5;
 float y = 5;
 float speed = 5.0f; // pixels por segundo
 Fusion::RenderTexture target;
+Fusion::Sound sound;
 
 void GetPosition(Fusion::Vector2f& pos)
 {
@@ -113,6 +115,9 @@ void Create()
     render.SetTexture(*target.GetTexture());
     render.SetSize({400, 400});
 
+    sound.LoadFromFile("../../assets/nihilor-sparkwood-and-21.ogg");
+    sound.Play();
+
 #if defined(FUSION_PLATFORM_WEB)
 
     window.SetMainLoop([&]() { UpdateAndDrawFrame(window); });
@@ -134,6 +139,6 @@ void Create()
 int main()
 {
     Create();
-    Create();
+    //Create();
     return 0;
 }

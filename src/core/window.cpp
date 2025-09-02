@@ -20,6 +20,7 @@
 #include "renderer.h"
 #include "sprite.h"
 #include "text.h"
+#include "audio_device.h"
 
 
 
@@ -53,7 +54,8 @@ namespace Fusion
         // Senão, usa a plataforma de desktop padrão
         m_platform = std::make_unique<PlatformDesktopGLFW>();
 #endif
-
+        
+        AudioDevice::GetInstance().Init();
         
         if(!m_platform->Init(title, width, height))
         {
@@ -79,6 +81,7 @@ namespace Fusion
             m_defaultFont.Unload();
             m_renderer->Shutdown();
             m_platform->Shutdown();
+            AudioDevice::GetInstance().Shutdown();
             Core::GetInstance().UnregisterWindow();
         }
     }
